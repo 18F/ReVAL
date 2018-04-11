@@ -1,0 +1,17 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[packages]
+
+pip = "*"
+uswds-forms = {git = "git://github.com/18F/django-uswds-forms", editable = true}
+dj-database-url = "*"
+"psycopg2" = "*"
+
+
+[dev-packages]
+
