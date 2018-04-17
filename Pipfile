@@ -11,7 +11,11 @@ pip = "*"
 uswds-forms = {git = "git://github.com/18F/django-uswds-forms", editable = true}
 dj-database-url = "*"
 "psycopg2" = "*"
+cg-django-uaa = "*"
+goodtables = "*"
 
 
 [dev-packages]
 
+ipdb = "*"
+jupyter = "*"

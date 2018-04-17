@@ -1,0 +1,20 @@
+
+{% block body_class %}content--skinny{% endblock %}
+{% block body %}
+<div class="container">
+  <div class="row card">
+    <div class="content">
+      <h1>Login Error</h1>
+      {% if error_code == 'authenticate_failed' %}
+        <p>
+          Either you don't have permission to log in to this system, or
+          an error occurred when trying to log you in.
+        </p>
+      {% else %}
+        <p>Unfortunately, an error occurred when trying to log you in.</p>
+        <p>Error code: <code>{{ error_code }}</code></p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

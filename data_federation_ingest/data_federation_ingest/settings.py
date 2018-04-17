@@ -14,6 +14,8 @@ import os
 
 import dj_database_url
 
+from .settings_utils import is_running_tests
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -40,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'uaa_client',
     'ingest',
 ]
 
@@ -51,6 +54,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'uaa_client.middleware.UaaRefreshMiddleware',
 ]
 
 ROOT_URLCONF = 'data_federation_ingest.urls'
@@ -119,3 +124,27 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# cg-django-uaa for authentication
+
+AUTHENTICATION_BACKENDS = (
+    'uaa_client.authentication.UaaBackend',
+)
+UAA_AUTH_URL = 'https://login.fr.cloud.gov/oauth/authorize'
+UAA_TOKEN_URL = 'https://uaa.fr.cloud.gov/oauth/token'
+UAA_CLIENT_ID = os.environ.get('UAA_CLIENT_ID', 'calc-dev')
+UAA_CLIENT_SECRET = os.environ.get('UAA_CLIENT_SECRET')
+LOGIN_URL = 'uaa_client:login'
+LOGIN_REDIRECT_URL = '/'
+
+if not UAA_CLIENT_SECRET:
+    if DEBUG:
+        # We'll be using the Fake UAA Provider.
+        UAA_CLIENT_SECRET = 'fake-uaa-provider-client-secret'
+        if not is_running_tests():
+            UAA_AUTH_URL = UAA_TOKEN_URL = 'fake:'
+
+UPLOAD_FORM = 'ingest.forms.SimpleExampleUploadForm'
+UPLOAD_INGESTOR = 'ingest.ingestors.Ingestor'
+UPLOAD_TEMPLATE = 'ingest/upload.html'
