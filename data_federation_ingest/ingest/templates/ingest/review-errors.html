@@ -2,23 +2,35 @@
 <h1>Errors in uploaded file</h1>
 <h2>Review errors</h2>
 
-{% block upload_verify_body %}
       <div class="message message-error no-bg" role="alert">
         {% if not valid_row_count %}
           <h3>No valid rows found!</h3>
           <p>
             Your uploaded price list contains no valid rows. Please fix the errors
-            shown below in the original file and <a href="#upload">try uploading it again</a>.
+            shown below in the original file and
+            <a href="{% url 'upload' %}?{{ file_metadata }}">
+              try uploading it again</a>.
           </p>
         {% else %}
-          <h3>We found errors in {{ invalid_row_count }} row{{ invalid_row_count|pluralize }} of your data</h3>
+          <h3>We found errors in {{ invalid_row_count }}
+              row{{ invalid_row_count|pluralize }} of your data</h3>
           <p>
-            The row{{ invalid_row_count|pluralize }} below appear{{ invalid_row_count|pluralize:"s," }} to be
+            The row{{ invalid_row_count|pluralize }} below
+            appear{{ invalid_row_count|pluralize:"s," }} to be
             invalid and <strong>will be discarded</strong> when you upload your
-            price list.
-            If you'd like, you may correct {{ invalid_row_count|pluralize:"this row,these rows" }}
-            in your original file and <a href="{% url 'upload' %}">
+            price list.</p>
+          <p>
+            You may
+              <ul>
+                <li>
+                  correct {{ invalid_row_count|pluralize:"this row,these rows" }}
+            in your original file and <a href="{% url 'upload' %}?{{ file_metadata }}">
             try uploading it again</a>.
+                </li>
+                <li>
+                  <a href="{% url 'confirm-upload' %}">Continue without these rows</a>
+                </li>
+             </ul>
           </p>
         {% endif %}
       </div>
@@ -30,14 +42,16 @@
             <th>{{ h }}</th>
           {% endfor %}
         </tr>
-        {% for err in errors %}
+        {% for row in rows %}
+          {% for err in row.errors %}
           <tr>
-            <th>{{ err.row_number }}</th>
-            <th>{{ err.code }}</th>
-            <th>{{ err.message }}</th>
+            <td>{{ row.row_number }}</td>
+            <td>{{ err.code }}</td>
+            <td>{{ err.message }}</td>
+            {% for itm in row.values %}
+            <td>{{ itm }}</td>
+            {% endfor %}
           </tr>
+          {% endfor %}
         {% endfor %}
       </table>
-  </div><!--content-->
-</div><!--card-->
-{% endblock upload_verify_body %}

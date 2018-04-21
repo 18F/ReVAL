@@ -1,2 +1,21 @@
+<p>Data upload</p>
 
-<p>Welcome to DATA Federation ingest.</p>
+<a href="{% url 'upload' %}">Upload new file</a>
+
+<h1>Uploaded files</h1>
+  <table>
+      <tr>
+          <th>File name</th>
+          <th>Status</th>
+          <th>Uploaded at</th>
+
+      </tr>
+      {% for upload in uploads %}
+      <tr>
+          <td>{{ upload.file.name }}</td>
+          <td>{{ upload.status }}</td>
+          <td>{{ upload.created_at }}</td>
+          <td><a href="{% url 'upload' %}{{ upload.file_metadata_as_params }}">Reload</a></td>
+      </tr>
+      {% endfor %}
+  </table>

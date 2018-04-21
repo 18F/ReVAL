@@ -6,7 +6,9 @@ from django.contrib import admin
 from . import views
 
 urlpatterns = [
-    url(r'^upload/', views.upload, name='upload'),
-    url(r'^review-errors/', views.review_errors, name='review-errors'),
-    url(r'^', views.index, name='index'),
+    url(r"^upload/", views.upload, name="upload"),
+    url(r"^review-errors/", views.review_errors, name="review-errors"),
+    url(r"^confirm-upload/", views.confirm_upload, name="confirm-upload"),
+    url(r"^complete/", views.confirm_upload, name="complete"),
+    url(r"^", views.index, name="index"),
 ]

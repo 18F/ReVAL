@@ -13,6 +13,8 @@ dj-database-url = "*"
 "psycopg2" = "*"
 cg-django-uaa = "*"
 goodtables = "*"
+black = "*"
+white = "*"
 
 
 [dev-packages]
