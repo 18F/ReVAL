@@ -7,17 +7,10 @@ name = "pypi"
 
 [packages]
 
-pip = "*"
-uswds-forms = {git = "git://github.com/18F/django-uswds-forms", editable = true}
-dj-database-url = "*"
-"psycopg2" = "*"
-cg-django-uaa = "*"
-goodtables = "*"
-black = "*"
-white = "*"
+"e1839a8" = {path = ".", editable = true}
+django = "==1.11"
 
 
 [dev-packages]
 
-ipdb = "*"
-jupyter = "*"
+ipython = "*"

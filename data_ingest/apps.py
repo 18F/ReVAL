@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class IngestConfig(AppConfig):
-    name = 'ingest'
+    name = 'data_ingest'

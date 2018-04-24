@@ -11,8 +11,11 @@ from .forms import UploadForm
 
 from django.http import HttpResponseRedirect
 
-upload_form_class = import_string(settings.UPLOAD_FORM)
-ingestor_class = import_string(settings.UPLOAD_INGESTOR)
+upload_form_class = import_string(getattr(settings, 'DATA_UPLOAD_FORM',
+    'data_ingest.forms.UploadForm'))
+ingestor_class = import_string(getattr(settings,
+    'DATA_UPLOAD_INGESTOR', 'data_ingest.ingestors.Ingestor'))
+upload_template_path = getattr(settings, 'DATA_UPLOAD_TEMPLATE', 'data_ingest/upload.html')
 
 SESSION_KEY = "ingestor"
 
@@ -23,7 +26,7 @@ def index(request):
         "created_at"
     )
     context = {"uploads": uploads}
-    return render(request, "ingest/index.html", context)
+    return render(request, "data_ingest/index.html", context)
 
 
 @login_required
@@ -49,29 +52,29 @@ def upload(request, **kwargs):
             request.session["upload_id"] = instance.id
 
             if instance.validation_results["valid"]:
-                return HttpResponseRedirect("/ingest/review-rows/")
+                return HttpResponseRedirect("/data_ingest/review-rows/")
 
             else:
-                return HttpResponseRedirect("/ingest/review-errors/")
+                return HttpResponseRedirect("/data_ingest/review-errors/")
 
     else:
         form = upload_form_class(initial=request.GET)
 
-    return render(request, settings.UPLOAD_TEMPLATE, {"form": form})
+    return render(request, upload_template_path, {"form": form})
 
 
 def review_errors(request):
     upload = Upload.objects.get(pk=request.session["upload_id"])
     data = upload.validation_results["tables"][0]
     data["file_metadata"] = upload.file_metadata_as_params()
-    return render(request, "ingest/review-errors.html", data)
+    return render(request, "data_ingest/review-errors.html", data)
 
 
 def confirm_upload(request):
     upload = Upload.objects.get(pk=request.session["upload_id"])
     data = upload.validation_results["tables"][0]
     data["file_metadata"] = upload.file_metadata_as_params()
-    return render(request, "ingest/confirm-upload.html", data)
+    return render(request, "data_ingest/confirm-upload.html", data)
 
 
 def complete(request):

@@ -7,10 +7,6 @@ import tabulator
 
 from tabulator import Stream
 
-stream = Stream("has-blanks.csv")
-stream.open()
-list(stream)
-
 
 class Ingestor:
 
