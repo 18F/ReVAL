@@ -1,32 +1,30 @@
 import io
 
+
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, permission_required
-from django.conf import settings
 from django.utils.module_loading import import_string
 from django.urls import reverse
 
+from django.views.generic import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 from .models import Upload
 from .forms import UploadForm
+from . import ingest_settings
 
 from django.http import HttpResponseRedirect
-
-upload_form_class = import_string(getattr(settings, 'DATA_UPLOAD_FORM',
-    'data_ingest.forms.UploadForm'))
-ingestor_class = import_string(getattr(settings,
-    'DATA_UPLOAD_INGESTOR', 'data_ingest.ingestors.Ingestor'))
-upload_template_path = getattr(settings, 'DATA_UPLOAD_TEMPLATE', 'data_ingest/upload.html')
 
 SESSION_KEY = "ingestor"
 
 
-@login_required
-def index(request):
-    uploads = Upload.objects.filter(submitter=request.user).order_by(
-        "-created_at"
-    )
-    context = {"uploads": uploads}
-    return render(request, "data_ingest/index.html", context)
+class UploadList(LoginRequiredMixin, ListView):
+    model = ingest_settings.model_form_class
+
+    def get_queryset(self):
+        return Upload.objects.filter(submitter=self.request.user).order_by(
+            "-created_at"
+        )
 
 
 @login_required
@@ -35,7 +33,7 @@ def upload(request, **kwargs):
     if request.method == "POST":
 
         # create a form instance and populate it with data from the request:
-        form = upload_form_class(request.POST, request.FILES)
+        form = ingest_settings.upload_form_class(request.POST, request.FILES)
         # check whether it's valid:
         if form.is_valid():
             metadata = dict(form.cleaned_data.items())
@@ -46,7 +44,7 @@ def upload(request, **kwargs):
                 file_metadata=metadata,
                 raw=form.cleaned_data["file"].read(),
             )
-            ingestor = ingestor_class(instance)
+            ingestor = ingest_settings.ingestor_class(instance)
             instance.validation_results = ingestor.validate()
             instance.save()
             request.session["upload_id"] = instance.id
@@ -58,9 +56,9 @@ def upload(request, **kwargs):
                 return HttpResponseRedirect("/data_ingest/review-errors/")
 
     else:
-        form = upload_form_class(initial=request.GET)
+        form = ingest_settings.upload_form_class(initial=request.GET)
 
-    return render(request, upload_template_path, {"form": form})
+    return render(request, ingest_settings.UPLOAD_SETTINGS['TEMPLATE'], {"form": form})
 
 
 def review_errors(request):

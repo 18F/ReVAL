@@ -10,5 +10,5 @@ urlpatterns = [
     url(r"^review-errors/", views.review_errors, name="review-errors"),
     url(r"^confirm-upload/", views.confirm_upload, name="confirm-upload"),
     url(r"^complete/", views.confirm_upload, name="complete"),
-    url(r"^", views.index, name="index"),
+    url(r"^", views.UploadList.as_view(), name="index"),
 ]
