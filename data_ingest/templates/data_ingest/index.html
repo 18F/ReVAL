@@ -5,17 +5,21 @@
 <h1>Uploaded files</h1>
   <table>
       <tr>
-          <th>File name</th>
+          <th></th>
           <th>Status</th>
           <th>Uploaded at</th>
-
+          {% for k, v in uploads.0.descriptive_fields.items %}
+          <th>{{ k }}</th>
+          {% endfor %}
       </tr>
       {% for upload in uploads %}
       <tr>
-          <td>{{ upload.file.name }}</td>
+          <td><a href="{% url 'upload' %}{{ upload.file_metadata_as_params }}">Reload</a></td>
           <td>{{ upload.status }}</td>
           <td>{{ upload.created_at }}</td>
-          <td><a href="{% url 'upload' %}{{ upload.file_metadata_as_params }}">Reload</a></td>
+          {% for k, v in upload.descriptive_fields.items %}
+          <td>{{ v }}</td>
+          {% endfor %}
       </tr>
       {% endfor %}
   </table>

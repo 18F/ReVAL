@@ -23,7 +23,7 @@ SESSION_KEY = "ingestor"
 @login_required
 def index(request):
     uploads = Upload.objects.filter(submitter=request.user).order_by(
-        "created_at"
+        "-created_at"
     )
     context = {"uploads": uploads}
     return render(request, "data_ingest/index.html", context)

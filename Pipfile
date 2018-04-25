@@ -9,6 +9,7 @@ name = "pypi"
 
 "e1839a8" = {path = ".", editable = true}
 django = "==1.11"
+deep-merge = "*"
 
 
 [dev-packages]
