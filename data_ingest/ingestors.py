@@ -1,15 +1,22 @@
-from collections import OrderedDict, defaultdict
-import goodtables
+import csv
 import functools
-import itertools
 import io
-import tabulator
+import itertools
+import json
+import os.path
+from collections import OrderedDict, defaultdict
 
+import goodtables
+import tabulator
+from django.conf import settings
+from django.core import exceptions, files
+from django.utils.module_loading import import_string
 from tabulator import Stream
+
+from .ingest_settings import UPLOAD_SETTINGS
 
 
 class Ingestor:
-
     def __init__(self, upload):
         self.upload = upload
 
@@ -23,8 +30,8 @@ class Ingestor:
         """
 
         stream = tabulator.Stream(
-            io.BytesIO(self.upload.raw), format=self.upload.file_type
-        )
+            io.BytesIO(self.upload.raw),
+            format=self.upload.file_type)
         stream.open()
         return stream
 
@@ -34,7 +41,6 @@ class Ingestor:
         return result
 
     def format_results(self, unformatted):
-
         """
         Transforms validation results to data-federation-ingest's expected format.
 
@@ -99,7 +105,9 @@ class Ingestor:
 
                 row_errs = errs.get(rn + 1, [])
                 row = {
-                    "row_number": rn + 1, "errors": row_errs, "values": raw_row
+                    "row_number": rn + 1,
+                    "errors": row_errs,
+                    "values": raw_row
                 }
                 table["rows"].append(row)
                 if row_errs:
@@ -110,3 +118,60 @@ class Ingestor:
             result["tables"].append(table)
 
         return result
+
+    def data(self):
+        t0 = self.upload.validation_results['tables'][0]
+        data = [dict(zip(t0['headers'], r['values']))
+                for r in t0['rows'] if not r['errors']]
+        result = dict(self.upload.file_metadata)
+        result[
+            'rows'] = data  # warning - what if metadata contains a col "rows"?
+        return result
+
+    def flattened_data(self):
+        nested_data = self.data()
+        for row in nested_data.pop('rows'):
+            final_row = dict(nested_data)
+            final_row.update(
+                row)  # warning - column headings that overlap with metadata...
+            yield final_row
+
+    def insert(self):
+        import pdb
+        pdb.set_trace()
+        if UPLOAD_SETTINGS['DESTINATION'].endswith('/'):
+            inserter = self.inserters[UPLOAD_SETTINGS['DESTINATION_FORMAT']]
+            return inserter(self)
+        else:
+            try:
+                dest_model = import_string(UPLOAD_SETTINGS['DESTINATION'])
+                return self.insert_to_model(dest_model)
+            except ModuleNotFoundError:
+                pass
+        msg = "settings.DATA_INGEST['DESTINATION'] of {} could not be interpreted".format(
+            settings.DATA_INGEST['DESTINATION'])
+        raise exceptions.ImproperlyConfigured(msg)
+
+    def insert_to_model(self, model_class):
+        for row in self.flattened_data():
+            instance = model_class(**row)
+            instance.upload = self.upload
+            instance.save()
+
+    def insert_json(self):
+        dest_directory = self.ingest_destination()
+        file_path = os.path.join(dest_directory,
+                                 self.upload.file.name) + '.json'
+        with open(file_path, 'w') as dest_file:
+            json.dump(self.data(), dest_file)
+
+    inserters = {'json': insert_json, }
+
+    def ingest_destination(self):
+        dest = os.path.join(settings.MEDIA_ROOT,
+                            UPLOAD_SETTINGS['DESTINATION'])
+        try:
+            files.storage.os.mkdir(dest)
+        except FileExistsError:
+            pass
+        return dest

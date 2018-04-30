@@ -1,4 +1,20 @@
-# data-federation-ingest
+# django-data-ingest
+
+`data_ingest` is a reusable Django project managing data submisstions to a central
+gathering point by file uploads.  Each file generally contains multiple data rows, and
+each user may submit multiple files.
+
+The [default installation](docs/default.md) exposes a very basic and minimal
+workflow.  [Customize](docs/customize.md) for your needs.
+
+## Features
+
+- Flexible input format
+- Validation with [goodtables](), [JSON Schema](), or a custom validation class
+- Row-by-row feedback on validation results
+- Manage and track status of data submissions
+- Re-submit previous submissions
+- Flexible ultimate destination for data
 
 ## Contributing
 

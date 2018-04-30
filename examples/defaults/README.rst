@@ -20,4 +20,14 @@ This app was created by
 
 1. Running `django-admin startproject`
 
+1. In `settings.py`, switching database engine to postgresql,
+   and adding `'data_ingest'` to `INSTALLED_APPS`
+
+1. In `urls.py`, adding 
+
+    url(r'^data_ingest/', include(data_ingest.urls)),
+
+
+
+
 

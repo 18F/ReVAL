@@ -1,0 +1,9 @@
+<h1>Duplicate upload</h1>
+
+A file with this metadata has already been uploaded.  You may:
+
+<ul id="actions">
+    <li><a href="{% url 'replace-upload' old_upload.id new_upload.id %}">
+        Replace it</a></li>
+    <li><a href="{% url 'delete-upload' new_upload.id %}">Go back</a></li>
+</ul>

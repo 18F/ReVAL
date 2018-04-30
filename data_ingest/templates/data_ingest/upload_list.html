@@ -1,5 +1,3 @@
-<p>Data upload</p>
-
 <a href="{% url 'upload' %}">Upload new file</a>
 
 <h1>Uploaded files</h1>
@@ -14,7 +12,7 @@
       </tr>
       {% for upload in upload_list %}
       <tr>
-          <td><a href="{% url 'upload' %}{{ upload.file_metadata_as_params }}">Reload</a></td>
+          <td><a href="{% url 'detail' upload.id %}">Details</a></td>
           <td>{{ upload.status }}</td>
           <td>{{ upload.created_at }}</td>
           {% for k, v in upload.descriptive_fields.items %}
