@@ -5,7 +5,7 @@ gathering point by file uploads.  Each file generally contains multiple data row
 each user may submit multiple files.
 
 The [default installation](docs/default.md) exposes a very basic and minimal
-workflow.  [Customize](docs/customize.md) for your needs.
+workflow, which can be [customized](docs/customize.md) for your needs.
 
 ## Features
 

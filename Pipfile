@@ -12,6 +12,7 @@ django = "==1.11"
 deep-merge = "*"
 pyjq = "*"
 white = "*"
+requests-file = "*"
 
 
 [dev-packages]

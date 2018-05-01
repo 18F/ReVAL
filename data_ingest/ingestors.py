@@ -143,8 +143,7 @@ class Ingestor:
             yield final_row
 
     def insert(self):
-        import pdb
-        pdb.set_trace()
+        # TODO: only insert if proper status
         if UPLOAD_SETTINGS['DESTINATION'].endswith('/'):
             inserter = self.inserters[UPLOAD_SETTINGS['DESTINATION_FORMAT']]
             return inserter(self)

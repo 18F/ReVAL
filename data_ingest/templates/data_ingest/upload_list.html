@@ -6,11 +6,11 @@
           <th></th>
           <th>Status</th>
           <th>Uploaded at</th>
-          {% for k, v in upload_list.0.descriptive_fields.items %}
+          {% for k, v in object_list.0.descriptive_fields.items %}
           <th>{{ k }}</th>
           {% endfor %}
       </tr>
-      {% for upload in upload_list %}
+      {% for upload in object_list %}
       <tr>
           <td><a href="{% url 'detail' upload.id %}">Details</a></td>
           <td>{{ upload.status }}</td>

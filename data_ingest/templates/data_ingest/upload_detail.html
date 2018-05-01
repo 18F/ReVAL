@@ -1,20 +1,20 @@
 <ul id="actions">
-    <li><a href="{% url 'upload' upload.id %}?reloading=True&{{ upload.file_metadata_as_params }}">Reload</a></li>
-    <li><a href="{% url 'insert' upload.id %}">Insert</a></li>
+    <li><a href="{% url 'upload' object.id %}?reloading=True&{{ object.file_metadata_as_params }}">Reload</a></li>
+    <li><a href="{% url 'insert' object.id %}">Insert</a></li>
 </ul>
 
 <table>
     <tr>
         <th>Status</th>
         <th>Uploaded at</th>
-        {% for k, v in upload.descriptive_fields.items %}
+        {% for k, v in object.descriptive_fields.items %}
         <th>{{ k }}</th>
         {% endfor %}
     </tr>
     <tr>
-        <td>{{ upload.status }}</td>
-        <td>{{ upload.created_at }}</td>
-        {% for k, v in upload.descriptive_fields.items %}
+        <td>{{ object.status }}</td>
+        <td>{{ object.created_at }}</td>
+        {% for k, v in object.descriptive_fields.items %}
         <td>{{ v }}</td>
         {% endfor %}
     </tr>
