@@ -1,0 +1,25 @@
+{
+  "fields": [
+    {
+      "name": "category",
+      "type": "string",
+      "description": "budget category"
+    },
+    {
+      "name": "dollars_budgeted",
+      "type": "number",
+      "description": "Amount budgeted for this fiscal year",
+      "constraints": {
+        "minimum": 0
+      }
+    },
+    {
+      "name": "dollars_spent",
+      "type": "number",
+      "description": "Actual amount paid out (not merely billed) this fiscal year",
+      "constraints": {
+        "minimum": 0
+      }
+    }
+  ]
+}

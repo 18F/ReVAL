@@ -77,7 +77,8 @@ def upload(request, reload_pk=None, **kwargs):
                 file=request.FILES["file"],
                 submitter=request.user,
                 file_metadata=metadata,
-                raw=form.cleaned_data["file"].read(), )
+                raw=form.cleaned_data["file"].read(),
+            )
             ingestor = ingest_settings.ingestor_class(instance)
             instance.validation_results = ingestor.validate()
             try:
@@ -87,16 +88,17 @@ def upload(request, reload_pk=None, **kwargs):
                     ierr.duplicate_upload.delete()
                 else:
                     instance.save()
-                    return duplicate_upload(request,
-                                            old_upload=ierr.duplicate_upload,
-                                            new_upload=instance)
+                    return duplicate_upload(
+                        request,
+                        old_upload=ierr.duplicate_upload,
+                        new_upload=instance)
             instance.save()
 
             request.session["upload_id"] = instance.id
 
             if instance.validation_results["valid"]:
-                return HttpResponseRedirect("/data_ingest/review-rows/"
-                                            )  # or just redirect?
+                return HttpResponseRedirect(
+                    "/data_ingest/review-rows/")  # or just redirect?
                 # put id in here instead of in session?
 
             else:

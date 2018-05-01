@@ -129,4 +129,5 @@ DATA_INGEST = {
     'MODEL': 'budget_data_ingest.models.Upload',
     'FORM': 'budget_data_ingest.forms.UploadForm',
     'DESTINATION': 'budget_data_ingest.models.BudgetItem',
+    'VALIDATION_SCHEMA': 'table_schema.json',
 }

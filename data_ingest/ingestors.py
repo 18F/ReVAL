@@ -6,6 +6,9 @@ import json
 import os.path
 from collections import OrderedDict, defaultdict
 
+import requests
+from requests_file import FileAdapter
+
 import goodtables
 import tabulator
 from django.conf import settings
@@ -19,6 +22,7 @@ from .ingest_settings import UPLOAD_SETTINGS
 class Ingestor:
     def __init__(self, upload):
         self.upload = upload
+        self.table_schema = UPLOAD_SETTINGS['VALIDATION_SCHEMA']
 
     def extracted(self):
         """
@@ -30,13 +34,13 @@ class Ingestor:
         """
 
         stream = tabulator.Stream(
-            io.BytesIO(self.upload.raw),
-            format=self.upload.file_type)
+            io.BytesIO(self.upload.raw), format=self.upload.file_type)
         stream.open()
         return stream
 
     def validate(self):
-        result = goodtables.validate(list(self.extracted()))
+        result = goodtables.validate(
+            list(self.extracted()), schema=self.table_schema)
         result = self.format_results(result)
         return result
 
@@ -121,8 +125,10 @@ class Ingestor:
 
     def data(self):
         t0 = self.upload.validation_results['tables'][0]
-        data = [dict(zip(t0['headers'], r['values']))
-                for r in t0['rows'] if not r['errors']]
+        data = [
+            dict(zip(t0['headers'], r['values'])) for r in t0['rows']
+            if not r['errors']
+        ]
         result = dict(self.upload.file_metadata)
         result[
             'rows'] = data  # warning - what if metadata contains a col "rows"?
@@ -165,7 +171,9 @@ class Ingestor:
         with open(file_path, 'w') as dest_file:
             json.dump(self.data(), dest_file)
 
-    inserters = {'json': insert_json, }
+    inserters = {
+        'json': insert_json,
+    }
 
     def ingest_destination(self):
         dest = os.path.join(settings.MEDIA_ROOT,

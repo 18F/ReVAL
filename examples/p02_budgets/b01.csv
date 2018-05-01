@@ -2,5 +2,7 @@ category,dollars_budgeted,dollars_spent
 ,,
 pencils,500,400
 "red tape",2000,2300
-laptops,10000,6000
+laptops,10000,-6000
 "commemorative plaques",500,800,"walnut with bronze"
+"manuals",5000,4000
+flags,millions,20000
