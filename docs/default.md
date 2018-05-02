@@ -56,6 +56,7 @@ Run the server.
     python manage.py runserver
 
 Visit http://localhost:8000/data_ingest/, login with the account you created, and try uploading some
+CSV files.
 
 
 ## Default behavior
