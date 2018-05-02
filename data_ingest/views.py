@@ -1,12 +1,7 @@
-import io
-
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db import IntegrityError
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
-from django.urls import reverse
-from django.utils.module_loading import import_string
 from django.views.generic import DetailView, ListView, TemplateView
 
 from . import ingest_settings

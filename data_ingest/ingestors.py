@@ -1,15 +1,11 @@
-import csv
-import functools
 import io
-import itertools
 import json
 import os.path
-from collections import OrderedDict, defaultdict
-
-import requests
-from requests_file import FileAdapter
+import re
+from collections import defaultdict
 
 import goodtables
+import requests
 import tabulator
 from django.conf import settings
 from django.core import exceptions, files
@@ -38,9 +34,25 @@ class Ingestor:
         stream.open()
         return stream
 
+    url_pattern = re.compile(r'^\w{3,5}://')
+
+    def table_schema_contents(self):
+        """Return schema filename, or URL contents in case of URLs"""
+
+        if self.table_schema:
+            if self.url_pattern.search(self.table_schema):
+                resp = requests.get(self.table_schema)
+                if resp.ok:
+                    return resp.json()
+                else:
+                    raise exceptions.ImproperlyConfigured(
+                        'VALIDATION_SCHEMA returned {}'.format(resp.status))
+        return self.table_schema
+
     def validate(self):
+
         result = goodtables.validate(
-            list(self.extracted()), schema=self.table_schema)
+            list(self.extracted()), schema=self.table_schema_contents())
         result = self.format_results(result)
         return result
 
