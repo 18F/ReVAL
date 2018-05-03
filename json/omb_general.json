@@ -1,0 +1,492 @@
+{
+  //General file from the OMB grants dataset in JSON format. 
+  // fields is an ordered list of field descriptors
+  // one for each field (column) in the table
+  "fields": 
+  
+  [
+    // a field-descriptor
+{
+   "name":"AUDITYEAR"
+  ,"title":"Audit Year and DBKEY (database key) combined make up the primary key."
+  ,"type":"number"
+  ,"format":""
+  ,"description":"Use these fields to link tables- 4 digits"
+},
+{
+   "name":"DBKEY"
+  ,"title":"Audit Year and DBKEY (database key) combined make up the primary key."
+  ,"type":"number"
+  ,"format":""
+  ,"description":"Use these fields to link tables- 1-6 digits"
+},
+{
+   "name":"TYPEOFENTITY"
+  ,"title":"Contact FAC for information"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"Contact FAC for information"
+},
+{
+   "name":"FYENDDATE"
+  ,"title":"Fiscal Year Ending Date"
+  ,"type":"date"
+  ,"format":""
+  ,"description":"mm/dd/yyyy"
+},
+{
+   "name":"AUDITTYPE"
+  ,"title":"Type of Audit"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"single audit or program specific"
+},
+{
+   "name":"PERIODCOVERED"
+  ,"title":"Audit Period Covered by Audit"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"annual, biennial, or other (see next)"
+},
+{
+   "name":"NUMBERMONTHS"
+  ,"title":"Number of Months Covered by the 'Other' Audit Period"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"number of months"
+},
+{
+   "name":"EIN"
+  ,"title":"Primary Employer Identification Number"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"9 digits"
+},
+{
+   "name":"MULTIPLEEINS"
+  ,"title":"Identifies if the Submission Contains Multiple EINs"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"EINSUBCODE"
+  ,"title":"Subcode assigned to the EIN"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"3 digits"
+},
+{
+   "name":"DUNS"
+  ,"title":"Primary Data Universal Numbering System Number"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"9 digits"
+},
+{
+   "name":"MULTIPLEDUNS"
+  ,"title":"Identifies if the Submission Contains Multiple DUNS"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"AUDITEENAME"
+  ,"title":"Name of the Auditee"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"70 characters max"
+},
+{
+   "name":"STREET1"
+  ,"title":"Auditee Street Address"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"45 characters max"
+},
+{
+   "name":"STREET2"
+  ,"title":"Auditee Street Address"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"45 characters max"
+},
+{
+   "name":"CITY"
+  ,"title":"Auditee City"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"30 characters max"
+},
+{
+   "name":"STATE"
+  ,"title":"Auditee State"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"2 characters"
+},
+{
+   "name":"ZIPCODE"
+  ,"title":"Auditee Zipcode"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"5 or 9 digits"
+},
+{
+   "name":"AUDITEECONTACT"
+  ,"title":"Name of Auditee Contact"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"50 characters max"
+},
+{
+   "name":"AUDITEETITLE"
+  ,"title":"Title of Auditee Contact"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"40 characters max"
+},
+{
+   "name":"AUDITEEPHONE"
+  ,"title":"Auditee Phone Number"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"10 digits"
+},
+{
+   "name":"AUDITEEFAX"
+  ,"title":"Auditee Fax Number (optional)"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"10 digits"
+},
+{
+   "name":"AUDITEEEMAIL"
+  ,"title":"Auditee Email address (optional)"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"60 characters max"
+},
+{
+   "name":"AUDITEEDATESIGNED"
+  ,"title":"Date of auditee signature"
+  ,"type":"date"
+  ,"format":""
+  ,"description":"mm/dd/yyyy"
+},
+{
+   "name":"AUDITEENAMETITLE"
+  ,"title":"Title of Auditee Certifying Official"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"70 characters max"
+},
+{
+   "name":"AUDITEECERTIFYNAME"
+  ,"title":"Name of Auditee Certifying Official"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"50 characters max"
+},
+{
+   "name":"AUDITEECERTIFYTITLE"
+  ,"title":"Title of Auditee Certifying Official"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"50 characters max"
+},
+{
+   "name":"CPAFIRMNAME"
+  ,"title":"CPA Firm Name"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"64 characters max"
+},
+{
+   "name":"AUDITOR_EIN"
+  ,"title":"CPA Firm EIN (only available for audit years 2013 and beyond)"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"9 digits"
+},
+{
+   "name":"CPASTREET1"
+  ,"title":"CPA Street Address"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"45 characters max"
+},
+{
+   "name":"CPASTREET2"
+  ,"title":"CPA Street Address"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"45 characters max"
+},
+{
+   "name":"CPACITY"
+  ,"title":"CPA City"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"30 characters max"
+},
+{
+   "name":"CPASTATE"
+  ,"title":"CPA State"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"2 characters"
+},
+{
+   "name":"CPAZIPCODE"
+  ,"title":"CPA Zip Code"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"5 or 9 digits"
+},
+{
+   "name":"CPACONTACT"
+  ,"title":"Name of CPA Contact"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"50 characters max"
+},
+{
+   "name":"CPATITLE"
+  ,"title":"Title of CPA Contact"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"40 characters max"
+},
+{
+   "name":"CPAPHONE"
+  ,"title":"CPA phone number"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"10 digits"
+},
+{
+   "name":"CPAFAX"
+  ,"title":"CPA fax number (optional)"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"10 digits"
+},
+{
+   "name":"CPAEMAIL"
+  ,"title":"CPA email address (optional)"
+  ,"type":"string"
+  ,"format":""
+  ,"description":"60 characters max"
+},
+{
+   "name":"CPADATESIGNED"
+  ,"title":"Date of CPA signature"
+  ,"type":"date"
+  ,"format":""
+  ,"description":"mm/dd/yyyy"
+},
+{
+   "name":"MULTIPLE_CPAS"
+  ,"title":"Identifies if the Submission Contains Multiple CPAs"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"COGAGENCY"
+  ,"title":"Two digit Federal agency prefix of the cognizant agency"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"2 Digit Federal Agency prefix"
+},
+{
+   "name":"OVERSIGHTAGENCY"
+  ,"title":"Two digit Federal agency prefix of the oversight agency"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"2 Digit Federal Agency prefix"
+},
+{
+   "name":"TYPEREPORT_FS"
+  ,"title":"Type of Report Issued on the Financial Statements"
+  ,"type":"array"
+  ,"format":""
+  ,"description":"U=Unqualifed, Q=Qualified, A=Adverse, D=Disclaimer"
+},
+{
+   "name":"SP_FRAMEWORK"
+  ,"title":"Special Purpose Framework that was used as the basis of accounting"
+  ,"type":"array"
+  ,"format":""
+  ,"description":"Cash basis, Tax basis, Regulatory basis, Contractual basis, or Other basis"
+},
+{
+   "name":"SP_FRAMEWORK_REQUIRED"
+  ,"title":"Indicate whether or not the special purpose framework used as basis of accounting by state law or tribal law"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"TYPEREPORT_SP_FRAMEWORK"
+  ,"title":"The auditor's opinion on the special purpose framework "
+  ,"type":"array"
+  ,"format":""
+  ,"description":"U=Unqualifed, Q=Qualified, A=Adverse, D=Disclaimer"
+},
+{
+   "name":"GOINGCONCERN"
+  ,"title":"Whether or not the audit contained a going concern paragraph  on financial statements"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"REPORTABLECONDITION/SIGNIFICANTDEFICIENCY"
+  ,"title":"Whether or not the audit disclosed a reportable condition/significant deficiency on financial statements"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"MATERIALWEAKNESS"
+  ,"title":"Whether or not the audit disclosed any reportable condition/significant deficiency as a material weakness on financial statements"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"MATERIALNONCOMPLIANCE"
+  ,"title":"Whether or not the audit disclosed a material noncompliance on financial statements"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"TYPEREPORT_MP"
+  ,"title":"Type of Report Issued on the Major Program Compliance"
+  ,"type":"array"
+  ,"format":""
+  ,"description":"U=Unqualifed, Q=Qualified, A=Adverse, D=Disclaimer"
+},
+{
+   "name":"DUP_REPORTS"
+  ,"title":"Whether or not the financial statements include departments that have separate A-133 audits not included in this audit"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"DOLLARTHRESHOLD"
+  ,"title":"Dollar Threshold to distinguish between Type A and Type B programs."
+  ,"type":"number"
+  ,"format":""
+  ,"description":"($) 12 digits max"
+},
+{
+   "name":"LOWRISK"
+  ,"title":"Indicate whether or not the auditee qualified as a low-risk auditee"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"REPORTABLECONDITION/SIGNIFICANTDEFICIENCY_MP"
+  ,"title":"Whether or not the audit disclosed a reportable condition/significant deficiency for any major program in the Schedule of Findings and Questioned Costs"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"MATERIALWEAKNESS_MP"
+  ,"title":"Indicate whether any reportable condition/signficant deficiency was disclosed as a material weakness for a major program in the Schedule of Findings and Questioned Costs"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"QCOSTS"
+  ,"title":"Indicate whether or not the audit disclosed any known questioned costs."
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"CYFINDINGS"
+  ,"title":"Indicate whether or not current year findings affecting direct funds were reported"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"PYSCHEDULE"
+  ,"title":"Indicate whether or not the report includes a Summary Schedule of Prior Year Audit Findings"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"TOTFEDEXPEND"
+  ,"title":"Total Federal Expenditures"
+  ,"type":"number"
+  ,"format":""
+  ,"description":"12 digits max"
+},
+{
+   "name":"INITIAL DATE RECEIVED"
+  ,"title":"The first date an audit component or Form SF-SAC was received by the Federal audit Clearinghouse (FAC)."
+  ,"type":"date"
+  ,"format":""
+  ,"description":"mm/dd/yyyy"
+},
+{
+   "name":"FORM DATE RECEIVED"
+  ,"title":"The most Recent Date the Form SF-SAC was received by the FAC. This field was not populated before 2001."
+  ,"type":"date"
+  ,"format":""
+  ,"description":"mm/dd/yyyy"
+},
+{
+   "name":"COMPONENT DATE RECEIVED"
+  ,"title":"The most recent date an audit component was received by the FAC. This field was not populated before 2004. Receipt of Financial statements only are not processed until the rest of the audit or a Form SF-SAC is also received."
+  ,"type":"date"
+  ,"format":""
+  ,"description":"mm/dd/yyyy"
+},
+{
+   "name":"COMPLETED_ON"
+  ,"title":"Date the Audit was Posted to the Internet as Complete"
+  ,"type":"date"
+  ,"format":""
+  ,"description":"mm/dd/yyyy"
+},
+{
+   "name":"PREVIOUS_COMPLETED_ON"
+  ,"title":"Date the Audit was Previously Posted to the Internet as Complete"
+  ,"type":"date"
+  ,"format":""
+  ,"description":"mm/dd/yyyy"
+},
+{
+   "name":"REPORTREQUIRED"
+  ,"title":"Distribution to Federal Agency required?"
+  ,"type":"boolean"
+  ,"format":""
+  ,"description":"(Y)es / (N)o indicator"
+},
+{
+   "name":"FAC ACCEPTED DATE"
+  ,"title":"The most recent date an audit report was submitted to the FAC that passed FAC screening and was accepted as a valid OMB Circular A-133 report submission."
+  ,"type":"date"
+  ,"format":""
+  ,"description":"mm/dd/yyyy"
+}
+  ],
+  // (optional) specification of missing values
+  // "missingValues": [ ... ],
+  // (optional) specification of the primary key
+  // "primaryKey": ...
+  // (optional) specification of the foreign keys
+  // "foreignKeys": ...
+}
