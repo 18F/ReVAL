@@ -93,19 +93,20 @@ class Ingestor:
 
         result = {"valid": unformatted["valid"], "tables": []}
 
-        for unf_tbl in unformatted["tables"]:
+        for unformatted_table in unformatted["tables"]:
 
             # TODO: don't know what happens if the tabulator gives > 1 table
             table = {
                 "valid_row_count": 0,
                 "invalid_row_count": 0,
-                "headers": unf_tbl["headers"],
+                "headers": unformatted_table["headers"],
                 "rows": [],
                 "errors": [],
             }
 
+            # Produce a dictionary of errors by row number
             errs = defaultdict(list)
-            for err in unf_tbl["errors"]:
+            for err in unformatted_table["errors"]:
                 rn = err.pop('row-number', None)
                 if rn:
                     errs[rn].append(err)
@@ -119,13 +120,15 @@ class Ingestor:
                     header_skipped = True
                     continue
 
-                row_errs = errs.get(rn + 1, [])
+                # Assemble a description of each row
+                row_errs = errs.get(rn + 1, [])  # We report row numbers in 1-based, not 0-based
                 row = {
                     "row_number": rn + 1,
                     "errors": row_errs,
                     "values": raw_row
                 }
                 table["rows"].append(row)
+
                 if row_errs:
                     table["invalid_row_count"] += 1
                 else:
