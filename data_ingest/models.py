@@ -1,35 +1,22 @@
-import copy
-import csv
-import io
 import os.path
 from urllib.parse import urlencode
 
-import tabulator
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
-from django.db import IntegrityError, models
-
-
-def csv_to_dicts(raw):
-    reader = csv.DictReader(
-        io.StringIO(bytes(raw).decode("utf8")))  # TODO: encoding utf8?
-    yield from reader
-
-
-class UploadIntegrityError(IntegrityError):
-    def __init__(self, *arg, duplicate_upload=None, **kwargs):
-        self.duplicate_upload = duplicate_upload
-        return super().__init__(self, *arg, **kwargs)
+from django.db import models
 
 
 class Upload(models.Model):
     class Meta:
         abstract = True
 
-    STATUS_CHOICES = (('LOADING', 'Loading'),
-                      ('PENDING', 'Pending'),
-                      ('STAGED', 'Staged'),
-                      ('INSERTED', 'Inserted'), )
+    STATUS_CHOICES = (
+        ('LOADING', 'Loading'),
+        ('PENDING', 'Pending'),
+        ('STAGED', 'Staged'),
+        ('INSERTED', 'Inserted'),
+        ('DELETED', 'Deleted'),
+    )
 
     submitter = models.ForeignKey(User)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -38,28 +25,36 @@ class Upload(models.Model):
     file = models.FileField()
     raw = models.BinaryField(null=True)
     validation_results = JSONField(null=True)
-    status = models.CharField(max_length=10,
-                              choices=STATUS_CHOICES,
-                              default='LOADING', )
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='LOADING',
+    )
     status_changed_by = models.ForeignKey(User, related_name="+", null=True)
     status_changed_at = models.DateTimeField(null=True)
+    replaces = models.ForeignKey('self', null=True, related_name='replaced_by')
 
     unique_metadata_fields = []
 
-    def enforce_unique_metadata_fields(self):
+    def duplicate_of(self):
+        """
+
+        We are assuming there won't be *multiple* duplicates.
+        """
+
         # This is far less efficient than using a database unique index,
         # but we want to leave file_metadata very flexibly defined
         if self.unique_metadata_fields:
             duplicates = self.__class__.objects
             for field in self.unique_metadata_fields:
-                duplicates = duplicates.filter(**{'file_metadata__' + field:
-                                                  self.file_metadata[field]})
-            duplicate = duplicates.first()
-            if duplicate:
-                raise UploadIntegrityError(
-                    'File metadata duplicates existing upload ' +
-                    str(duplicate.id),
-                    duplicate_upload=duplicate)
+                duplicates = duplicates.filter(
+                    **{'file_metadata__' + field: self.file_metadata[field]})
+            # Silently delete abandoned in-process duplicates
+            abandoned = duplicates.filter(status='LOADING').exclude(
+                id=self.id).delete()
+            return duplicates.exclude(status='DELETED').exclude(
+                id=self.id).first()
+        return None
 
     @property
     def file_type(self):

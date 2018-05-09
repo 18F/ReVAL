@@ -1,5 +1,9 @@
 <ul id="actions">
-    <li><a href="{% url 'upload' object.id %}?reloading=True&{{ object.file_metadata_as_params }}">Reload</a></li>
+    <li><a href="{% url 'upload' object.id %}?{{ object.file_metadata_as_params }}">Reload</a></li>
+    {% if object.status == 'LOADING' %}
+    <li><a href="{% url 'review-errors' object.id %}">Load</a></li>
+    {% endif %}
+    <li><a href="{% url 'delete-upload' object.id %}">Delete</a></li>
     <li><a href="{% url 'insert' object.id %}">Insert</a></li>
 </ul>
 

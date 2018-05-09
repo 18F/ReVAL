@@ -13,13 +13,15 @@ class UploadWidget(forms.widgets.FileInput):
     It is tightly coupled to upload.js.
     """
 
-    def __init__(self,
-                 attrs=None,
-                 degraded=False,
-                 required=True,
-                 accept=DEFAULT_FILE_EXTENSIONS,
-                 extra_instructions="XLS, XLSX, or CSV format, please.",
-                 existing_filename=None, ):
+    def __init__(
+            self,
+            attrs=None,
+            degraded=False,
+            required=True,
+            accept=DEFAULT_FILE_EXTENSIONS,
+            extra_instructions="XLS, XLSX, or CSV format, please.",
+            existing_filename=None,
+    ):
         super().__init__(attrs=attrs)
         self.required = required
         self.degraded = degraded
@@ -71,6 +73,3 @@ class UploadWidget(forms.widgets.FileInput):
 
 class UploadForm(forms.Form):
     file = forms.FileField()
-    reloading = forms.BooleanField(initial=False,
-                                   required=False,
-                                   widget=forms.HiddenInput())

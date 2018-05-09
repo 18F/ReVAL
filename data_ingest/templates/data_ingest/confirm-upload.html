@@ -3,7 +3,7 @@
 
   <h2>Verify file attributes</h2>
     <table>
-      {% for k, v in upload.file_metadata.items %}
+      {% for k, v in file_metadata.items %}
       <tr><td>{{ k }}</td><td>{{ v }}</td></tr>
       {% endfor %}
     </table>
@@ -28,5 +28,5 @@
     </table>
 
   </div>
-  <a href="{% url 'index' %}">Complete upload</a>
+  <a href="{% url 'complete-upload' upload_id %}">Complete upload</a>
 </div>

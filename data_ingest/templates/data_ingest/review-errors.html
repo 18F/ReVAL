@@ -8,7 +8,7 @@
           <p>
             Your uploaded price list contains no valid rows. Please fix the errors
             shown below in the original file and
-            <a href="{% url 'upload' %}?reloading=true&{{ file_metadata }}">
+            <a href="{% url 'upload' upload_id replace_upload %}?{{ file_metadata }}">
               try uploading it again</a>.
           </p>
         {% else %}
@@ -24,11 +24,12 @@
               <ul>
                 <li>
                   correct {{ invalid_row_count|pluralize:"this row,these rows" }}
-            in your original file and <a href="{% url 'upload' %}?reloading=true&{{ file_metadata }}">
-            try uploading it again</a>.
+                  in your original file and
+                  <a href="{% url 'upload' upload_id %}?{{ file_metadata }}">
+                  try uploading it again</a>.
                 </li>
                 <li>
-                  <a href="{% url 'confirm-upload' %}">Continue without these rows</a>
+                  <a href="{% url 'confirm-upload' upload_id %}">Continue without these rows</a>
                 </li>
              </ul>
           </p>
