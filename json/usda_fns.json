@@ -1,4 +1,11 @@
-[
+{
+  //FNS-742 Annotated form from USDA in JSON format. 
+  // fields is an ordered list of field descriptors
+  // one for each field (column) in the table
+  "fields": 
+  
+  [
+    // a field-descriptor
  {
    "name": "AUDITYEAR",
    "title": "Audit Year and DBKEY (database key) combined make up the primary key.",
