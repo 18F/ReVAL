@@ -559,4 +559,11 @@
    "format": "",
    "description": "VC-1. Total questionable applications verified for cause (Enter \"0\" if not applicable)"
  }
-]
+],
+  // (optional) specification of missing values
+  // "missingValues": [ ... ],
+  // (optional) specification of the primary key
+  // "primaryKey": ...
+  // (optional) specification of the foreign keys
+  // "foreignKeys": ...
+}
