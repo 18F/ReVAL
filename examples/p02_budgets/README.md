@@ -28,7 +28,8 @@ exceptions:
 
 - Added a `BudgetItem` [Django model](budget_data_ingest/models.py) to receive data inserted from the uploads
 
-- Added [table_schema.json](table_schema.json), which will be used to validate uploads
+- Added a [Goodtables](https://github.com/frictionlessdata/goodtables-py) 
+  validator with constraints defined in [table_schema.json](table_schema.json)
 
 - Additions/edits to `p02_budget/settings.py`:
 
@@ -50,7 +51,7 @@ exceptions:
         'MODEL': 'budget_data_ingest.models.Upload',
         'FORM': 'budget_data_ingest.forms.UploadForm',
         'DESTINATION': 'budget_data_ingest.models.BudgetItem',
-        'VALIDATION_SCHEMA': 'table_schema.json',
+        'VALIDATORS': {'table_schema.json': 'data_ingest.ingestors.GoodtablesValidator', },
     }
 
 ## To run locally

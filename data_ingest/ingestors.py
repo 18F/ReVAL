@@ -15,48 +15,37 @@ from tabulator import Stream
 from .ingest_settings import UPLOAD_SETTINGS
 
 
-class Ingestor:
-    def __init__(self, upload):
-        self.upload = upload
-        self.table_schema = UPLOAD_SETTINGS['VALIDATION_SCHEMA']
-
-    def extracted(self):
-        """
-        An iterator of data from the upload
-
-        This default implementation does not transform the data at all.
-        Complex data sources, like spreadsheets with data in cells that aren't arranged
-        in tables, will need to override it.
-        """
-
-        stream = tabulator.Stream(
-            io.BytesIO(self.upload.raw), format=self.upload.file_type)
-        stream.open()
-        return stream
+class Validator:
 
     url_pattern = re.compile(r'^\w{3,5}://')
 
-    def table_schema_contents(self):
-        """Return schema filename, or URL contents in case of URLs"""
+    def __init__(self, name, filename):
+        self.name = name
+        self.filename = filename
+        self.validator = self.get_validator_contents()
 
-        if self.table_schema:
-            if self.url_pattern.search(self.table_schema):
-                resp = requests.get(self.table_schema)
+    def get_validator_contents(self):
+        """Return validator filename, or URL contents in case of URLs"""
+
+        if self.filename:
+            if self.url_pattern.search(self.filename):
+                resp = requests.get(self.filename)
                 if resp.ok:
                     return resp.json()
                 else:
                     raise exceptions.ImproperlyConfigured(
-                        'VALIDATION_SCHEMA returned {}'.format(resp.status))
-        return self.table_schema
+                        'validator {} {} returned {}'.format(
+                            self.name, self.filename, resp.status))
+        return self.filename
 
-    def validate(self):
 
-        result = goodtables.validate(
-            list(self.extracted()), schema=self.table_schema_contents())
-        result = self.format_results(result)
-        return result
+class GoodtablesValidator(Validator):
+    def validate(self, data):
 
-    def format_results(self, unformatted):
+        result = goodtables.validate(data, schema=self.validator)
+        return self.formatted(data, result)
+
+    def formatted(self, data, unformatted):
         """
         Transforms validation results to data-federation-ingest's expected format.
 
@@ -114,14 +103,16 @@ class Ingestor:
                     table['errors'].append(err)
 
             header_skipped = False
-            for (rn, raw_row) in enumerate(self.extracted()):
+            for (rn, raw_row) in enumerate(data):
                 # TODO: this does not seem like a good way to detect the header
                 if (not header_skipped) and (raw_row == table["headers"]):
                     header_skipped = True
                     continue
 
                 # Assemble a description of each row
-                row_errs = errs.get(rn + 1, [])  # We report row numbers in 1-based, not 0-based
+                row_errs = errs.get(
+                    rn + 1,
+                    [])  # We report row numbers in 1-based, not 0-based
                 row = {
                     "row_number": rn + 1,
                     "errors": row_errs,
@@ -137,6 +128,37 @@ class Ingestor:
             result["tables"].append(table)
 
         return result
+
+
+class Ingestor:
+    def __init__(self, upload):
+        self.upload = upload
+        self.validators = []
+        for (filename, type) in UPLOAD_SETTINGS['VALIDATORS'].items():
+            validator = import_string(type)(name=type, filename=filename)
+            self.validators.append(validator)
+
+    def extracted(self):
+        """
+        An iterator of data from the upload
+
+        This default implementation does not transform the data at all.
+        Complex data sources, like spreadsheets with data in cells that aren't arranged
+        in tables, will need to override it.
+        """
+
+        stream = tabulator.Stream(
+            io.BytesIO(self.upload.raw), format=self.upload.file_type)
+        stream.open()
+        return stream
+
+    def validate(self):
+
+        data = list(self.extracted())
+        for validator in self.validators:
+            results = validator.validate(data)
+            # todo: blending the results of multiple validators
+        return results
 
     def data(self):
         t0 = self.upload.validation_results['tables'][0]

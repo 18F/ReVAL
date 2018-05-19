@@ -6,6 +6,10 @@ An example is available at [examples/defaults](../examples/defaults.md)
 
 ## Creating the minimal project
 
+Install Django 1.11.
+
+    pipenv install django==1.11
+
 Begin your Django project as usual.
 
     django-admin.py startproject myproject
@@ -30,6 +34,14 @@ Also in `myproject/settings.py`, change the `DATABASE` settings to a PostgreSQL 
             'NAME': 'myprojectdb',
         }
     }
+
+Or (recommended, especially if you are deploying to cloud.gov),
+
+    import dj_database_url
+
+    DATABASES = {'default': dj_database_url.config(
+        default='postgres:///myprojectdb')}
+
 
 Add the data_ingest urls and a login url to `myproject/urls.py`.
 

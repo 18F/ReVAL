@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 
+import dj_database_url
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -24,7 +26,10 @@ SECRET_KEY = 'rdf(#78&p8f$i@784^%95v^!3#t47g#g5ed@m&2^7x(77xk(69'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '.cloud.gov',
+]
 
 # Application definition
 
@@ -73,14 +78,7 @@ WSGI_APPLICATION = 'p02_budgets.wsgi.application'
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'budget_ingestor',
-        # 'USER': 'mydatabaseuser',
-        # 'PASSWORD': 'mypassword',
-        # 'HOST': '127.0.0.1',
-        # 'PORT': '5432',
-    }
+    'default': dj_database_url.config(default='postgres:///budget_ingestor')
 }
 
 # Password validation
@@ -122,12 +120,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 DATA_INGEST = {
     'MODEL': 'budget_data_ingest.models.Upload',
     'FORM': 'budget_data_ingest.forms.UploadForm',
     'DESTINATION': 'budget_data_ingest.models.BudgetItem',
-    'VALIDATION_SCHEMA': 'table_schema.json',
-    # Alternately: 'VALIDATION_SCHEMA':
-    # 'https://raw.githubusercontent.com/18F/django-data-ingest/master/examples/p02_budgets/table_schema.json',
+    'VALIDATORS': {
+        'table_schema.json': 'data_ingest.ingestors.GoodtablesValidator',
+    },
+    # or get validator from URL:
+    # 'VALIDATORS': {
+    #     'https://raw.githubusercontent.com/18F/django-data-ingest/master/examples/p02_budgets/table_schema.json':
+    #     'data_ingest.ingestors.GoodtablesValidator', },
 }

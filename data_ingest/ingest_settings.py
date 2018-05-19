@@ -11,7 +11,9 @@ DEFAULT_UPLOAD_SETTINGS = {
     'MODEL': 'data_ingest.models.DefaultUpload',
     'DESTINATION': 'data_ingest/',
     'DESTINATION_FORMAT': 'json',
-    'VALIDATION_SCHEMA': None,
+    'VALIDATORS': {
+        None: 'data_ingest.ingestors.GoodtablesValidator',
+    },
 }
 
 UPLOAD_SETTINGS = deep_merge.merge(DEFAULT_UPLOAD_SETTINGS,
