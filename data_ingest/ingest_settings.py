@@ -1,4 +1,3 @@
-import deep_merge
 from django.conf import settings
 from django.utils.module_loading import import_string
 
@@ -16,8 +15,8 @@ DEFAULT_UPLOAD_SETTINGS = {
     },
 }
 
-UPLOAD_SETTINGS = deep_merge.merge(DEFAULT_UPLOAD_SETTINGS,
-                                   getattr(settings, 'DATA_INGEST', {}))
+UPLOAD_SETTINGS = dict(DEFAULT_UPLOAD_SETTINGS)
+UPLOAD_SETTINGS.update(getattr(settings, 'DATA_INGEST', {}))
 
 upload_form_class = import_string(UPLOAD_SETTINGS['FORM'])
 upload_model_class = import_string(UPLOAD_SETTINGS['MODEL'])

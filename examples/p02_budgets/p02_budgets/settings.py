@@ -128,6 +128,7 @@ DATA_INGEST = {
     'DESTINATION': 'budget_data_ingest.models.BudgetItem',
     'VALIDATORS': {
         'table_schema.json': 'data_ingest.ingestors.GoodtablesValidator',
+        'json_logic.json': 'data_ingest.ingestors.JsonlogicValidator',
     },
     # or get validator from URL:
     # 'VALIDATORS': {

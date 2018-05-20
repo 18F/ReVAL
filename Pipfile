@@ -8,10 +8,9 @@ name = "pypi"
 [packages]
 
 "e1839a8" = {path = ".", editable = true}
-django = "==1.11"
-deep-merge = "*"
-pyjq = "*"
-white = "*"
+Django = "==1.11"
+dj-database-url = "*"
+json-logic-py = {git = "https://github.com/qubitdigital/json-logic-py.git", editable = true}
 
 
 [dev-packages]
@@ -21,3 +20,4 @@ ipdb = "*"
 yapf = "*"
 isort = "*"
 vulture = "*"
+jupyter = "*"

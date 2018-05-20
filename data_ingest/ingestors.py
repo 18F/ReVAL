@@ -5,6 +5,7 @@ import re
 from collections import defaultdict
 
 import goodtables
+import json_logic
 import requests
 import tabulator
 from django.conf import settings
@@ -36,6 +37,9 @@ class Validator:
                     raise exceptions.ImproperlyConfigured(
                         'validator {} {} returned {}'.format(
                             self.name, self.filename, resp.status))
+            else:
+                with open(self.filename) as infile:
+                    return json.load(infile)
         return self.filename
 
 
@@ -130,6 +134,59 @@ class GoodtablesValidator(Validator):
         return result
 
 
+class JsonlogicValidator(Validator):
+    '''Rule file should be JSON in the form
+
+    {'Text describing rule': {JsonLogic rule},
+     ...
+    }
+    '''
+
+    def validate(self, data):
+
+        table = {
+            'headers': [],
+            'invalid_row_count': 0,
+            'valid_row_count': 0,
+        }
+
+        rows = []
+
+        for (raw_rn, row) in enumerate(data):
+            if (not table['headers']) and (any(row)):
+                table['headers'] = row
+                continue
+            errors = []
+            row_dict = dict(zip(table['headers'], row))
+            for (rule_description, rule) in self.validator.items():
+                result = json_logic.jsonLogic(rule, row_dict)
+                if not result:
+                    errors.append(rule_description)
+            if errors:
+                table['invalid_row_count'] += 1
+            else:
+                table['valid_row_count'] += 1
+            rows.append({
+                'row_number':
+                raw_rn + 1,
+                'values':
+                row,
+                'errors': [{
+                    'code': None,
+                    'message': m
+                } for m in errors],
+            })
+        table['rows'] = rows
+
+        result = {
+            'tables': [
+                table,
+            ],
+            'valid': (table['invalid_row_count'] == 0)
+        }
+        return result
+
+
 class Ingestor:
     def __init__(self, upload):
         self.upload = upload
@@ -152,13 +209,23 @@ class Ingestor:
         stream.open()
         return stream
 
+    def _combine_results(self, final_result, results):
+        if final_result:
+            for (rn, row) in enumerate(final_result['tables'][0]['rows']):
+                row['errors'].extend(
+                    results['tables'][0]['rows'][rn]['errors'])
+            return final_result
+        else:
+            return results
+
     def validate(self):
 
         data = list(self.extracted())
+        result = {}
         for validator in self.validators:
-            results = validator.validate(data)
-            # todo: blending the results of multiple validators
-        return results
+            validation_results = validator.validate(data)
+            result = self._combine_results(result, validation_results)
+        return result
 
     def data(self):
         t0 = self.upload.validation_results['tables'][0]

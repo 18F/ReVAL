@@ -1,0 +1,3 @@
+{ "spending should not exceed budget":
+  {"<=" : [ { "var" : "dollars_spent" }, {"var": "dollars_budgeted"} ]}
+}
