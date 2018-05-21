@@ -73,3 +73,5 @@ class UploadWidget(forms.widgets.FileInput):
 
 class UploadForm(forms.Form):
     file = forms.FileField()
+    replace_upload_id = forms.IntegerField(
+        required=False, widget=forms.HiddenInput())

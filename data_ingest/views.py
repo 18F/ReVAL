@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
-from django.views.generic import DetailView, ListView, TemplateView
+from django.views.generic import DetailView, ListView
 
 from . import ingest_settings
 
@@ -37,6 +37,7 @@ def duplicate_upload(request, old_upload_id, new_upload_id):
 
 @login_required
 def replace_upload(request, old_upload_id, new_upload_id):
+    """Replaces an upload with another upload already in progress."""
 
     old_upload = ingest_settings.upload_model_class.objects.get(
         pk=old_upload_id)
@@ -48,12 +49,17 @@ def replace_upload(request, old_upload_id, new_upload_id):
     return validate(new_upload)
 
 
-@login_required
-def delete_upload(request, upload_id):
+def _delete_upload(upload_id):
 
     upload = ingest_settings.upload_model_class.objects.get(pk=upload_id)
     upload.status = 'DELETED'
     upload.save()
+
+
+@login_required
+def delete_upload(request, upload_id):
+
+    _delete_upload(upload_id)
     return redirect('index')
 
 
@@ -79,6 +85,7 @@ def upload(request, replace_upload_id=None, **kwargs):
         if form.is_valid():
             metadata = dict(form.cleaned_data.items())
             metadata.pop("file")
+            replace_upload_id = metadata.pop("replace_upload_id")
             instance = ingest_settings.upload_model_class(
                 file=request.FILES["file"],
                 submitter=request.user,
@@ -91,10 +98,15 @@ def upload(request, replace_upload_id=None, **kwargs):
                 if replace_upload:
                     return redirect('duplicate-upload', replace_upload.id,
                                     instance.id)
+            else:
+                _delete_upload(int(replace_upload_id))
+
             return validate(instance)
 
     else:
-        form = ingest_settings.upload_form_class(initial=request.GET)
+        initial = request.GET.dict()
+        initial['replace_upload_id'] = replace_upload_id
+        form = ingest_settings.upload_form_class(initial=initial)
 
     return render(request, ingest_settings.UPLOAD_SETTINGS['TEMPLATE'],
                   {"form": form})
