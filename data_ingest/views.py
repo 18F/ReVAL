@@ -151,10 +151,6 @@ def detail(request, upload_id):
         return redirect('upload-detail', upload_id)
 
 
-def complete(request):
-    pass
-
-
 def insert(request, upload_id):
     upload = ingest_settings.upload_model_class.objects.get(pk=upload_id)
     ingestor = ingest_settings.ingestor_class(upload)

@@ -7,18 +7,84 @@ By default, data_ingest applies only the
 which checks for basic problems like empty rows,
 rows with more columns than the header, etc.
 
+### Specifying `VALIDATORS`
+
+Any number of validators can be applied by adding them to 
+`DATA_INGEST['VALIDATORS']`.  The key should be the filename
+(or URL of a file to be downloaded); the value should be the 
+validator class used with that file.  `data_ingest` supplies
+built-in validators for 
+[Table Schema](https://frictionlessdata.io/specs/table-schema/) 
+and [JsonLogic](http://jsonlogic.com/).
+
+If the order of application is 
+important, `DATA_INGEST['VALIDATORS']` can be an 
+[OrderedDict](https://docs.python.org/3/library/collections.html#collections.OrderedDict).
+
 ### With a custom Table Schema
 
 [Table Schema](https://frictionlessdata.io/specs/table-schema/)
 supports a variety of validations.  Any valid TableSchema
 can be applied to uploads by including it in `DATA_INGEST['VALIDATION_SCHEMA']` in `settings.py`.
 
-    DATA_INGEST = {
-        'VALIDATION_SCHEMA': 'table_schema.json',
+    'VALIDATORS': {
+        'table_schema.json': 'data_ingest.ingestors.GoodtablesValidator',
     }
 
 This can be a file path relative to the Django project's root,
 or the URL of a Table Schema on the web.
+
+### With [JSON Logic](http://jsonlogic.com/)
+
+Create a JSON file with a dictionary of rules in the form: 
+
+    {'Descriptive rule text': {<rule in JSON Logic format>},
+     ...
+    }
+    
+Rules should return `true` for valid rows and `false` for invalid.
+
+
+A sample rule file might look like
+
+    { "spending should not exceed budget":
+      {"<=" : [ { "var" : "dollars_spent" }, {"var": "dollars_budgeted"} ]},
+      "spending should be between 1000 and 5000 dollars":
+      {"<=" : [ 1000, { "var" : "dollars_spent" }, 5000 ]}
+    }
+
+
+Then add the JSON Logic rule file to `DATA_INGEST['VALIDATORS']`. 
+
+    'VALIDATORS': {
+        'json_logic.json': 'data_ingest.ingestors.JsonlogicValidator',
+    },
+    
+### With SQL
+
+Create a JSON file with a dictionary of rules in the form: 
+
+    {'Descriptive rule text': {<rule in SQL format>},
+     ...
+    }
+    
+Rules should return `true` for valid rows and `false` for invalid.
+
+A sample rule file might look like
+
+{ "dollars_spent must not be negative":
+        "dollars_spent >= 0"
+}
+
+Then add the SQL rule file to `DATA_INGEST['VALIDATORS']`. 
+
+    'VALIDATORS': {
+        'sql_rules.json': 'data_ingest.ingestors.SqlValidator',
+    },
+ 
+### Custom validator 
+
+TODO 
 
 ## Adding metadata
 
@@ -81,5 +147,13 @@ to the `Upload` model, to track the data flow for
 troubleshooting, retrating/deleting uploads, etc.
 
 ### To a RESTful web service
+
+TODO
+
+## Customizing ingestors 
+
+If the files are in an irregular format (like spreadsheets
+where the relevant cells are not in a contiguous block), you 
+may need to write your own ingestor.
 
 TODO

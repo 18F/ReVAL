@@ -129,6 +129,7 @@ DATA_INGEST = {
     'VALIDATORS': {
         'table_schema.json': 'data_ingest.ingestors.GoodtablesValidator',
         'json_logic.json': 'data_ingest.ingestors.JsonlogicValidator',
+        'sql_rules.json': 'data_ingest.ingestors.SqlValidator',
     },
     # or get validator from URL:
     # 'VALIDATORS': {

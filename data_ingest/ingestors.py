@@ -2,11 +2,13 @@ import io
 import json
 import os.path
 import re
+import sqlite3
 from collections import defaultdict
 
 import goodtables
 import json_logic
 import requests
+import sqlparse
 import tabulator
 from django.conf import settings
 from django.core import exceptions, files
@@ -134,12 +136,17 @@ class GoodtablesValidator(Validator):
         return result
 
 
-class JsonlogicValidator(Validator):
-    '''Rule file should be JSON in the form
+class RowwiseValidator(Validator):
+    '''Subclass this for any validator applied to one row at a time.
 
-    {'Text describing rule': {JsonLogic rule},
+    Rule file should be JSON in the form
+
+    {'Text describing rule': <rule>
      ...
     }
+
+    Then each subclass only needs an `valid_row(self, rule, row)`
+    method returning Boolean
     '''
 
     def validate(self, data):
@@ -159,7 +166,7 @@ class JsonlogicValidator(Validator):
             errors = []
             row_dict = dict(zip(table['headers'], row))
             for (rule_description, rule) in self.validator.items():
-                result = json_logic.jsonLogic(rule, row_dict)
+                result = self.valid_row(rule, row_dict)
                 if not result:
                     errors.append(rule_description)
             if errors:
@@ -185,6 +192,39 @@ class JsonlogicValidator(Validator):
             'valid': (table['invalid_row_count'] == 0)
         }
         return result
+
+
+class JsonlogicValidator(RowwiseValidator):
+    def valid_row(self, rule, row):
+        return json_logic.jsonLogic(rule, row)
+
+
+class SqlValidator(RowwiseValidator):
+    def __init__(self, *args, **kwargs):
+
+        self.db = sqlite3.connect(':memory:')
+        self.db_cursor = self.db.cursor()
+        return super().__init__(*args, **kwargs)
+
+    def reassembled(self, sql):
+        'Discard any second sql statement, just as from a sql injection'
+
+        return sqlparse.split(sql)[0]
+
+    def valid_row(self, rule, row):
+
+        col_names = ','.join(row.keys())
+        qmarks = ','.join([
+            '?',
+        ] * len(row))
+
+        sql = f"""with cte({col_names}) as 
+                   (select * from (values ({qmarks})))
+                 select {rule} from cte """
+        sql = self.reassembled(sql)
+
+        self.db_cursor.execute(sql, tuple(row.values()))
+        return bool(self.db_cursor.fetchone()[0])
 
 
 class Ingestor:

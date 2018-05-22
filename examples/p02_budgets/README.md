@@ -30,6 +30,13 @@ exceptions:
 
 - Added a [Goodtables](https://github.com/frictionlessdata/goodtables-py) 
   validator with constraints defined in [table_schema.json](table_schema.json)
+  
+- Added a [JSON file](json_logic.json) 
+  containing named [JsonLogic](http://jsonlogic.com/) 
+  rules for additional validation.
+
+- Added a [JSON file](sql_rules.json)
+  containing named SQL rules for additional validation.
 
 - Additions/edits to `p02_budget/settings.py`:
 
@@ -51,7 +58,11 @@ exceptions:
         'MODEL': 'budget_data_ingest.models.Upload',
         'FORM': 'budget_data_ingest.forms.UploadForm',
         'DESTINATION': 'budget_data_ingest.models.BudgetItem',
-        'VALIDATORS': {'table_schema.json': 'data_ingest.ingestors.GoodtablesValidator', },
+        'VALIDATORS': {
+            'table_schema.json': 'data_ingest.ingestors.GoodtablesValidator',
+            'json_logic.json': 'data_ingest.ingestors.JsonlogicValidator',
+            'sql_rules.json': 'data_ingest.ingestors.SqlValidator',
+        },       
     }
 
 ## To run locally
