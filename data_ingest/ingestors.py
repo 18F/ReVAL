@@ -8,8 +8,8 @@ from collections import defaultdict
 import goodtables
 import json_logic
 import requests
-import sqlparse
 import tabulator
+import yaml
 from django.conf import settings
 from django.core import exceptions, files
 from django.utils.module_loading import import_string
@@ -27,6 +27,14 @@ class Validator:
         self.filename = filename
         self.validator = self.get_validator_contents()
 
+    def load_file(self):
+        with open(self.filename) as infile:
+            if self.filename.endswith('.yml') or self.filename.endswith(
+                    '.yaml'):
+                return yaml.load(infile)
+            else:
+                return json.load(infile)
+
     def get_validator_contents(self):
         """Return validator filename, or URL contents in case of URLs"""
 
@@ -34,14 +42,16 @@ class Validator:
             if self.url_pattern.search(self.filename):
                 resp = requests.get(self.filename)
                 if resp.ok:
+                    if self.filename.endswith('yml') or self.filename.endswith(
+                            '.yaml'):
+                        return yaml.load(resp.text)
                     return resp.json()
                 else:
                     raise exceptions.ImproperlyConfigured(
                         'validator {} {} returned {}'.format(
                             self.name, self.filename, resp.status))
             else:
-                with open(self.filename) as infile:
-                    return json.load(infile)
+                return self.load_file()
         return self.filename
 
 
@@ -49,6 +59,7 @@ class GoodtablesValidator(Validator):
     def validate(self, data):
 
         result = goodtables.validate(data, schema=self.validator)
+        t0 = result['tables'][0]
         return self.formatted(data, result)
 
     def formatted(self, data, unformatted):
@@ -59,7 +70,7 @@ class GoodtablesValidator(Validator):
         different format.  The desired format to transform it to looks like
 
             {'tables': [{'headers': ['Name', 'Title', 'salary'],
-                'errors': []
+                'whole_table_errors': []
                 'invalid_row_count': 3,
                 'rows': [{'errors': [],
                         'row_number': 2,
@@ -96,7 +107,7 @@ class GoodtablesValidator(Validator):
                 "invalid_row_count": 0,
                 "headers": unformatted_table["headers"],
                 "rows": [],
-                "errors": [],
+                "whole_table_errors": [],
             }
 
             # Produce a dictionary of errors by row number
@@ -106,7 +117,8 @@ class GoodtablesValidator(Validator):
                 if rn:
                     errs[rn].append(err)
                 else:
-                    table['errors'].append(err)
+                    table['whole_table_errors'].append(err)
+                    result['valid'] = False
 
             header_skipped = False
             for (rn, raw_row) in enumerate(data):
@@ -136,6 +148,23 @@ class GoodtablesValidator(Validator):
         return result
 
 
+def row_validation_error(rule, row_dict):
+    """Dictionary describing a single row validation error"""
+
+    return {
+        'severity':
+        rule.get('severity', 'Error'),
+        'code':
+        rule.get('error_code'),
+        'message':
+        rule.get('message', '').format(**row_dict),
+        'error_columns': [
+            idx for (idx, k) in enumerate(row_dict.keys())
+            if k in rule['columns']
+        ]
+    }
+
+
 class RowwiseValidator(Validator):
     '''Subclass this for any validator applied to one row at a time.
 
@@ -155,6 +184,7 @@ class RowwiseValidator(Validator):
             'headers': [],
             'invalid_row_count': 0,
             'valid_row_count': 0,
+            'whole_table_errors': [],
         }
 
         rows = []
@@ -165,23 +195,18 @@ class RowwiseValidator(Validator):
                 continue
             errors = []
             row_dict = dict(zip(table['headers'], row))
-            for (rule_description, rule) in self.validator.items():
-                result = self.valid_row(rule, row_dict)
+            for rule in self.validator:
+                result = self.evaluate(rule['code'], row_dict)
                 if not result:
-                    errors.append(rule_description)
+                    errors.append(row_validation_error(rule, row_dict))
             if errors:
                 table['invalid_row_count'] += 1
             else:
                 table['valid_row_count'] += 1
             rows.append({
-                'row_number':
-                raw_rn + 1,
-                'values':
-                row,
-                'errors': [{
-                    'code': None,
-                    'message': m
-                } for m in errors],
+                'row_number': raw_rn + 1,
+                'values': row,
+                'errors': errors,
             })
         table['rows'] = rows
 
@@ -206,12 +231,18 @@ class SqlValidator(RowwiseValidator):
         self.db_cursor = self.db.cursor()
         return super().__init__(*args, **kwargs)
 
-    def reassembled(self, sql):
+    def first_statement_only(self, sql):
         'Discard any second sql statement, just as from a sql injection'
 
-        return sqlparse.split(sql)[0]
+        # Very simplistic SQL injection protection, but the attack would
+        # have to come from the rule-writer, and the database contains no
+        # data anyway
+        return sql.split(';')[0]
 
-    def valid_row(self, rule, row):
+    def evaluate(self, rule, row):
+
+        if not rule:
+            return True  # rule not implemented
 
         col_names = ','.join(row.keys())
         qmarks = ','.join([
@@ -221,9 +252,10 @@ class SqlValidator(RowwiseValidator):
         sql = f"""with cte({col_names}) as 
                    (select * from (values ({qmarks})))
                  select {rule} from cte """
-        sql = self.reassembled(sql)
+        sql = self.first_statement_only(sql)
 
         self.db_cursor.execute(sql, tuple(row.values()))
+
         return bool(self.db_cursor.fetchone()[0])
 
 
@@ -254,6 +286,9 @@ class Ingestor:
             for (rn, row) in enumerate(final_result['tables'][0]['rows']):
                 row['errors'].extend(
                     results['tables'][0]['rows'][rn]['errors'])
+            final_result['tables'][0]['whole_table_errors'].extend(
+                results['tables'][0]['whole_table_errors'])
+            final_result['valid'] = final_result['valid'] and results['valid']
             return final_result
         else:
             return results

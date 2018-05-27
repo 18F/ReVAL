@@ -2,43 +2,41 @@
 <h1>Errors in uploaded file</h1>
 <h2>Review errors</h2>
 
-      <div class="message message-error no-bg" role="alert">
-        {% if not valid_row_count %}
-          <h3>No valid rows found!</h3>
-          <p>
-            Your uploaded price list contains no valid rows. Please fix the errors
-            shown below in the original file and
-            <a href="{% url 'upload' upload_id replace_upload %}?{{ file_metadata }}">
-              try uploading it again</a>.
-          </p>
-        {% else %}
-          <h3>We found errors in {{ invalid_row_count }}
-              row{{ invalid_row_count|pluralize }} of your data</h3>
-          <p>
-            The row{{ invalid_row_count|pluralize }} below
-            appear{{ invalid_row_count|pluralize:"s," }} to be
-            invalid and <strong>will be discarded</strong> when you upload your
-            price list.</p>
-          <p>
-            You may
-              <ul>
-                <li>
-                  correct {{ invalid_row_count|pluralize:"this row,these rows" }}
+      <p>
+        We found {{ whole_table_errors | length }} whole-table
+        error{{ whole_table_errors | length | pluralize }}
+          {% if not whole_table_errors %}
+          , {{ valid_row_count }} valid row{{ valid_row_count | length | pluralize }},
+          {% endif %}
+        and {{ invalid_row_count }} invalid row{{ invalid_row_count|pluralize }}
+        in your data.
+      </p>
+
+      <p>
+        You can correct the errors
                   in your original file and
                   <a href="{% url 'upload' upload_id %}?{{ file_metadata }}">
-                  try uploading it again</a>.
-                </li>
-                <li>
-                  <a href="{% url 'confirm-upload' upload_id %}">Continue without these rows</a>
-                </li>
-             </ul>
-          </p>
+                  try uploading it again</a>
+        {% if valid_row_count and not whole_table_errors %}
+          or <a href="{% url 'confirm-upload' upload_id %}">continue,
+          leaving these rows out</a>
+        {% endif %}
+      . </p>
+
+      <div class="message message-error no-bg" role="alert">
+        {% if whole_table_errors %}
+          <h3>Whole-table errors</h3>
+            <ul>
+              {% for wte in whole_table_errors %}
+                <li>{{ wte }}</li>
+              {% endfor %}
+            </ul>
         {% endif %}
       </div>
 
       <table>
         <tr>
-          <th>Row #</th><th>Error code</th><th>message</th>
+            <th>Row #</th><th>Severity</th></th><th>Error code</th><th>message</th>
           {% for h in headers %}
             <th>{{ forloop.counter }} : {{ h }}</th>
           {% endfor %}
@@ -47,10 +45,13 @@
           {% for err in row.errors %}
           <tr>
             <td>{{ row.row_number }}</td>
+            <td>{{ err.severity }}</td>
             <td>{{ err.code }}</td>
             <td>{{ err.message }}</td>
             {% for itm in row.values %}
-            <td>{{ itm }}</td>
+            <td {% if forloop.counter0 in err.error_columns %} class="bad-value" style="color:red;" {% endif %}
+            >{{ itm }}</td>
+
             {% endfor %}
           </tr>
           {% endfor %}
