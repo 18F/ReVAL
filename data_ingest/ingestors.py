@@ -246,7 +246,7 @@ class SqlValidator(RowwiseValidator):
         if not rule:
             return True  # rule not implemented
 
-        col_names = ','.join(row.keys())
+        col_names = ','.join("%s" % k for k in row.keys())
         qmarks = ','.join([
             '?',
         ] * len(row))
