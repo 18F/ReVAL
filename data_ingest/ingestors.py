@@ -7,6 +7,7 @@ from collections import defaultdict
 
 import goodtables
 import json_logic
+import logging
 import requests
 import tabulator
 import yaml
@@ -17,6 +18,7 @@ from tabulator import Stream
 
 from .ingest_settings import UPLOAD_SETTINGS
 
+logger = logging.getLogger(__name__)
 
 class Validator:
 
@@ -253,6 +255,9 @@ class SqlValidator(RowwiseValidator):
                    (select * from (values ({qmarks})))
                  select {rule} from cte """
         sql = self.first_statement_only(sql)
+
+        logger.error(sql)
+        logger.error(str(tuple(row.values())))
 
         self.db_cursor.execute(sql, tuple(row.values()))
 
