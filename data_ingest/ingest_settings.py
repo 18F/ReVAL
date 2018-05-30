@@ -4,6 +4,7 @@ from django.utils.module_loading import import_string
 DEFAULT_UPLOAD_SETTINGS = {
     'FORM': 'data_ingest.forms.UploadForm',
     'INGESTOR': 'data_ingest.ingestors.Ingestor',
+    'STREAM_ARGS': {},
     'TEMPLATE': 'data_ingest/upload.html',
     'LIST_TEMPLATE': 'data_ingest/upload_list.html',
     'DETAIL_TEMPLATE': 'data_ingest/upload_detail.html',

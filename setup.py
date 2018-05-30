@@ -36,6 +36,8 @@ setup(
     ],
     install_requires=[
         'django<=1.11',
-        'deep-merge',
         'goodtables',
+        'pyyaml',
+        'dj-database-url',
+        'json-logic-py',
     ])

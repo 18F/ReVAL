@@ -168,13 +168,13 @@ def row_validation_error(rule, row_dict):
 class RowwiseValidator(Validator):
     '''Subclass this for any validator applied to one row at a time.
 
-    Rule file should be JSON in the form
+    Rule file should be JSON or YAML with fields
 
     {'Text describing rule': <rule>
      ...
     }
 
-    Then each subclass only needs an `valid_row(self, rule, row)`
+    Then each subclass only needs an `evaluate(self, rule, row)`
     method returning Boolean
     '''
 
@@ -260,6 +260,8 @@ class SqlValidator(RowwiseValidator):
 
 
 class Ingestor:
+    """The default ingestor assumes that the data source is already rectangular"""
+
     def __init__(self, upload):
         self.upload = upload
         self.validators = []
@@ -276,8 +278,11 @@ class Ingestor:
         in tables, will need to override it.
         """
 
+        stream_args = settings.DATA_INGEST.get('STREAM_ARGS', {})
         stream = tabulator.Stream(
-            io.BytesIO(self.upload.raw), format=self.upload.file_type)
+            io.BytesIO(self.upload.raw),
+            format=self.upload.file_type,
+            **stream_args)
         stream.open()
         return stream
 
