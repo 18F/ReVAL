@@ -11,11 +11,12 @@ workflow, which can be [customized](docs/customize.md) for your needs.
 ## Features
 
 - Flexible input format
-- Validation with [goodtables](), [JSON Schema](), or a custom validation class
+- Validation with [goodtables](), [JSON Schema](), [SQL](), or a custom validation class
 - Row-by-row feedback on validation results
 - Manage and track status of data submissions
 - Re-submit previous submissions
 - Flexible ultimate destination for data
+- [API](docs/api.md) for validation
 
 ## Contributing
 

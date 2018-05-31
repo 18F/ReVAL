@@ -62,29 +62,43 @@ Then add the JSON Logic rule file to `DATA_INGEST['VALIDATORS']`.
     
 ### With SQL
 
-Create a JSON file with a dictionary of rules in the form: 
+Create a JSON or YAML file with a dictionary of rules in the form: 
 
-    {'Descriptive rule text': {<rule in SQL format>},
-     ...
-    }
-    
-Rules should return `true` for valid rows and `false` for invalid.
+    - code: field1 <= field2 
+      columns: [field1, field2]
+      message: field1 must not exceed field2.
+        That would be bad and you should not do it.
+      severity: Error
 
-A sample rule file might look like
+- `code`: A valid boolean SQL expression referring to field names in the data.
+- `columns`: Names of columns to highlight when a row violates this rule.  Optional.
+- `message`: Text to display to submitter when a row violates this rule.
+- `severity`: `Warning` or `Error`, defaults to `Error`.  `Warning` will not prevent 
+  rows from being inserted.
+ 
+Any extra fields will be ignored.
 
-{ "dollars_spent must not be negative":
-        "dollars_spent >= 0"
-}
+Each rule's code should return `true` for valid rows and `false` for invalid.
 
 Then add the SQL rule file to `DATA_INGEST['VALIDATORS']`. 
 
     'VALIDATORS': {
-        'sql_rules.json': 'data_ingest.ingestors.SqlValidator',
+        'sql_rules.yml': 'data_ingest.ingestors.SqlValidator',
     },
  
-### Custom validator 
+### tabulator.Stream arguments 
 
-TODO 
+Data is extracted from uploaded files using 
+[Frictionless Data's tabulator](https://github.com/frictionlessdata/tabulator-py/),
+and any arguments in the dictionary `settings.py:DATA_INGEST['STREAM_ARGS']`
+will be passed to `Stream`.  For example,
+
+    DATA_INGEST = {
+        'STREAM_ARGS': {'sheet': 'Data', 'headers': [3, 4] }
+    }
+    
+would extract data from the `Data` sheet of a spreadsheet workbook, and would 
+use lines 3 and 4 as column headers.
 
 ## Adding metadata
 
@@ -95,6 +109,7 @@ no metadata.
 1. Create a subclass of `data_ingest.forms.UploadForm` with fields for the metadata you want to collect.  [Example](../examples/p02_budgets/budget_data_ingest.forms.py)
 
 2. In `settings.py`, set DATA_INGEST['FORM'] to your new form subclass.
+
 
     DATA_INGEST = {
         'FORM': 'budget_data_ingest.forms.UploadForm',

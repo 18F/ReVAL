@@ -155,15 +155,12 @@ def row_validation_error(rule, row_dict):
     """Dictionary describing a single row validation error"""
 
     return {
-        'severity':
-        rule.get('severity', 'Error'),
-        'code':
-        rule.get('error_code'),
-        'message':
-        rule.get('message', '').format(**row_dict),
+        'severity': rule.get('severity', 'Error'),
+        'code': rule.get('error_code'),
+        'message': rule.get('message', '').format(**row_dict),
         'error_columns': [
-            idx for (idx, k) in enumerate(row_dict.keys())
-            if k in rule['columns']
+            idx
+            for (idx, k) in enumerate(row_dict.keys()) if k in rule['columns']
         ]
     }
 
@@ -250,8 +247,7 @@ class SqlValidator(RowwiseValidator):
         aliases = [' ? as {} '.format(col_name) for col_name in row.keys()]
         aliases = ','.join(aliases)
 
-        sql = f"""select {rule} from 
-                    ( select {aliases} )"""
+        sql = f"select {rule} from ( select {aliases} )"
         sql = self.first_statement_only(sql)
 
         self.db_cursor.execute(sql, tuple(row.values()))
@@ -259,15 +255,53 @@ class SqlValidator(RowwiseValidator):
         return bool(self.db_cursor.fetchone()[0])
 
 
+def combine_validation_results(results0, results1):
+    """
+    Adds two dictionaries of validation results, meshing row-wise results
+
+    :param results0: A dictionary of validation results.  Will be mutated.
+    :param results1: A dictionary to be added to results0
+    :return: results0 with results included
+    """
+    if results0:
+        for (rn, row) in enumerate(results0['tables'][0]['rows']):
+            row['errors'].extend(results1['tables'][0]['rows'][rn]['errors'])
+        results0['tables'][0]['whole_table_errors'].extend(results1['tables'][
+            0]['whole_table_errors'])
+        results0['valid'] = results0['valid'] and results1['valid']
+        return results0
+    else:
+        return results1
+
+
+def validators():
+    """
+    Generates Validator instances based on settings.py:UPLOAD_SETTINGS['VALIDATORS']
+
+    :return: Iterator of Validator instances
+
+    """
+    for (filename, type) in UPLOAD_SETTINGS['VALIDATORS'].items():
+        validator = import_string(type)(name=type, filename=filename)
+        yield validator
+
+
+def apply_validators_to(data):
+
+    overall_result = {}
+    for validator in validators():
+        validation_results = validator.validate(data)
+        overall_result = combine_validation_results(
+            results0=overall_result,
+            results1=validation_results)
+    return overall_result
+
+
 class Ingestor:
     """The default ingestor assumes that the data source is already rectangular"""
 
     def __init__(self, upload):
         self.upload = upload
-        self.validators = []
-        for (filename, type) in UPLOAD_SETTINGS['VALIDATORS'].items():
-            validator = import_string(type)(name=type, filename=filename)
-            self.validators.append(validator)
 
     def extracted(self):
         """
@@ -286,32 +320,16 @@ class Ingestor:
         stream.open()
         return stream
 
-    def _combine_results(self, final_result, results):
-        if final_result:
-            for (rn, row) in enumerate(final_result['tables'][0]['rows']):
-                row['errors'].extend(
-                    results['tables'][0]['rows'][rn]['errors'])
-            final_result['tables'][0]['whole_table_errors'].extend(
-                results['tables'][0]['whole_table_errors'])
-            final_result['valid'] = final_result['valid'] and results['valid']
-            return final_result
-        else:
-            return results
-
     def validate(self):
 
         data = list(self.extracted())
-        result = {}
-        for validator in self.validators:
-            validation_results = validator.validate(data)
-            result = self._combine_results(result, validation_results)
-        return result
+        result = apply_validators_to(data)
 
     def data(self):
         t0 = self.upload.validation_results['tables'][0]
         data = [
-            dict(zip(t0['headers'], r['values'])) for r in t0['rows']
-            if not r['errors']
+            dict(zip(t0['headers'], r['values']))
+            for r in t0['rows'] if not r['errors']
         ]
         result = dict(self.upload.file_metadata)
         result[
@@ -354,9 +372,7 @@ class Ingestor:
         with open(file_path, 'w') as dest_file:
             json.dump(self.data(), dest_file)
 
-    inserters = {
-        'json': insert_json,
-    }
+    inserters = {'json': insert_json, }
 
     def ingest_destination(self):
         dest = os.path.join(settings.MEDIA_ROOT,

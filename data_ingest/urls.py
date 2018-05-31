@@ -2,8 +2,12 @@
 
 from django.conf.urls import include, url
 from django.contrib import admin
+from rest_framework import routers
 
-from . import views
+from . import api_views, views
+
+router = routers.DefaultRouter()
+router.register(r'', api_views.UploadViewSet)
 
 urlpatterns = [
     url(r"^upload/(?P<replace_upload_id>\d+)?", views.upload, name="upload"),
@@ -35,6 +39,8 @@ urlpatterns = [
         views.insert,
         name="insert",
     ),
+    url(r"^api/validate", api_views.validate),
+    url(r"^api/", include(router.urls)),
     url(
         r"^",
         views.UploadList.as_view(),
