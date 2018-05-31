@@ -1,5 +1,6 @@
 import io
 import json
+import logging
 import os.path
 import re
 import sqlite3
@@ -7,7 +8,6 @@ from collections import defaultdict
 
 import goodtables
 import json_logic
-import logging
 import requests
 import tabulator
 import yaml
@@ -19,6 +19,7 @@ from tabulator import Stream
 from .ingest_settings import UPLOAD_SETTINGS
 
 logger = logging.getLogger(__name__)
+
 
 class Validator:
 
@@ -246,18 +247,12 @@ class SqlValidator(RowwiseValidator):
         if not rule:
             return True  # rule not implemented
 
-        col_names = ','.join("%s" % k for k in row.keys())
-        qmarks = ','.join([
-            '?',
-        ] * len(row))
+        aliases = [' ? as {} '.format(col_name) for col_name in row.keys()]
+        aliases = ','.join(aliases)
 
-        sql = f"""with cte({col_names}) as 
-                   (select * from (values ({qmarks})))
-                 select {rule} from cte """
+        sql = f"""select {rule} from 
+                    ( select {aliases} )"""
         sql = self.first_statement_only(sql)
-
-        logger.error(sql)
-        logger.error(str(tuple(row.values())))
 
         self.db_cursor.execute(sql, tuple(row.values()))
 
