@@ -1,19 +1,21 @@
-from .models import Upload
-from .serializers import UploadSerializer
-from . import ingest_settings, ingestors
-from .parsers import CsvParser
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import decorators, response, viewsets
 from rest_framework.parsers import JSONParser
 
-
-from rest_framework import viewsets, views, decorators, response
+from . import ingest_settings, ingestors
+from .parsers import CsvParser
+from .serializers import UploadSerializer
 
 
 class UploadViewSet(viewsets.ModelViewSet):
     """
     """
-    queryset = ingest_settings.upload_model_class.objects.all().order_by('created_at')
+    queryset = ingest_settings.upload_model_class.objects.all().order_by(
+        'created_at')
     serializer_class = UploadSerializer
 
+
+@csrf_exempt
 @decorators.api_view(['POST'])
 @decorators.parser_classes((JSONParser, CsvParser))
 def validate(request):
@@ -40,7 +42,6 @@ def validate(request):
     data = request.data
     result = ingestors.apply_validators_to(data)
     return response.Response(result)
-
 
     # to use: curl - X POST - H "Content-Type: text/csv" --data-binary @myfile.csv https://...
     # omitting --data-binary strips newlines!
