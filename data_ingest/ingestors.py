@@ -63,8 +63,7 @@ def rows_from_source(raw_source):
     stream = tabulator.Stream(**source)
     stream.open()
     result = OrderedDict(
-        (row_num, {k: v
-                   for (k, v) in dict(zip(headers, vals)).items() if k})
+        (row_num, OrderedDict((k, v) for (k, v) in zip(headers, vals) if k))
         for (row_num, headers, vals) in stream.iter(extended=True))
     return result
 
@@ -72,8 +71,9 @@ def rows_from_source(raw_source):
 class GoodtablesValidator(Validator):
     def validate(self, source):
 
-        source_w_bytes = streamready(source)
-        result = goodtables.validate(**source_w_bytes)
+        validate_params = dict(source)
+        validate_params['source'] = io.BytesIO(source['source'])
+        result = goodtables.validate(**validate_params)
         return self.formatted(source, result)
 
     def formatted(self, source, unformatted):
@@ -173,18 +173,6 @@ def row_validation_error(rule, row_dict):
     }
 
 
-def streamready(source):
-    """
-    Produces dict with ['source'] converted to BytesIO instance
-
-    :param source: Dictionary containing ['source']: bytestring
-    :return: Dictionary containing ['source']: BytesIO
-    """
-    result = dict(source)
-    source_bytes = result.pop('source')
-    return {'source': io.BytesIO(source_bytes), **result}
-
-
 class RowwiseValidator(Validator):
     '''Subclass this for any validator applied to one row at a time.
 
@@ -200,28 +188,20 @@ class RowwiseValidator(Validator):
 
     def validate(self, source):
 
-        source = streamready(source)
-        stream = tabulator.Stream(**source)
-        stream.open()
-
         table = {
-            'headers': stream.headers,
+            'headers': [],
             'invalid_row_count': 0,
             'valid_row_count': 0,
             'whole_table_errors': [],
         }
 
         rows = []
-
-        for (rn, headers, row_vals) in stream.iter(extended=True):
-            row = dict(zip(headers, row_vals))
-            row = {k: row[k]
-                   for k in row if k}  # empty header fields kill queries
-            errors = []
-            for rule in self.validator:
-                result = self.evaluate(rule['code'], row)
-                if not result:
-                    errors.append(row_validation_error(rule, row))
+        for (rn, row) in rows_from_source(source).items():
+            table['headers'] = row.keys()
+            errors = [
+                row_validation_error(rule, row) for rule in self.validator
+                if not self.evaluate(rule['code'], row)
+            ]
             if errors:
                 table['invalid_row_count'] += 1
             else:
