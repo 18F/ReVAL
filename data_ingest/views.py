@@ -69,7 +69,7 @@ def validate(instance):
     instance.validation_results = ingestor.validate()
     instance.save()
     if instance.validation_results["valid"]:
-        return redirect('review-rows', instance.id)
+        return redirect('confirm-upload', instance.id)
     else:
         return redirect('review-errors', instance.id)
 

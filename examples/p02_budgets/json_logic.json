@@ -1,3 +1,7 @@
-{ "spending should not exceed budget":
-  {"<=" : [ { "var" : "dollars_spent" }, {"var": "dollars_budgeted"} ]}
-}
+[
+  {
+    "code": {"<=" : [ { "var" : "dollars_spent" }, {"var": "dollars_budgeted"} ]},
+    "message": "spending should not exceed budget",
+    "columns": ["dollars_spent", "dollars_budgeted"]
+  }
+]

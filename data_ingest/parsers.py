@@ -1,6 +1,7 @@
-import csv
-import io
 from rest_framework import parsers
+
+from .ingest_settings import UPLOAD_SETTINGS
+
 
 class CsvParser(parsers.BaseParser):
     """
@@ -10,8 +11,11 @@ class CsvParser(parsers.BaseParser):
 
     def parse(self, stream, media_type=None, parser_context=None):
         """
-        Simply return a string representing the body of the request.
+        Given a streamed CSV, return a dict of parameters for tabulator.Stream
         """
-        contents = stream.read().decode(parser_context['encoding'])
-        reader = csv.DictReader(io.StringIO(contents))
-        return reader
+
+        return {
+            'source': stream.read(),
+            'format': 'csv',
+            **UPLOAD_SETTINGS['STREAM_ARGS']
+        }

@@ -4,7 +4,7 @@ import logging
 import os.path
 import re
 import sqlite3
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 
 import goodtables
 import json_logic
@@ -14,7 +14,6 @@ import yaml
 from django.conf import settings
 from django.core import exceptions, files
 from django.utils.module_loading import import_string
-from tabulator import Stream
 
 from .ingest_settings import UPLOAD_SETTINGS
 
@@ -58,14 +57,26 @@ class Validator:
         return self.filename
 
 
+def rows_from_source(raw_source):
+    source = dict(raw_source)
+    source['source'] = io.BytesIO(source['source'])
+    stream = tabulator.Stream(**source)
+    stream.open()
+    result = OrderedDict(
+        (row_num, {k: v
+                   for (k, v) in dict(zip(headers, vals)).items() if k})
+        for (row_num, headers, vals) in stream.iter(extended=True))
+    return result
+
+
 class GoodtablesValidator(Validator):
-    def validate(self, data):
+    def validate(self, source):
 
-        result = goodtables.validate(data, schema=self.validator)
-        t0 = result['tables'][0]
-        return self.formatted(data, result)
+        source_w_bytes = streamready(source)
+        result = goodtables.validate(**source_w_bytes)
+        return self.formatted(source, result)
 
-    def formatted(self, data, unformatted):
+    def formatted(self, source, unformatted):
         """
         Transforms validation results to data-federation-ingest's expected format.
 
@@ -100,6 +111,7 @@ class GoodtablesValidator(Validator):
 
         """
 
+        rows = rows_from_source(source)
         result = {"valid": unformatted["valid"], "tables": []}
 
         for unformatted_table in unformatted["tables"]:
@@ -123,21 +135,14 @@ class GoodtablesValidator(Validator):
                     table['whole_table_errors'].append(err)
                     result['valid'] = False
 
-            header_skipped = False
-            for (rn, raw_row) in enumerate(data):
-                # TODO: this does not seem like a good way to detect the header
-                if (not header_skipped) and (raw_row == table["headers"]):
-                    header_skipped = True
-                    continue
+            for (rn, raw_row) in rows.items():
 
                 # Assemble a description of each row
-                row_errs = errs.get(
-                    rn + 1,
-                    [])  # We report row numbers in 1-based, not 0-based
+                row_errs = errs.get(rn, [])
                 row = {
-                    "row_number": rn + 1,
+                    "row_number": rn,
                     "errors": row_errs,
-                    "values": raw_row
+                    "values": raw_row,
                 }
                 table["rows"].append(row)
 
@@ -155,14 +160,29 @@ def row_validation_error(rule, row_dict):
     """Dictionary describing a single row validation error"""
 
     return {
-        'severity': rule.get('severity', 'Error'),
-        'code': rule.get('error_code'),
-        'message': rule.get('message', '').format(**row_dict),
+        'severity':
+        rule.get('severity', 'Error'),
+        'code':
+        rule.get('error_code'),
+        'message':
+        rule.get('message', '').format(**row_dict),
         'error_columns': [
-            idx
-            for (idx, k) in enumerate(row_dict.keys()) if k in rule['columns']
+            idx for (idx, k) in enumerate(row_dict.keys())
+            if k in rule['columns']
         ]
     }
+
+
+def streamready(source):
+    """
+    Produces dict with ['source'] converted to BytesIO instance
+
+    :param source: Dictionary containing ['source']: bytestring
+    :return: Dictionary containing ['source']: BytesIO
+    """
+    result = dict(source)
+    source_bytes = result.pop('source')
+    return {'source': io.BytesIO(source_bytes), **result}
 
 
 class RowwiseValidator(Validator):
@@ -170,18 +190,22 @@ class RowwiseValidator(Validator):
 
     Rule file should be JSON or YAML with fields
 
-    {'Text describing rule': <rule>
-     ...
-    }
-
     Then each subclass only needs an `evaluate(self, rule, row)`
     method returning Boolean
     '''
 
-    def validate(self, data):
+    if 'headers' not in UPLOAD_SETTINGS['STREAM_ARGS']:
+        raise exceptions.ImproperlyConfigured(
+            "setting DATA_INGEST['STREAM_ARGS']['headers'] is required")
+
+    def validate(self, source):
+
+        source = streamready(source)
+        stream = tabulator.Stream(**source)
+        stream.open()
 
         table = {
-            'headers': [],
+            'headers': stream.headers,
             'invalid_row_count': 0,
             'valid_row_count': 0,
             'whole_table_errors': [],
@@ -189,22 +213,21 @@ class RowwiseValidator(Validator):
 
         rows = []
 
-        for (raw_rn, row) in enumerate(data):
-            if (not table['headers']) and (any(row)):
-                table['headers'] = row
-                continue
+        for (rn, headers, row_vals) in stream.iter(extended=True):
+            row = dict(zip(headers, row_vals))
+            row = {k: row[k]
+                   for k in row if k}  # empty header fields kill queries
             errors = []
-            row_dict = dict(zip(table['headers'], row))
             for rule in self.validator:
-                result = self.evaluate(rule['code'], row_dict)
+                result = self.evaluate(rule['code'], row)
                 if not result:
-                    errors.append(row_validation_error(rule, row_dict))
+                    errors.append(row_validation_error(rule, row))
             if errors:
                 table['invalid_row_count'] += 1
             else:
                 table['valid_row_count'] += 1
             rows.append({
-                'row_number': raw_rn + 1,
+                'row_number': rn,
                 'values': row,
                 'errors': errors,
             })
@@ -220,7 +243,7 @@ class RowwiseValidator(Validator):
 
 
 class JsonlogicValidator(RowwiseValidator):
-    def valid_row(self, rule, row):
+    def evaluate(self, rule, row):
         return json_logic.jsonLogic(rule, row)
 
 
@@ -266,8 +289,8 @@ def combine_validation_results(results0, results1):
     if results0:
         for (rn, row) in enumerate(results0['tables'][0]['rows']):
             row['errors'].extend(results1['tables'][0]['rows'][rn]['errors'])
-        results0['tables'][0]['whole_table_errors'].extend(results1['tables'][
-            0]['whole_table_errors'])
+        results0['tables'][0]['whole_table_errors'].extend(
+            results1['tables'][0]['whole_table_errors'])
         results0['valid'] = results0['valid'] and results1['valid']
         return results0
     else:
@@ -286,14 +309,26 @@ def validators():
         yield validator
 
 
-def apply_validators_to(data):
+def count_valid_rows(validation_results):
+    validation_results['valid_row_count'] = 0
+    validation_results['invalid_row_count'] = 0
+    for row in validation_results['tables'][0]['rows']:
+        if row['errors']:
+            validation_results['invalid_row_count'] += 1
+        else:
+            validation_results['valid_row_count'] += 1
+
+
+def apply_validators_to(source):
+
+    # for (rn, headers, row_vals) in stream.iter(extended=True):
 
     overall_result = {}
     for validator in validators():
-        validation_results = validator.validate(data)
+        validation_results = validator.validate(source)
         overall_result = combine_validation_results(
-            results0=overall_result,
-            results1=validation_results)
+            results0=overall_result, results1=validation_results)
+    count_valid_rows(overall_result)
     return overall_result
 
 
@@ -302,8 +337,17 @@ class Ingestor:
 
     def __init__(self, upload):
         self.upload = upload
+        self.header_remappings = {}
 
-    def extracted(self):
+    def source(self):
+
+        return {
+            'source': self.upload.raw,
+            'format': self.upload.file_type,
+            **UPLOAD_SETTINGS['STREAM_ARGS']
+        }
+
+    def stream(self):
         """
         An iterator of data from the upload
 
@@ -312,24 +356,31 @@ class Ingestor:
         in tables, will need to override it.
         """
 
-        stream_args = settings.DATA_INGEST.get('STREAM_ARGS', {})
         stream = tabulator.Stream(
             io.BytesIO(self.upload.raw),
             format=self.upload.file_type,
-            **stream_args)
+            **UPLOAD_SETTINGS['STREAM_ARGS'])
         stream.open()
+        if UPLOAD_SETTINGS['OLD_HEADER_ROW'] is not None:
+            if not UPLOAD_SETTINGS['HEADERS']:
+                raise exceptions.ImproperlyConfigured(
+                    "use DATA_INGEST['OLD_HEADER_ROW'] only with DATA_INGEST['HEADERS']"
+                )
+            for row in range(UPLOAD_SETTINGS['OLD_HEADER_ROW']):
+                next(stream)  # discard rows before header
+            self.header_remappings = dict(zip(row, UPLOAD_SETTINGS['HEADERS']))
+
         return stream
 
     def validate(self):
 
-        data = list(self.extracted())
-        result = apply_validators_to(data)
+        return apply_validators_to(self.source())
 
     def data(self):
         t0 = self.upload.validation_results['tables'][0]
         data = [
-            dict(zip(t0['headers'], r['values']))
-            for r in t0['rows'] if not r['errors']
+            dict(zip(t0['headers'], r['values'])) for r in t0['rows']
+            if not r['errors']
         ]
         result = dict(self.upload.file_metadata)
         result[
@@ -355,8 +406,8 @@ class Ingestor:
                 return self.insert_to_model(dest_model)
             except ModuleNotFoundError:
                 pass
-        msg = "settings.DATA_INGEST['DESTINATION'] of {} could not be interpreted".format(
-            settings.DATA_INGEST['DESTINATION'])
+        msg = "UPLOAD_SETTINGS['DESTINATION'] of {} could not be interpreted".format(
+            UPLOAD_SETTINGS['DESTINATION'])
         raise exceptions.ImproperlyConfigured(msg)
 
     def insert_to_model(self, model_class):
@@ -372,7 +423,9 @@ class Ingestor:
         with open(file_path, 'w') as dest_file:
             json.dump(self.data(), dest_file)
 
-    inserters = {'json': insert_json, }
+    inserters = {
+        'json': insert_json,
+    }
 
     def ingest_destination(self):
         dest = os.path.join(settings.MEDIA_ROOT,

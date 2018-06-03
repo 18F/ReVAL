@@ -1,25 +1,28 @@
 # Customizing data_ingest behavior
 
-## Customizing validation
+# Customizing validation
 
 By default, data_ingest applies only the
 [default GoodTables validator](https://github.com/frictionlessdata/goodtables-py)
 which checks for basic problems like empty rows,
 rows with more columns than the header, etc.
 
-### Specifying `VALIDATORS`
+## Specifying `VALIDATORS`
 
 Any number of validators can be applied by adding them to 
 `DATA_INGEST['VALIDATORS']`.  The key should be the filename
 (or URL of a file to be downloaded); the value should be the 
 validator class used with that file.  `data_ingest` supplies
 built-in validators for 
-[Table Schema](https://frictionlessdata.io/specs/table-schema/) 
-and [JsonLogic](http://jsonlogic.com/).
+[Table Schema](https://frictionlessdata.io/specs/table-schema/),
+[JsonLogic](http://jsonlogic.com/), 
+and [sqlite](https://www.sqlite.org/index.html) SQL.
 
 If the order of application is 
 important, `DATA_INGEST['VALIDATORS']` can be an 
 [OrderedDict](https://docs.python.org/3/library/collections.html#collections.OrderedDict).
+
+## With a whole-table validator 
 
 ### With a custom Table Schema
 
@@ -34,27 +37,37 @@ can be applied to uploads by including it in `DATA_INGEST['VALIDATION_SCHEMA']` 
 This can be a file path relative to the Django project's root,
 or the URL of a Table Schema on the web.
 
-### With [JSON Logic](http://jsonlogic.com/)
+## With a rowwise validator 
 
-Create a JSON file with a dictionary of rules in the form: 
+Rowwise validators are applied individually to each row, and 
+require a definition file in JSON or YAML specifying a list of rules.  
+Each rule is an object with `code` and a `message`.
 
-    {'Descriptive rule text': {<rule in JSON Logic format>},
-     ...
-    }
-    
-Rules should return `true` for valid rows and `false` for invalid.
+These rules may look like 
+
+    {"code": "dollars_spent <= dollars_budgeted",
+     "message": "spending should not exceed budget",
+     "columns": ["dollars_spent", "dollars_budgeted",
+     "severity": "Warning}
+     
+### Required fields 
+
+- `code`: An expression in the appropriate language (such as SQL or JsonLogic)
+- `message`: Text to display to submitter when a row violates this rule.
+
+### Optional fields 
+
+- `columns`: Names of columns to highlight when a row violates this rule.  Optional.
+- `severity`: `Warning` or `Error`, defaults to `Error`.  `Warning` will not prevent 
+  rows from being inserted.
+ 
+Any extra fields will be ignored.
 
 
-A sample rule file might look like
+### With [JSON Logic](http://jsonlogic.com/) 
 
-    { "spending should not exceed budget":
-      {"<=" : [ { "var" : "dollars_spent" }, {"var": "dollars_budgeted"} ]},
-      "spending should be between 1000 and 5000 dollars":
-      {"<=" : [ 1000, { "var" : "dollars_spent" }, 5000 ]}
-    }
-
-
-Then add the JSON Logic rule file to `DATA_INGEST['VALIDATORS']`. 
+Create a YAML or JSON list of JSON Logic rules, as described above,
+and add the file to `DATA_INGEST['VALIDATORS']`. 
 
     'VALIDATORS': {
         'json_logic.json': 'data_ingest.ingestors.JsonlogicValidator',
@@ -62,31 +75,18 @@ Then add the JSON Logic rule file to `DATA_INGEST['VALIDATORS']`.
     
 ### With SQL
 
-Create a JSON or YAML file with a dictionary of rules in the form: 
-
-    - code: field1 <= field2 
-      columns: [field1, field2]
-      message: field1 must not exceed field2.
-        That would be bad and you should not do it.
-      severity: Error
-
-- `code`: A valid boolean SQL expression referring to field names in the data.
-- `columns`: Names of columns to highlight when a row violates this rule.  Optional.
-- `message`: Text to display to submitter when a row violates this rule.
-- `severity`: `Warning` or `Error`, defaults to `Error`.  `Warning` will not prevent 
-  rows from being inserted.
- 
-Any extra fields will be ignored.
-
-Each rule's code should return `true` for valid rows and `false` for invalid.
-
-Then add the SQL rule file to `DATA_INGEST['VALIDATORS']`. 
+Create a YAML or JSON list of SQL, as described above,
+and add the file to `DATA_INGEST['VALIDATORS']`. 
 
     'VALIDATORS': {
-        'sql_rules.yml': 'data_ingest.ingestors.SqlValidator',
+        'sql_validators.yml': 'data_ingest.ingestors.SqlValidator',
     },
+
+Each rule's code should return `true` for valid rows and `false` for invalid.
  
-### tabulator.Stream arguments 
+# Customizing data ingestion behavior
+
+## tabulator.Stream arguments 
 
 Data is extracted from uploaded files using 
 [Frictionless Data's tabulator](https://github.com/frictionlessdata/tabulator-py/),
@@ -99,6 +99,14 @@ will be passed to `Stream`.  For example,
     
 would extract data from the `Data` sheet of a spreadsheet workbook, and would 
 use lines 3 and 4 as column headers.
+
+## Customizing ingestors 
+
+If the files are in an irregular format (like spreadsheets
+where the relevant cells are not in a contiguous block), you 
+may need to write your own ingestor.
+
+TODO
 
 ## Adding metadata
 
@@ -132,18 +140,18 @@ enforce uniqueness.  To do so, after setting up the metadata fields (as above),
         'MODEL': 'budget_data_ingest.models.Upload',
     }
 
-## Changing injection destination
+# Changing injection destination
 
 We "inject" data when we copy it from an `Upload` instance into
 the data destination.  By default, each `Upload` is dumped as a
 .json file in the `data_ingest/` directory under the Django
 project root.
 
-### To an alternate flat-file format
+## To an alternate flat-file format
 
 TODO
 
-### To a Django model
+## To a Django model
 
 To save uploaded rows to instances of a Django data model
 (rows in an underlying relational database), set
@@ -161,14 +169,8 @@ the data columns.  It's best to also include a `ForeignKey`
 to the `Upload` model, to track the data flow for
 troubleshooting, retrating/deleting uploads, etc.
 
-### To a RESTful web service
+## To a RESTful web service
 
 TODO
 
-## Customizing ingestors 
 
-If the files are in an irregular format (like spreadsheets
-where the relevant cells are not in a contiguous block), you 
-may need to write your own ingestor.
-
-TODO
