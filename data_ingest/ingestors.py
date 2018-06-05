@@ -65,7 +65,7 @@ def rows_from_source(raw_source):
     result = OrderedDict(
         (row_num, OrderedDict((k, v) for (k, v) in zip(headers, vals) if k))
         for (row_num, headers, vals) in stream.iter(extended=True))
-    return result
+    return (stream.headers, result)
 
 
 class GoodtablesValidator(Validator):
@@ -108,10 +108,10 @@ class GoodtablesValidator(Validator):
                         'values': ['Yoz', 'Engineer', '10']}],
                 'valid_row_count': 2}],
             'valid': False}
-
+``
         """
 
-        rows = rows_from_source(source)
+        (headers, rows) = rows_from_source(source)
         result = {"valid": unformatted["valid"], "tables": []}
 
         for unformatted_table in unformatted["tables"]:
@@ -186,18 +186,28 @@ class RowwiseValidator(Validator):
         raise exceptions.ImproperlyConfigured(
             "setting DATA_INGEST['STREAM_ARGS']['headers'] is required")
 
+    if UPLOAD_SETTINGS.get('OLD_HEADER_ROW') and not isinstance(
+            UPLOAD_SETTINGS['STREAM_ARGS']['headers'], list):
+        raise exceptions.ImproperlyConfigured(
+            "DATA_INGEST['OLD_HEADER_ROW'] should be used with a list of headers in DATA_INGEST['STREAM_ARGS']['header']"
+        )
+
     def validate(self, source):
 
         table = {
-            'headers': [],
             'invalid_row_count': 0,
             'valid_row_count': 0,
             'whole_table_errors': [],
         }
 
         rows = []
-        for (rn, row) in rows_from_source(source).items():
-            table['headers'] = row.keys()
+        (table['headers'], numbered_rows) = rows_from_source(source)
+        for (rn, row) in numbered_rows.items():
+
+            if rn == UPLOAD_SETTINGS['OLD_HEADER_ROW']:
+                table['headers'] = list(row.values())
+                continue
+
             errors = [
                 row_validation_error(rule, row) for rule in self.validator
                 if not self.evaluate(rule['code'], row)
@@ -208,7 +218,7 @@ class RowwiseValidator(Validator):
                 table['valid_row_count'] += 1
             rows.append({
                 'row_number': rn,
-                'values': row,
+                'values': list(row.values()),
                 'errors': errors,
             })
         table['rows'] = rows
@@ -317,7 +327,6 @@ class Ingestor:
 
     def __init__(self, upload):
         self.upload = upload
-        self.header_remappings = {}
 
     def source(self):
 
@@ -348,7 +357,6 @@ class Ingestor:
                 )
             for row in range(UPLOAD_SETTINGS['OLD_HEADER_ROW']):
                 next(stream)  # discard rows before header
-            self.header_remappings = dict(zip(row, UPLOAD_SETTINGS['HEADERS']))
 
         return stream
 

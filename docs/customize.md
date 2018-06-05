@@ -1,5 +1,3 @@
-# Customizing data_ingest behavior
-
 # Customizing validation
 
 By default, data_ingest applies only the
@@ -46,6 +44,7 @@ Each rule is an object with `code` and a `message`.
 These rules may look like 
 
     {"code": "dollars_spent <= dollars_budgeted",
+     "error_code": "1A",
      "message": "spending should not exceed budget",
      "columns": ["dollars_spent", "dollars_budgeted",
      "severity": "Warning}
@@ -57,6 +56,7 @@ These rules may look like
 
 ### Optional fields 
 
+- `error_code`: A user-defined code for this rule
 - `columns`: Names of columns to highlight when a row violates this rule.  Optional.
 - `severity`: `Warning` or `Error`, defaults to `Error`.  `Warning` will not prevent 
   rows from being inserted.
@@ -172,5 +172,17 @@ troubleshooting, retrating/deleting uploads, etc.
 ## To a RESTful web service
 
 TODO
+
+# Overriding headers
+
+When using rowwise validators (SQL or JsonLogic), It's possible to validate data submitted with inconsistently named headers 
+as long as they appear in a consistent order.  Specify a list of headers in 
+`settings.py:DATA_INGEST['STREAM_ARGS']['headers']`, 
+then specify the row number of the to-be-replaced headers in  
+`settings.py:DATA_INGEST['OLD_HEADER_ROW']`.  The user-supplied 
+headers will still be used in the output, but the headers from settings.py
+will be used for validation rules.
+
+
 
 
