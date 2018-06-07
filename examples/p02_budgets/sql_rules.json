@@ -1,0 +1,7 @@
+[
+  {
+    "code": "dollars_spent >= 0",
+    "message": "dollars_spent must not be negative",
+    "columns": ["dollars_spent"]
+  }
+]

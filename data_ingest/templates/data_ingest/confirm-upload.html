@@ -19,7 +19,7 @@
       {% for row in rows %}
         {% if not row.errors %}
         <tr>
-          {% for itm in row.values %}
+          {% for itm in row.data.values %}
           <td>{{ itm }}</td>
           {% endfor %}
         </tr>

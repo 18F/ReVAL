@@ -4,7 +4,7 @@
     <li><a href="{% url 'review-errors' object.id %}">Load</a></li>
     {% endif %}
     <li><a href="{% url 'delete-upload' object.id %}">Delete</a></li>
-    {% if object.status != 'INSERTED' %}
+    {% if object.status == 'STAGED' %}
     <li><a href="{% url 'insert' object.id %}">Insert</a></li>
     {% endif %}
 </ul>

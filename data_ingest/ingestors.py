@@ -1,3 +1,4 @@
+import csv
 import io
 import json
 import logging
@@ -22,12 +23,19 @@ logger = logging.getLogger(__name__)
 
 class Validator:
 
+    SUPPORTS_HEADER_OVERRIDE = False
+
     url_pattern = re.compile(r'^\w{3,5}://')
 
     def __init__(self, name, filename):
         self.name = name
         self.filename = filename
         self.validator = self.get_validator_contents()
+        if isinstance(UPLOAD_SETTINGS['STREAM_ARGS']['headers'],
+                      list) and (not self.SUPPORTS_HEADER_OVERRIDE):
+            raise exceptions.ImproperlyConfigured(
+                "Listing ['STREAM_ARGS']['headers'] not supported by this validator"
+            )
 
     def load_file(self):
         with open(self.filename) as infile:
@@ -68,6 +76,10 @@ def rows_from_source(raw_source):
     return (stream.headers, result)
 
 
+class UnsupportedException(Exception):
+    pass
+
+
 class GoodtablesValidator(Validator):
     def validate(self, source):
 
@@ -88,24 +100,24 @@ class GoodtablesValidator(Validator):
                 'invalid_row_count': 3,
                 'rows': [{'errors': [],
                         'row_number': 2,
-                        'values': ['Guido', 'BDFL', '0']},
+                        'data': ['Guido', 'BDFL', '0']},
                         {'errors': [{'code': 'blank-row',
                                     'message': 'Row 3 is completely blank'}],
                         'row_number': 3,
-                        'values': []},
+                        'data': []},
                         {'errors': [{'code': 'extra-value',
                                     'column-number': 4,
                                     'message': 'Row 4 has an extra value in '
                                                 'column 4'}],
                         'row_number': 4,
-                        'values': ['Catherine', '', '9', 'DBA']},
+                        'data': ['Catherine', '', '9', 'DBA']},
                         {'errors': [{'code': 'blank-row',
                                     'message': 'Row 5 is completely blank'}],
                         'row_number': 5,
-                        'values': ['', '']},
+                        'data': ['', '']},
                         {'errors': [],
                         'row_number': 6,
-                        'values': ['Yoz', 'Engineer', '10']}],
+                        'data': ['Yoz', 'Engineer', '10']}],
                 'valid_row_count': 2}],
             'valid': False}
 ``
@@ -114,9 +126,11 @@ class GoodtablesValidator(Validator):
         (headers, rows) = rows_from_source(source)
         result = {"valid": unformatted["valid"], "tables": []}
 
+        if len(unformatted["tables"]) > 1:
+            raise UnsupportedException('Input with > 1 table not supported.')
+
         for unformatted_table in unformatted["tables"]:
 
-            # TODO: don't know what happens if the tabulator gives > 1 table
             table = {
                 "valid_row_count": 0,
                 "invalid_row_count": 0,
@@ -142,7 +156,7 @@ class GoodtablesValidator(Validator):
                 row = {
                     "row_number": rn,
                     "errors": row_errs,
-                    "values": raw_row,
+                    "data": raw_row,
                 }
                 table["rows"].append(row)
 
@@ -182,6 +196,8 @@ class RowwiseValidator(Validator):
     method returning Boolean
     '''
 
+    SUPPORTS_HEADER_OVERRIDE = True
+
     if 'headers' not in UPLOAD_SETTINGS['STREAM_ARGS']:
         raise exceptions.ImproperlyConfigured(
             "setting DATA_INGEST['STREAM_ARGS']['headers'] is required")
@@ -218,7 +234,7 @@ class RowwiseValidator(Validator):
                 table['valid_row_count'] += 1
             rows.append({
                 'row_number': rn,
-                'values': list(row.values()),
+                'data': row,
                 'errors': errors,
             })
         table['rows'] = rows
@@ -365,17 +381,16 @@ class Ingestor:
         return apply_validators_to(self.source())
 
     def data(self):
+        """Combines row data and file metadata from validation results"""
+
         t0 = self.upload.validation_results['tables'][0]
-        data = [
-            dict(zip(t0['headers'], r['values'])) for r in t0['rows']
-            if not r['errors']
-        ]
         result = dict(self.upload.file_metadata)
-        result[
-            'rows'] = data  # warning - what if metadata contains a col "rows"?
+        result['rows'] = [r['data'] for r in t0['rows'] if not r['errors']]
+        # warning - what if metadata contains a col "rows"?
         return result
 
     def flattened_data(self):
+        """For output into flat-file formats, squashes metadata into each row of data"""
         nested_data = self.data()
         for row in nested_data.pop('rows'):
             final_row = dict(nested_data)
@@ -383,18 +398,32 @@ class Ingestor:
                 row)  # warning - column headings that overlap with metadata...
             yield final_row
 
+    @classmethod
+    def get_inserter(cls):
+        inserter_name = 'insert_%s' % UPLOAD_SETTINGS['DESTINATION_FORMAT'].lower(
+        )
+        try:
+            inserter = getattr(cls, inserter_name)
+        except AttributeError:
+            raise AttributeError(
+                """UPLOAD_SETTINGS['DESTINATION_FORMAT'] %s requires method %s,
+                                    which is missing from %s""" %
+                (UPLOAD_SETTINGS['DESTINATION_FORMAT'], inserter_name,
+                 UPLOAD_SETTINGS['INGESTOR']))
+
     def insert(self):
-        # TODO: only insert if proper status
         if UPLOAD_SETTINGS['DESTINATION'].endswith('/'):
-            inserter = self.inserters[UPLOAD_SETTINGS['DESTINATION_FORMAT']]
-            return inserter(self)
+            # save to a directory
+            inserter = getattr(
+                self, 'insert_%s' % UPLOAD_SETTINGS['DESTINATION_FORMAT'])
+            return inserter()
         else:
             try:
                 dest_model = import_string(UPLOAD_SETTINGS['DESTINATION'])
                 return self.insert_to_model(dest_model)
             except ModuleNotFoundError:
                 pass
-        msg = "UPLOAD_SETTINGS['DESTINATION'] of {} could not be interpreted".format(
+        msg = "DATA_INGEST['DESTINATION'] of {} could not be interpreted".format(
             UPLOAD_SETTINGS['DESTINATION'])
         raise exceptions.ImproperlyConfigured(msg)
 
@@ -405,21 +434,37 @@ class Ingestor:
             instance.save()
 
     def insert_json(self):
-        dest_directory = self.ingest_destination()
-        file_path = os.path.join(dest_directory,
-                                 self.upload.file.name) + '.json'
+        file_path = self.ingest_destination('.json')
         with open(file_path, 'w') as dest_file:
             json.dump(self.data(), dest_file)
 
-    inserters = {
-        'json': insert_json,
-    }
+    def insert_yaml(self):
+        file_path = self.ingest_destination('.csv')
+        with open(file_path, 'w') as dest_file:
+            yaml.dump(self.data(), dest_file)
 
-    def ingest_destination(self):
-        dest = os.path.join(settings.MEDIA_ROOT,
-                            UPLOAD_SETTINGS['DESTINATION'])
+    def insert_csv(self):
+        file_path = self.ingest_destination('.csv')
+        flat = list(self.flattened_data())
+        if flat:
+            keys = list(flat[0].keys())
+            with open(file_path, 'w') as dest_file:
+                writer = csv.DictWriter(dest_file, fieldnames=keys)
+                writer.writeheader()
+                writer.writerows(flat)
+
+    # inserters = {
+    #     'json': insert_json,
+    #     'yaml': insert_yaml,
+    # }
+
+    def ingest_destination(self, extension):
+        dest_directory = os.path.join(settings.MEDIA_ROOT,
+                                      UPLOAD_SETTINGS['DESTINATION'])
         try:
-            files.storage.os.mkdir(dest)
+            files.storage.os.mkdir(dest_directory)
         except FileExistsError:
             pass
-        return dest
+        file_path = os.path.join(dest_directory,
+                                 self.upload.file.name) + extension
+        return file_path

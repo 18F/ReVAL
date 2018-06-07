@@ -1,0 +1,20 @@
+[
+  {
+    "error_code": "spend01",
+    "columns": [
+      "dollars_budgeted",
+      "dollars_spent"
+    ],
+    "message": "Spending should not exceed amount budgeted",
+    "code": {
+      "<=": [
+        {
+          "var": "dollars_spent"
+        },
+        {
+          "var": "dollars_budgeted"
+        }
+      ]
+    }
+  }
+]

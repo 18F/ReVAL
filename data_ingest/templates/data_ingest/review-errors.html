@@ -48,7 +48,7 @@
             <td>{{ err.severity }}</td>
             <td>{{ err.code }}</td>
             <td>{{ err.message }}</td>
-            {% for itm in row.values %}
+            {% for itm in row.data.values %}
             <td {% if forloop.counter0 in err.error_columns %} class="bad-value" style="color:red;" {% endif %}
             >{{ itm }}</td>
 

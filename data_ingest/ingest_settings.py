@@ -25,3 +25,7 @@ UPLOAD_SETTINGS.update(getattr(settings, 'DATA_INGEST', {}))
 upload_form_class = import_string(UPLOAD_SETTINGS['FORM'])
 upload_model_class = import_string(UPLOAD_SETTINGS['MODEL'])
 ingestor_class = import_string(UPLOAD_SETTINGS['INGESTOR'])
+
+# If no inserter exists for DESTINATION_FORMAT, throw the
+# exception here
+ingestor_class.get_inserter()

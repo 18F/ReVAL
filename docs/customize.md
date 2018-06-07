@@ -102,11 +102,11 @@ use lines 3 and 4 as column headers.
 
 ## Customizing ingestors 
 
-If the files are in an irregular format (like spreadsheets
+If the files are in a format more irregular than 
+[tabulator]https://github.com/frictionlessdata/tabulator-py() 
+can handle format (like spreadsheets
 where the relevant cells are not in a contiguous block), you 
-may need to write your own ingestor.
-
-TODO
+can sublass `ingestors.py:Ingestor`.  
 
 ## Adding metadata
 
@@ -145,11 +145,31 @@ enforce uniqueness.  To do so, after setting up the metadata fields (as above),
 We "inject" data when we copy it from an `Upload` instance into
 the data destination.  By default, each `Upload` is dumped as a
 .json file in the `data_ingest/` directory under the Django
-project root.
+project root.  
 
-## To an alternate flat-file format
+Change `DATA_INGEST['DESTINATION']` in settings.py 
+to save it elsewhere.
 
-TODO
+## To a different flat-file format
+
+Change `DATA_INGEST['DESTINATION_FORMAT']` to save the file in a 
+different format.  So far `yaml` and `json` are supported.
+
+To add a format not yet supported,
+
+- Subclass `ingestors.py:Ingestor` and give it an `insert_yourformat(self)`
+method modeled on `Ingestor.insert_json`
+
+- Include `yourextension: insert_yourmodel` in your subclass' `inserters` 
+attribute.
+
+- Edit your settings to use the new ingestor subclass.
+
+
+     INGEST_SETTINGS = {
+        'INGESTOR': 'yourpackage.ingestors.YourIngestor',
+        'DESTINATION_FORMAT': 'yourextension',
+    }   
 
 ## To a Django model
 
@@ -168,10 +188,6 @@ Include model fields for the metadata fields as well as
 the data columns.  It's best to also include a `ForeignKey`
 to the `Upload` model, to track the data flow for
 troubleshooting, retrating/deleting uploads, etc.
-
-## To a RESTful web service
-
-TODO
 
 # Overriding headers
 
