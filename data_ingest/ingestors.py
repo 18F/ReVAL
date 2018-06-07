@@ -24,13 +24,34 @@ logger = logging.getLogger(__name__)
 class Validator:
 
     SUPPORTS_HEADER_OVERRIDE = False
+    INVERT_LOGIC = False
 
     url_pattern = re.compile(r'^\w{3,5}://')
 
+    def invert_if_needed(self, value):
+        """
+        Inverts a boolean, iff `self.INVERT_LOGIC`
+
+        :param value: Boolean value to invert (or not)
+        :return: Boolean
+        """
+
+        if self.INVERT_LOGIC:
+            return not value
+        else:
+            return value
+
     def __init__(self, name, filename):
+        """
+
+        :param name: Name of the validator class
+        :param filename: Name of file to load validation rules from
+
+        """
         self.name = name
         self.filename = filename
         self.validator = self.get_validator_contents()
+
         if isinstance(UPLOAD_SETTINGS['STREAM_ARGS']['headers'],
                       list) and (not self.SUPPORTS_HEADER_OVERRIDE):
             raise exceptions.ImproperlyConfigured(
@@ -226,7 +247,7 @@ class RowwiseValidator(Validator):
 
             errors = [
                 row_validation_error(rule, row) for rule in self.validator
-                if not self.evaluate(rule['code'], row)
+                if not self.invert_if_needed(self.evaluate(rule['code'], row))
             ]
             if errors:
                 table['invalid_row_count'] += 1
@@ -251,6 +272,14 @@ class RowwiseValidator(Validator):
 class JsonlogicValidator(RowwiseValidator):
     def evaluate(self, rule, row):
         return json_logic.jsonLogic(rule, row)
+
+
+class JsonlogicValidatorFailureConditions(JsonlogicValidator):
+    """
+    Like JsonlogicValidator, but rules express failure conditions, not success
+    """
+
+    INVERT_LOGIC = True
 
 
 class SqlValidator(RowwiseValidator):
@@ -284,6 +313,14 @@ class SqlValidator(RowwiseValidator):
         return bool(self.db_cursor.fetchone()[0])
 
 
+class SqlValidatorFailureConditions(SqlValidator):
+    """
+    Like SqlValidator, but rules express failure conditions, not success
+    """
+
+    INVERT_LOGIC = True
+
+
 def combine_validation_results(results0, results1):
     """
     Adds two dictionaries of validation results, meshing row-wise results
@@ -310,8 +347,9 @@ def validators():
     :return: Iterator of Validator instances
 
     """
-    for (filename, type) in UPLOAD_SETTINGS['VALIDATORS'].items():
-        validator = import_string(type)(name=type, filename=filename)
+    for (filename, validator_type) in UPLOAD_SETTINGS['VALIDATORS'].items():
+        validator = import_string(validator_type)(
+            name=validator_type, filename=filename)
         yield validator
 
 
