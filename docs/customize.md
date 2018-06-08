@@ -83,7 +83,18 @@ and add the file to `DATA_INGEST['VALIDATORS']`.
     },
 
 Each rule's code should return `true` for valid rows and `false` for invalid.
- 
+
+### Inverting rule logic 
+
+By default, the code of each rule should evaluate to `true` for a row 
+to be valid.  You can reverse this - making each rule in a given validator 
+represent invalidation - in `DATA_INGEST['VALIDATORS']`:
+
+    'VALIDATORS': {
+        'sql_validators.yml': {'FILE': data_ingest.ingestors.SqlValidator',
+                               'RULES_EXPRESS_SUCCESS': False}
+    },
+
 # Customizing data ingestion behavior
 
 ## tabulator.Stream arguments 
@@ -103,7 +114,7 @@ use lines 3 and 4 as column headers.
 ## Customizing ingestors 
 
 If the files are in a format more irregular than 
-[tabulator]https://github.com/frictionlessdata/tabulator-py() 
+[tabulator](https://github.com/frictionlessdata/tabulator-py) 
 can handle format (like spreadsheets
 where the relevant cells are not in a contiguous block), you 
 can sublass `ingestors.py:Ingestor`.  
@@ -150,10 +161,15 @@ project root.
 Change `DATA_INGEST['DESTINATION']` in settings.py 
 to save it elsewhere.
 
+## To a RESTful web service 
+
+Set `DATA_INGEST['DESTINATION_FORMAT']` to a webservice endpoint's 
+full URL, and the upload contents will be POSTed there as JSON.
+ 
 ## To a different flat-file format
 
 Change `DATA_INGEST['DESTINATION_FORMAT']` to save the file in a 
-different format.  So far `yaml` and `json` are supported.
+different format.  So far `yaml`, `json`, and `csv` are supported.
 
 To add a format not yet supported,
 
@@ -170,6 +186,9 @@ attribute.
         'INGESTOR': 'yourpackage.ingestors.YourIngestor',
         'DESTINATION_FORMAT': 'yourextension',
     }   
+    
+There is an example of adding a custom injection destination type 
+in [examples/p03_budget](examples/p03_budgets).
 
 ## To a Django model
 
@@ -199,6 +218,8 @@ then specify the row number of the to-be-replaced headers in
 headers will still be used in the output, but the headers from settings.py
 will be used for validation rules.
 
+There is an example of overriding headers 
+in [examples/p03_budget](examples/p03_budgets).
 
 
 

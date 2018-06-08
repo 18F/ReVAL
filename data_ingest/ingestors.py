@@ -5,6 +5,7 @@ import logging
 import os.path
 import re
 import sqlite3
+import urllib.parse
 from collections import OrderedDict, defaultdict
 
 import goodtables
@@ -450,19 +451,25 @@ class Ingestor:
                  UPLOAD_SETTINGS['INGESTOR']))
 
     def insert(self):
-        if UPLOAD_SETTINGS['DESTINATION'].endswith('/'):
+        dest = UPLOAD_SETTINGS['DESTINATION']
+        if '/' in dest:
+            if urllib.parse.urlparse(dest).scheme:
+                resp = requests.post(dest, json=self.data())
+                resp.raise_for_status()
+                return resp
             # save to a directory
             inserter = getattr(
                 self, 'insert_%s' % UPLOAD_SETTINGS['DESTINATION_FORMAT'])
             return inserter()
         else:
+            # save to a Django model
             try:
-                dest_model = import_string(UPLOAD_SETTINGS['DESTINATION'])
+                dest_model = import_string(dest)
                 return self.insert_to_model(dest_model)
             except ModuleNotFoundError:
                 pass
         msg = "DATA_INGEST['DESTINATION'] of {} could not be interpreted".format(
-            UPLOAD_SETTINGS['DESTINATION'])
+            dest)
         raise exceptions.ImproperlyConfigured(msg)
 
     def insert_to_model(self, model_class):
