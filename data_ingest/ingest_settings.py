@@ -5,8 +5,9 @@ DEFAULT_UPLOAD_SETTINGS = {
     'FORM': 'data_ingest.forms.UploadForm',
     'INGESTOR': 'data_ingest.ingestors.Ingestor',
     'STREAM_ARGS': {
-        'headers': 1
+        'headers': 1,
     },
+    'METADATA_PREFIX': '',
     'TEMPLATE': 'data_ingest/upload.html',
     'LIST_TEMPLATE': 'data_ingest/upload_list.html',
     'DETAIL_TEMPLATE': 'data_ingest/upload_detail.html',

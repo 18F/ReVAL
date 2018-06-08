@@ -13,6 +13,7 @@ dj-database-url = "*"
 json-logic-py = {git = "https://github.com/qubitdigital/json-logic-py.git", editable = true}
 pyyaml = "*"
 django-rest-framework = "*"
+requests = "*"
 
 
 [dev-packages]

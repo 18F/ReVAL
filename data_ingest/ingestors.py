@@ -419,13 +419,23 @@ class Ingestor:
 
         return apply_validators_to(self.source())
 
+    def meta_named(self, core_name):
+
+        prefix = UPLOAD_SETTINGS['METADATA_PREFIX']
+        return '{}{}'.format(prefix, core_name)
+
     def data(self):
         """Combines row data and file metadata from validation results"""
 
         t0 = self.upload.validation_results['tables'][0]
-        result = dict(self.upload.file_metadata)
-        result['rows'] = [r['data'] for r in t0['rows'] if not r['errors']]
-        # warning - what if metadata contains a col "rows"?
+        result = {
+            self.meta_named(k): v
+            for (k, v) in self.upload.file_metadata.items()
+        }
+        result['rows'] = [{
+            self.meta_named('row_number'): r['row_number'],
+            **r['data']
+        } for r in t0['rows'] if not r['errors']]
         return result
 
     def flattened_data(self):
