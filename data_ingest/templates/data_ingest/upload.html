@@ -1,5 +1,16 @@
-<form action="/data_ingest/upload/" method="post" enctype="multipart/form-data">
+{% extends 'data_ingest/base.html' %}
+
+{% block content %}
+<div class='usa-grid'>
+{% if form.replace_upload_id.value %}
+<h1>Provide a new file for Submission #{{form.replace_upload_id.value}}</h1>
+{% else %}
+<h1> Upload a file to create a submission</h1>
+{% endif %}
+<form action="/data_ingest/upload/" method="post" enctype="multipart/form-data" class="usa-form">
     {% csrf_token %}
-    {{ form }}
-    <input type="submit" value="Submit" />
+    {{form}}
+    <input class="usa-button" type="submit" value="Submit" />
 </form>
+</div>
+{% endblock %}

@@ -1,12 +1,11 @@
 # django-data-ingest
 
-`data_ingest` is a reusable Django project managing data submissitted as file uploads
+`data_ingest` is a reusable Django project managing data submitted as file uploads
 to a central
 gathering point.  Each file generally contains multiple data rows, and
 each user may submit multiple files.
 
-The [default installation](docs/default.md) exposes a very basic and minimal
-workflow, which can be [customized](docs/customize.md) for your needs.
+---
 
 ## Features
 
@@ -18,9 +17,65 @@ workflow, which can be [customized](docs/customize.md) for your needs.
 - Flexible ultimate destination for data
 - [API](docs/api.md) for validation
 
+---
+
+## Requirements
+
+* Python (3.5, 3.6)
+* Django (1.11)
+* Goodtables
+* pyyaml
+* django-rest-framework
+* psycopg2
+* json-logic
+
+---
+
+## Installation
+
+Install using `pipenv`...
+
+    pipenv install django-data-ingest
+
+Add `'data_ingest'` to your `INSTALLED_APPS` setting.
+
+    INSTALLED_APPS = (
+        ...
+        'data_ingest',
+    )
+
+---
+
+## Examples
+
+Several [examples are provided](./examples/) to demonstrate default and customized
+behavior of  `data_ingest`. Follow the [development](#development) instructions to close this repository and install the dependencies required for the examples.
+
+### [default installation](examples/defaults/README.md)
+
+### [p02_budgets](examples/p02_budgets/README.md)
+
+### [p03_budgets](examples/p03_budgets/README.md)
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md) for additional information.
+
+---
+
+## Development
+
+To start developing on Django Data Ingest, clone the repository:
+
+    git clone git@github.com:18f/django-data-ingest.git
+
+Install development dependencies:
+
+    pipenv install --dev
+
+---
 
 ## Public domain
 

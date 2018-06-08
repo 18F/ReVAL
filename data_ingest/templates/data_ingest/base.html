@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>{% block title %}{% endblock %}</title>
+  <script defer src="{% static 'data_ingest/uswds/js/uswds.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'data_ingest/uswds/css/uswds.min.css' %}">
+  {% block header %}
+  {% endblock %}
+</head>
+
+<body>
+  <header class="usa-header usa-header-extended">
+    <div class="usa-navbar">
+      <div class="usa-logo" id="extended-logo">
+        <em class="usa-logo-text">
+          <a href="" title="Home" aria-label="Home">
+            <img id='logo' alt="Example logo" src="">
+          </a>
+        </em>
+      </div>
+      <button class="usa-menu-btn">Menu</button>
+    </div>
+
+<nav role="navigation" class="usa-nav">
+  <div class="usa-nav-inner">
+    <button class="usa-nav-close">
+      <img src="{% static 'vendor/uswds/img/close.svg' %}" alt="close">
+    </button>
+    <ul class="usa-nav-primary usa-accordion">
+      <li>
+        <a class="usa-nav-link {% if request.resolver_match.url_name == 'index' %}usa-current{% endif %}"
+          href="{% url 'index' %}#about">
+          <span>Submitted files</span>
+        </a>
+      </li>
+      <li>
+        <a class="usa-nav-link {% if request.resolver_match.url_name == 'upload' %}usa-current{% endif %}"
+           href="{% url 'upload' %}">
+          <span>Upload new file</span>
+        </a>
+      </li>
+      {% if user.is_superuser %}
+      <li>
+        <a class="usa-nav-link" href="{% url 'admin:index' %}">
+          <span>Admin</span>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+    <div class="usa-nav-secondary">
+      <ul class="usa-unstyled-list usa-nav-secondary-links">
+        {% if not user.is_authenticated %}
+        <li>
+          <a href="{% url 'login' %}">
+            <i class="fas fa-sign-in-alt"></i>
+            Login
+          </a>
+        </li>
+        {% else %}
+        <li>
+          <a href="">
+            <i class="fas fa-user"></i>
+            {{user.username}}
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'logout' %}">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+  </header>
+
+  <main id="main-content">
+    {% block messages %}
+      {% if messages %}}
+        <section class="usa-grid alert-section">
+          {% include 'messages.html' %}
+        </section>
+      {% endif %}
+    {% endblock messages %}
+    {% block content_title %}
+    {% endblock content_title %}
+    {% block content %}
+    {% endblock content%}
+  </main>
+
+  {% block scripts %}
+  {% endblock %}
+</body>
+
+</html>

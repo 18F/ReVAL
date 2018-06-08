@@ -1,5 +1,8 @@
+{% extends 'data_ingest/base.html' %}
+{% block content %}
 
-<h1>Errors in uploaded file</h1>
+<div class="usa-grid">
+<h1>Errors in Submission {{upload_id}}</h1>
 <h2>Review errors</h2>
 
       <p>
@@ -57,3 +60,5 @@
           {% endfor %}
         {% endfor %}
       </table>
+</div>
+{% endblock content %}

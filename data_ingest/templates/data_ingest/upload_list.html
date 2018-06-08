@@ -1,23 +1,28 @@
-<a href="{% url 'upload' %}">Upload new file</a>
+{% extends 'data_ingest/base.html' %}
 
-<h1>Uploaded files</h1>
-  <table>
-      <tr>
-          <th></th>
-          <th>Status</th>
-          <th>Uploaded at</th>
-          {% for k, v in object_list.0.descriptive_fields.items %}
-          <th>{{ k }}</th>
-          {% endfor %}
-      </tr>
-      {% for upload in object_list %}
-      <tr>
-          <td><a href="{% url 'detail' upload.id %}">Details</a></td>
-          <td>{{ upload.status }}</td>
-          <td>{{ upload.created_at }}</td>
-          {% for k, v in upload.descriptive_fields.items %}
-          <td>{{ v }}</td>
-          {% endfor %}
-      </tr>
-      {% endfor %}
-  </table>
+{% block content %}
+<div class='usa-grid'>
+
+<h1>Submissions</h1>
+<table>
+    <tr>
+        <th></th>
+        <th>Status</th>
+        <th>Uploaded at</th>
+        {% for k, v in object_list.0.descriptive_fields.items %}
+        <th>{{ k }}</th>
+        {% endfor %}
+    </tr>
+    {% for upload in object_list %}
+    <tr>
+        <td><a href="{% url 'detail' upload.id %}">Details</a></td>
+        <td>{{ upload.status }}</td>
+        <td>{{ upload.created_at }}</td>
+        {% for k, v in upload.descriptive_fields.items %}
+        <td>{{ v }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

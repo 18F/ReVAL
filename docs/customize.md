@@ -236,6 +236,3 @@ will be used for validation rules.
 
 There is an example of overriding headers 
 in [examples/p03_budget](examples/p03_budgets).
-
-
-

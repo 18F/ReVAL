@@ -8,8 +8,8 @@ Created according to the [default setup instructions](../../docs/default.md)
 
 ## To run locally
 
-Create a PostgreSQL database named `default_ingestor`, run the inital migrations, and
-create a user account.
+Create a PostgreSQL database named `default_ingestor`,
+run the initial migrations, and create a user account.
 
     createdb default_ingestor
     python manage.py migrate

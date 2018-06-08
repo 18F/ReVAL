@@ -1,11 +1,7 @@
 <!DOCTYPE html>
-<html>
-
-<head>
-    <title>Login</title>
-</head>
-
-<body>
+{% extends 'data_ingest/base.html' %}
+{% block content %}
+<div class="usa-grid">
     <form method="POST">
         {% csrf_token %}
         <p>
@@ -18,6 +14,5 @@
         </p>
         <button type="submit">Login</button>
     </form>
-</body>
-
-</html>
+</div>
+{% endblock %}
