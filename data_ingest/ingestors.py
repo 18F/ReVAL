@@ -107,6 +107,7 @@ class GoodtablesValidator(Validator):
 
         validate_params = dict(source)
         validate_params['source'] = io.BytesIO(source['source'])
+        validate_params['schema'] = self.validator
         result = goodtables.validate(**validate_params)
         return self.formatted(source, result)
 
@@ -434,6 +435,7 @@ class Ingestor:
         }
         result['rows'] = [{
             self.meta_named('row_number'): r['row_number'],
+            self.meta_named('upload_id'): self.upload.id,
             **r['data']
         } for r in t0['rows'] if not r['errors']]
         return result

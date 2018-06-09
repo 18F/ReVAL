@@ -147,9 +147,26 @@ enforce uniqueness.  To do so, after setting up the metadata fields (as above),
 
 2. In `settings.py`, set DATA_INGEST['MODEL'] to your new model subclass.
 
+
     DATA_INGEST = {
         'MODEL': 'budget_data_ingest.models.Upload',
     }
+
+### Metadata prefix 
+
+You may want to distinguish metadata fields from row data when 
+inserting data to its final destination.  If so, use the `METADATA_PREFIX`
+setting:
+
+    DATA_INGEST = {
+        'METADATA_PREFIX': '_',
+    }
+   
+`METADATA_PREFIX` will also be attached to `row_number` in the inserted
+data.
+
+This can help avoid field name collisions if uploaded files have fields 
+with the same name as metadata fields.
 
 # Changing injection destination
 
@@ -203,10 +220,9 @@ To save uploaded rows to instances of a Django data model
 
 Of course, the target model must exist!  See this
 [example module](../examples/p02_budget/models.py).
-Include model fields for the metadata fields as well as
-the data columns.  It's best to also include a `ForeignKey`
-to the `Upload` model, to track the data flow for
-troubleshooting, retrating/deleting uploads, etc.
+Include model fields for the data columns, the metadata fields,
+a `ForeignKey` to the `Upload` model, and a `row_number` 
+field.
 
 # Overriding headers
 

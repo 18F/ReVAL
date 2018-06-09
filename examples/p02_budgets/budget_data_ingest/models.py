@@ -1,8 +1,14 @@
 from django.db import models
+
 import data_ingest.models
 
+
 class Upload(data_ingest.models.Upload):
-    unique_metadata_fields = ['year', 'agency', ]
+    unique_metadata_fields = [
+        'year',
+        'agency',
+    ]
+
 
 class BudgetItem(models.Model):
 
@@ -13,3 +19,4 @@ class BudgetItem(models.Model):
     dollars_budgeted = models.DecimalField(max_digits=14, decimal_places=2)
     dollars_spent = models.DecimalField(max_digits=14, decimal_places=2)
     upload = models.ForeignKey(Upload)
+    row_number = models.IntegerField()
