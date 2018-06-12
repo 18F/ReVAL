@@ -1,32 +1,41 @@
+{% extends 'data_ingest/base.html' %}
+{% block content %}
 
+<div class="usa-grid">
 <h1>Confirm upload</h1>
+<div>
+  <p>Please verify the information below before finalizing your upload.</p>
+  <a class="usa-button" href="{% url 'complete-upload' upload_id %}">Complete upload</a>
+</div>
+  <div class="usa-width-one-half">
+    <h2>Verify file attributes</h2>
+      <table>
+        {% for k, v in file_metadata.items %}
+        <tr><td>{{ k }}</td><td>{{ v }}</td></tr>
+        {% endfor %}
+      </table>
+  </div>
 
-  <h2>Verify file attributes</h2>
+  <div class="usa-width-one-half">
+    <h2>Verify rows</h2>
     <table>
-      {% for k, v in file_metadata.items %}
-      <tr><td>{{ k }}</td><td>{{ v }}</td></tr>
-      {% endfor %}
-    </table>
-  <h2>Verify rows</h2>
-
-
-  <table>
-      <tr>
+      <thead>
         {% for h in headers %}
-          <th>{{ h }}</th>
+        <th>{{ h }}</th>
+        {% endfor %}
+      </thead>
+      <tbody>
+      {% for row in rows %} {% if not row.errors %}
+      <tr>
+        {% for itm in row.data.values %}
+        <td>{{ itm }}</td>
         {% endfor %}
       </tr>
-      {% for row in rows %}
-        {% if not row.errors %}
-        <tr>
-          {% for itm in row.data.values %}
-          <td>{{ itm }}</td>
-          {% endfor %}
-        </tr>
-        {% endif %}
-      {% endfor %}
+      {% endif %} {% endfor %}
+      <tbody>
     </table>
-
   </div>
-  <a href="{% url 'complete-upload' upload_id %}">Complete upload</a>
+
 </div>
+
+{% endblock content %}

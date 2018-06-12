@@ -1,14 +1,9 @@
-<ul id="actions">
-    <li><a href="{% url 'upload' object.id %}?{{ object.file_metadata_as_params }}">Reload</a></li>
-    {% if object.status == 'LOADING' %}
-    <li><a href="{% url 'review-errors' object.id %}">Load</a></li>
-    {% endif %}
-    <li><a href="{% url 'delete-upload' object.id %}">Delete</a></li>
-    {% if object.status == 'STAGED' %}
-    <li><a href="{% url 'insert' object.id %}">Insert</a></li>
-    {% endif %}
-</ul>
+{% extends 'data_ingest/base.html' %}
 
+{% block content %}
+<div class='usa-grid'>
+
+<h1>Submission: {{object.id}}</h1>
 <table>
     <tr>
         <th>Status</th>
@@ -26,3 +21,15 @@
     </tr>
 </table>
 
+<div id="actions">
+    <a class="usa-button" href="{% url 'upload' object.id %}?{{ object.file_metadata_as_params }}">Reload</a>
+    {% if object.status == 'LOADING' %}
+    <a class="usa-button" href="{% url 'review-errors' object.id %}">Load</a>
+    {% endif %} {% if object.status == 'STAGED' %}
+    <a class="usa-button" href="{% url 'insert' object.id %}">Insert</a>
+    {% endif %}
+</div>
+
+</div>
+
+{% endblock content %}

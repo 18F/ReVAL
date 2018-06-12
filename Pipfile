@@ -1,26 +1,22 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
-
 [packages]
-
 "e1839a8" = {path = ".", editable = true}
 django = "==1.11"
 dj-database-url = "*"
-json-logic-py = {git = "https://github.com/qubitdigital/json-logic-py.git", editable = true}
 pyyaml = "*"
 django-rest-framework = "*"
 requests = "*"
-
+json-logic = "*"
 
 [dev-packages]
-
 ipython = "*"
 ipdb = "*"
 yapf = "*"
 isort = "*"
 vulture = "*"
 jupyter = "*"
+flake8 = "*"
