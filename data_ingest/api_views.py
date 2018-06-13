@@ -6,6 +6,9 @@ from . import ingest_settings, ingestors
 from .parsers import CsvParser
 from .serializers import UploadSerializer
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class UploadViewSet(viewsets.ModelViewSet):
     """
@@ -38,10 +41,43 @@ def validate(request):
         resp = requests.post(url, data=content, headers={"Content-Type": "text/csv"})
 
     """
-
-    data = request.data
+    if request.content_type == 'application/json':
+        data = to_tabular(request.data)
+    else:
+        data = request.data
     result = ingestors.apply_validators_to(data)
     return response.Response(result)
 
     # to use: curl - X POST - H "Content-Type: text/csv" --data-binary @myfile.csv https://...
     # omitting --data-binary strips newlines!
+
+
+def to_tabular(incoming):
+    """Coerce incoming json to tabular structure for tabulator
+    [
+        [All observed keys(headers)],
+        [values],
+        [values],
+        ...
+    ]
+
+    First list contains all observed `columns`, following lists
+    are data rows containing data values in the order of headers defined
+    in the first row.
+    """
+    headers = set()
+    for row in incoming:
+        for header in row.keys():
+            headers.add(header)
+
+    headers = list(headers)
+    output = [headers]
+    for row in incoming:
+        row_data = []
+        for header in headers:
+            logger.debug(f"Fetching: {header}")
+            val = row.get(header, None)
+            row_data.append(val)
+            logger.debug(f'Set to: {val}')
+        output.append(row_data)
+    return output

@@ -88,9 +88,19 @@ class Validator:
 
 
 def rows_from_source(raw_source):
-    source = dict(raw_source)
-    source['source'] = io.BytesIO(source['source'])
-    stream = tabulator.Stream(**source)
+    source = raw_source.copy()
+    try:
+        f_source = io.BytesIO(source['source'])
+        byteslike = True
+    except (TypeError, AttributeError):
+        byteslike = False
+
+    if byteslike:
+        source['source'] = f_source
+        stream = tabulator.Stream(**source)
+    else:
+        stream = tabulator.Stream(source, headers=1)
+
     stream.open()
     result = OrderedDict(
         (row_num, OrderedDict((k, v) for (k, v) in zip(headers, vals) if k))
@@ -105,9 +115,19 @@ class UnsupportedException(Exception):
 class GoodtablesValidator(Validator):
     def validate(self, source):
 
-        validate_params = dict(source)
-        validate_params['source'] = io.BytesIO(source['source'])
-        validate_params['schema'] = self.validator
+        try:
+            source['source'].decode()
+            byteslike = True
+        except (TypeError, KeyError, AttributeError):
+            byteslike = False
+
+        if byteslike:
+            validate_params = source.copy()
+            validate_params['schema'] = self.validator
+            validate_params['source'] = io.BytesIO(source['source'])
+        else:
+            validate_params = {'source': source, 'schema': self.validator, "headers": 1}
+
         result = goodtables.validate(**validate_params)
         return self.formatted(source, result)
 
