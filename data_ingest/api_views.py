@@ -23,23 +23,20 @@ class UploadViewSet(viewsets.ModelViewSet):
 @decorators.parser_classes((JSONParser, CsvParser))
 def validate(request):
     """
-    Apply all validators in settings to JSON data
+    Apply all validators in settings to incoming data
 
     :param request: HTTP request
     :return: JSON describing validation results
 
-    to post a CSV:
-        curl - X POST - H "Content-Type: text/csv" --data-binary @myfile.csv https://...
-        # omitting --data-binary strips newlines!
+    Accepts Content-Types: "text/csv" OR "application/json"
 
-    or
+    CSV data is handled identically to as-if submitted via file upload.
 
-        import requests
-        url = 'http://localhost:8000/data_ingest/api/validate/'
-        with open('test_cases.csv') as infile:
-            content = infile.read()
-        resp = requests.post(url, data=content, headers={"Content-Type": "text/csv"})
+    JSON data must an array of JSON objects whose keys are the expected
+    data columns.
 
+    Received JSON objects are converted to tabular format wherein all
+    observed keys are considered headers/columns.
     """
     if request.content_type == 'application/json':
         data = to_tabular(request.data)
@@ -47,9 +44,6 @@ def validate(request):
         data = request.data
     result = ingestors.apply_validators_to(data)
     return response.Response(result)
-
-    # to use: curl - X POST - H "Content-Type: text/csv" --data-binary @myfile.csv https://...
-    # omitting --data-binary strips newlines!
 
 
 def to_tabular(incoming):
