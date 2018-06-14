@@ -88,9 +88,19 @@ class Validator:
 
 
 def rows_from_source(raw_source):
-    source = dict(raw_source)
-    source['source'] = io.BytesIO(source['source'])
-    stream = tabulator.Stream(**source)
+    source = raw_source.copy()
+    try:
+        f_source = io.BytesIO(source['source'])
+        byteslike = True
+    except (TypeError, AttributeError):
+        byteslike = False
+
+    if byteslike:
+        source['source'] = f_source
+        stream = tabulator.Stream(**source)
+    else:
+        stream = tabulator.Stream(source, headers=1)
+
     stream.open()
     result = OrderedDict(
         (row_num, OrderedDict((k, v) for (k, v) in zip(headers, vals) if k))
@@ -103,11 +113,22 @@ class UnsupportedException(Exception):
 
 
 class GoodtablesValidator(Validator):
+
     def validate(self, source):
 
-        validate_params = dict(source)
-        validate_params['source'] = io.BytesIO(source['source'])
-        validate_params['schema'] = self.validator
+        try:
+            source['source'].decode()
+            byteslike = True
+        except (TypeError, KeyError, AttributeError):
+            byteslike = False
+
+        if byteslike:
+            validate_params = source.copy()
+            validate_params['schema'] = self.validator
+            validate_params['source'] = io.BytesIO(source['source'])
+        else:
+            validate_params = {'source': source, 'schema': self.validator, "headers": 1}
+
         result = goodtables.validate(**validate_params)
         return self.formatted(source, result)
 
@@ -143,7 +164,7 @@ class GoodtablesValidator(Validator):
                         'data': ['Yoz', 'Engineer', '10']}],
                 'valid_row_count': 2}],
             'valid': False}
-``
+    ``
         """
 
         (headers, rows) = rows_from_source(source)
@@ -247,10 +268,25 @@ class RowwiseValidator(Validator):
                 table['headers'] = list(row.values())
                 continue
 
-            errors = [
-                row_validation_error(rule, row) for rule in self.validator
-                if not self.invert_if_needed(self.evaluate(rule['code'], row))
-            ]
+            errors = []
+            # Check for columns required by validator
+            received_columns = set(table['headers'])
+            for rule in self.validator:
+                expected_columns = set(rule['columns'])
+                missing_columns = expected_columns.difference(received_columns)
+                if missing_columns:
+                    errors.append({'severity': 'Error',
+                                'code': rule['error_code'],
+                                'message': f'Unable to evaluate, missing columns: {missing_columns}',
+                                'error_columns': []})
+                    continue
+                if rule['code'] and not self.invert_if_needed(self.evaluate(rule['code'], row)):
+                    errors.append(row_validation_error(rule, row))
+
+            # errors = [
+            #     row_validation_error(rule, row) for rule in self.validator
+            #     if not self.invert_if_needed(self.evaluate(rule['code'], row))
+            # ]
             if errors:
                 table['invalid_row_count'] += 1
             else:
@@ -268,6 +304,7 @@ class RowwiseValidator(Validator):
             ],
             'valid': (table['invalid_row_count'] == 0)
         }
+
         return result
 
 

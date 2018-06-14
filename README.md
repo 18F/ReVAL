@@ -27,7 +27,7 @@ each user may submit multiple files.
 * pyyaml
 * django-rest-framework
 * psycopg2
-* json-logic
+* json-logic-py (https://github.com/qubitdigital/json-logic-py)
 
 ---
 
@@ -74,6 +74,12 @@ To start developing on Django Data Ingest, clone the repository:
 Install development dependencies:
 
     pipenv install --dev
+
+### Test Suite
+
+To execute the test suite, install the development dependencies and run:
+
+    python runtests.py
 
 ---
 

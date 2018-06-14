@@ -5,12 +5,12 @@ name = "pypi"
 
 [packages]
 "e1839a8" = {path = ".", editable = true}
-django = "==1.11"
+django = "<2.0"
 dj-database-url = "*"
 pyyaml = "*"
 django-rest-framework = "*"
 requests = "*"
-json-logic = "*"
+json-logic-py = {git = "https://github.com/qubitdigital/json-logic-py.git"}
 
 [dev-packages]
 ipython = "*"

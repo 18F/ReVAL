@@ -26,10 +26,7 @@ SECRET_KEY = 'rdf(#78&p8f$i@784^%95v^!3#t47g#g5ed@m&2^7x(77xk(69'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '.cloud.gov',
-]
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -41,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'budget_data_ingest',
+    'rest_framework',
     'data_ingest',
 ]
 
