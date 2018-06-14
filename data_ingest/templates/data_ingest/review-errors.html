@@ -1,7 +1,7 @@
 {% extends 'data_ingest/base.html' %}
 {% block content %}
 
-<div class="usa-grid">
+<div class="usa-grid" style="overflow: auto">
 <h1>Errors in Submission {{upload_id}}</h1>
 <h2>Review errors</h2>
 
@@ -38,12 +38,13 @@
       </div>
 
       <table>
-        <tr>
+        <thead>
             <th>Row #</th><th>Severity</th></th><th>Error code</th><th>message</th>
           {% for h in headers %}
             <th>{{ forloop.counter }} : {{ h }}</th>
           {% endfor %}
-        </tr>
+        </thead
+        <tbody>
         {% for row in rows %}
           {% for err in row.errors %}
           <tr>
@@ -59,6 +60,7 @@
           </tr>
           {% endfor %}
         {% endfor %}
+        </tbody>
       </table>
 </div>
 {% endblock content %}
