@@ -50,8 +50,7 @@ class Upload(models.Model):
                 duplicates = duplicates.filter(
                     **{'file_metadata__' + field: self.file_metadata[field]})
             # Silently delete abandoned in-process duplicates
-            abandoned = duplicates.filter(status='LOADING').exclude(
-                id=self.id).delete()
+            duplicates.filter(status='LOADING').exclude(id=self.id).delete()
             return duplicates.exclude(status='DELETED').exclude(
                 id=self.id).first()
         return None

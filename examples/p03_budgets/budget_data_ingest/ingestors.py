@@ -2,6 +2,7 @@ import csv
 
 from data_ingest import ingestors
 
+
 class Ingestor(ingestors.Ingestor):
 
     def insert_tsv(self):
@@ -13,5 +14,3 @@ class Ingestor(ingestors.Ingestor):
                 writer = csv.DictWriter(dest_file, fieldnames=keys, dialect='excel-tab')
                 writer.writeheader()
                 writer.writerows(flat)
-
-

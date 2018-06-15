@@ -1,0 +1,10 @@
+[run]
+branch = True
+source =
+    data_ingest
+omit =
+    .venv/*
+    /*migrations*/
+    /*management*/
+    manage.py
+    */tests/*

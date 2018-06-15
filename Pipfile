@@ -12,11 +12,8 @@ django-rest-framework = "*"
 requests = "*"
 json-logic-py = {git = "https://github.com/qubitdigital/json-logic-py.git"}
 
+
 [dev-packages]
-ipython = "*"
-ipdb = "*"
-yapf = "*"
-isort = "*"
-vulture = "*"
-jupyter = "*"
 flake8 = "*"
+coverage = "*"
+bandit = "*"

@@ -3,12 +3,11 @@ import sys
 import django
 from django.conf import settings
 from django.test.utils import get_runner
+import dj_database_url
 
 SETTINGS = {"DATABASES": {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'data_ingest',
-    }},
+    'default': dj_database_url.config(conn_max_age=600),
+    },
     "INSTALLED_APPS": [
         'django.contrib.admin',
         'django.contrib.auth',
@@ -27,5 +26,5 @@ django.setup()
 TestRunner = get_runner(settings)
 
 test_runner = TestRunner(verbosity=1, interactive=True)
-failures = test_runner.run_tests(['data_ingest',])
+failures = test_runner.run_tests(['data_ingest', ])
 sys.exit(failures)

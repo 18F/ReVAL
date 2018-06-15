@@ -131,4 +131,3 @@ DATA_INGEST = {
         'rules.json': 'data_ingest.ingestors.JsonlogicValidator',
     },
 }
-
