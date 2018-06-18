@@ -1,15 +1,25 @@
-# django-data-ingest
+# 10x Data Federation Project (Federated Data Ingest Tool)
 
-`data_ingest` is a reusable Django project managing data submitted as file uploads
-to a central
-gathering point.  Each file generally contains multiple data rows, and
+The Federated Data Ingest (also known as `data_ingest`) is a reusable Django project managing data submitted as file uploads
+to a centralgathering point.  Each file generally contains multiple data rows, and
 each user may submit multiple files.
+
+## Background
+
+There is significant demand in government (from federal to state / local) for tools that make the process of aggregating data from multiple parties and sources easier.  Long term, successful federated data efforts are unlikely if the process by which data are collected, aggregated and validated cannot be improved.  Gathering these data in a timely fashion by using tools that are complementary to existing workflows (e.g. they do not add additional time and effort on the data provider) and that are easy to use will help modernize the way the federal government functions and interacts with other government agencies.
+
+For more information about this project and scope, read the [U.S. Data Federation report](https://github.com/18F/data-federation-report/blob/master/DataFederationFramework.md) from Phase I. 
+
 
 ---
 
 ## Features
 
-- Flexible input format
+- Flexible input format.  The tool allows for submissions via form upload, or through an on-demand API to validate records in real-time.
+    - a. CSV, TSV, JSON, etc.
+    - Submitted file staged for review of validation failures 
+    - Submitted file/data delivered upon review
+
 - Validation with [goodtables](), [JSON Schema](), [SQL](), or a custom validation class
 - Row-by-row feedback on validation results
 - Manage and track status of data submissions
