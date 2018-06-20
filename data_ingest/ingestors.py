@@ -63,7 +63,7 @@ class Validator:
         with open(self.filename) as infile:
             if self.filename.endswith('.yml') or self.filename.endswith(
                     '.yaml'):
-                return yaml.load(infile)
+                return yaml.safe_load(infile)
             else:
                 return json.load(infile)
 
@@ -76,7 +76,7 @@ class Validator:
                 if resp.ok:
                     if self.filename.endswith('yml') or self.filename.endswith(
                             '.yaml'):
-                        return yaml.load(resp.text)
+                        return yaml.safe_load(resp.text)
                     return resp.json()
                 else:
                     raise exceptions.ImproperlyConfigured(
@@ -249,7 +249,8 @@ class RowwiseValidator(Validator):
     if UPLOAD_SETTINGS.get('OLD_HEADER_ROW') and not isinstance(
             UPLOAD_SETTINGS['STREAM_ARGS']['headers'], list):
         raise exceptions.ImproperlyConfigured(
-            "DATA_INGEST['OLD_HEADER_ROW'] should be used with a list of headers in DATA_INGEST['STREAM_ARGS']['header']"
+            """DATA_INGEST['OLD_HEADER_ROW'] should be used with a
+            list of headers in DATA_INGEST['STREAM_ARGS']['header']"""
         )
 
     def validate(self, source):
@@ -276,9 +277,9 @@ class RowwiseValidator(Validator):
                 missing_columns = expected_columns.difference(received_columns)
                 if missing_columns:
                     errors.append({'severity': 'Error',
-                                'code': rule['error_code'],
-                                'message': f'Unable to evaluate, missing columns: {missing_columns}',
-                                'error_columns': []})
+                                   'code': rule['error_code'],
+                                   'message': f'Unable to evaluate, missing columns: {missing_columns}',
+                                   'error_columns': []})
                     continue
                 if rule['code'] and not self.invert_if_needed(self.evaluate(rule['code'], row)):
                     errors.append(row_validation_error(rule, row))
@@ -491,7 +492,7 @@ class Ingestor:
         inserter_name = 'insert_%s' % UPLOAD_SETTINGS['DESTINATION_FORMAT'].lower(
         )
         try:
-            inserter = getattr(cls, inserter_name)
+            getattr(cls, inserter_name)
         except AttributeError:
             raise AttributeError(
                 """UPLOAD_SETTINGS['DESTINATION_FORMAT'] %s requires method %s,

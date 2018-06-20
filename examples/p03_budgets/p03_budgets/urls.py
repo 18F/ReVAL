@@ -22,4 +22,3 @@ urlpatterns = [
     url(r'^data_ingest/', include(data_ingest.urls)),
     url('accounts/', include('django.contrib.auth.urls')),
 ]
-
