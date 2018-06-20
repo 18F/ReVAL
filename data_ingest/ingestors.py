@@ -63,7 +63,7 @@ class Validator:
         with open(self.filename) as infile:
             if self.filename.endswith('.yml') or self.filename.endswith(
                     '.yaml'):
-                return yaml.load(infile)
+                return yaml.safe_load(infile)
             else:
                 return json.load(infile)
 
@@ -76,7 +76,7 @@ class Validator:
                 if resp.ok:
                     if self.filename.endswith('yml') or self.filename.endswith(
                             '.yaml'):
-                        return yaml.load(resp.text)
+                        return yaml.safe_load(resp.text)
                     return resp.json()
                 else:
                     raise exceptions.ImproperlyConfigured(
