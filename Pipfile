@@ -17,3 +17,4 @@ json-logic-py = {git = "https://github.com/qubitdigital/json-logic-py.git"}
 flake8 = "*"
 coverage = "*"
 bandit = "*"
+codecov = "*"
