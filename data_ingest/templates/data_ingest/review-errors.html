@@ -1,10 +1,10 @@
 {% extends 'data_ingest/base.html' %}
+{% load get_item %}
 {% block content %}
 
 <div class="usa-grid" style="overflow: auto">
 <h1>Errors in Submission {{upload_id}}</h1>
 <h2>Review errors</h2>
-
       <p>
         We found {{ whole_table_errors | length }} whole-table
         error{{ whole_table_errors | length | pluralize }}
@@ -52,10 +52,10 @@
             <td>{{ err.severity }}</td>
             <td>{{ err.code }}</td>
             <td>{{ err.message }}</td>
-            {% for itm in row.data.values %}
-            <td {% if forloop.counter0 in err.error_columns %} class="bad-value" style="color:red;" {% endif %}
-            >{{ itm }}</td>
-
+            {% for h in headers %}
+              <td {% if forloop.counter0 in err.error_columns %} class="bad-value" style="color:red;" {% endif %}>
+                {{ row.data|get_item:h }}
+              </td>
             {% endfor %}
           </tr>
           {% endfor %}

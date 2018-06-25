@@ -125,7 +125,7 @@ def review_errors(request, upload_id):
 def confirm_upload(request, upload_id):
     upload = ingest_settings.upload_model_class.objects.get(pk=upload_id)
     data = upload.validation_results["tables"][0]
-    data["file_metadata"] = upload.file_metadata_as_params()
+    data["file_metadata"] = upload.file_metadata
     data['upload_id'] = upload.id
     return render(request, "data_ingest/confirm-upload.html", data)
 
