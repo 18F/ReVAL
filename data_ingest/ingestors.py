@@ -225,7 +225,7 @@ def row_validation_error(rule, row_dict):
         'message':
         rule.get('message', '').format(**row_dict),
         'error_columns': [
-            idx for (idx, k) in enumerate(row_dict.keys())
+            k for (idx, k) in enumerate(row_dict.keys())
             if k in rule['columns']
         ]
     }
