@@ -10,7 +10,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-data-ingest',
-    version='0.1',
+    version='0.2',
     packages=find_packages(),
     include_package_data=True,
     license='CC0-1.0',
@@ -27,8 +27,7 @@ setup(
         'License :: OSI Approved :: BSD License',  # example license
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'License :: Public Domain',
@@ -36,12 +35,12 @@ setup(
     ],
     install_requires=[
         'django<=2.0',
-        'goodtables',
-        'pyyaml',
+        'djangorestframework',
         'dj-database-url',
-        'django-rest-framework',
-        'requests',
+        'goodtables',
+        'json_logic_qubit',
         'psycopg2-binary',
+        'pyyaml',
+        'requests',
     ],
-    dependency_links=['http://github.com/qubitdigital/json-logic-py/tarball/master#egg=package-1.0'],
 )

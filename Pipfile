@@ -4,17 +4,18 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"e1839a8" = {path = ".", editable = true}
 django = "<2.0"
+djangorestframework = "*"
 dj-database-url = "*"
+goodtables = "*"
+json_logic_qubit = "*"
+psycopg2-binary = "*"
 pyyaml = "*"
-django-rest-framework = "*"
 requests = "*"
-json-logic-py = {git = "https://github.com/qubitdigital/json-logic-py.git"}
-
 
 [dev-packages]
 flake8 = "*"
 coverage = "*"
 bandit = "*"
 codecov = "*"
+django-data-ingest = {editable = true,path = "."}
