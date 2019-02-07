@@ -97,9 +97,9 @@ def rows_from_source(raw_source):
 
     if byteslike:
         source['source'] = f_source
-        stream = tabulator.Stream(**source, encoding='utf-8')
+        stream = tabulator.Stream(**source)
     else:
-        stream = tabulator.Stream(source, headers=1, encoding='utf-8')
+        stream = tabulator.Stream(source, headers=1)
 
     stream.open()
     result = OrderedDict(
@@ -466,7 +466,6 @@ class Ingestor:
         stream = tabulator.Stream(
             io.BytesIO(self.upload.raw),
             format=self.upload.file_type,
-            encoding='utf-8',
             **UPLOAD_SETTINGS['STREAM_ARGS'])
         stream.open()
         if UPLOAD_SETTINGS['OLD_HEADER_ROW'] is not None:
