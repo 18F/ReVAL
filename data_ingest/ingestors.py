@@ -97,9 +97,9 @@ def rows_from_source(raw_source):
 
     if byteslike:
         source['source'] = f_source
-        stream = tabulator.Stream(**source)
+        stream = tabulator.Stream(**source, encoding='utf-8')
     else:
-        stream = tabulator.Stream(source, headers=1)
+        stream = tabulator.Stream(source, headers=1, encoding='utf-8')
 
     stream.open()
     result = OrderedDict(
@@ -323,6 +323,29 @@ class JsonlogicValidatorFailureConditions(JsonlogicValidator):
 
 
 class SqlValidator(RowwiseValidator):
+    @staticmethod
+    def cast_values(row_values):
+        # This will help clean up the data and cast them to numbers when
+        # appropriate
+        # TODO: This may be a temporary fix, like to revisit to see if "type"
+        # should be something defined in settings.py along with column names
+        cvalues = []
+        for val in row_values:
+            newval = val.strip()
+            if type(newval) == str:
+                if newval.isdigit():
+                    newval = int(newval)
+                elif newval.replace('.', '', 1).isdigit():
+                    newval = float(newval)
+                elif newval.replace(',', '').isdigit():
+                    newval = int(newval.replace(',', ''))
+                elif newval.replace(',', '').replace('.', '', 1).isdigit():
+                    newval = float(newval)
+
+            cvalues.append(newval)
+
+        return cvalues
+
     def __init__(self, *args, **kwargs):
 
         self.db = sqlite3.connect(':memory:')
@@ -338,7 +361,6 @@ class SqlValidator(RowwiseValidator):
         return sql.split(';')[0]
 
     def evaluate(self, rule, row):
-
         if not rule:
             return True  # rule not implemented
 
@@ -348,9 +370,11 @@ class SqlValidator(RowwiseValidator):
         sql = f"select {rule} from ( select {aliases} )"
         sql = self.first_statement_only(sql)
 
-        self.db_cursor.execute(sql, tuple(row.values()))
+        cvalues = SqlValidator.cast_values(row.values())
 
-        return bool(self.db_cursor.fetchone()[0])
+        self.db_cursor.execute(sql, tuple(cvalues))
+        result = self.db_cursor.fetchone()[0]
+        return bool(result)
 
 
 class SqlValidatorFailureConditions(SqlValidator):
@@ -442,6 +466,7 @@ class Ingestor:
         stream = tabulator.Stream(
             io.BytesIO(self.upload.raw),
             format=self.upload.file_type,
+            encoding='utf-8',
             **UPLOAD_SETTINGS['STREAM_ARGS'])
         stream.open()
         if UPLOAD_SETTINGS['OLD_HEADER_ROW'] is not None:
