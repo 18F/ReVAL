@@ -21,7 +21,7 @@ each user may submit multiple files.
 
 ## Requirements
 
-* Python (3.7)
+* Python (3.5, 3.6)
 * Django (1.11)
 * Goodtables
 * pyyaml

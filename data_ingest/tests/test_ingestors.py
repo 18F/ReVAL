@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from data_ingest.ingestors import row_validation_error
+from data_ingest.ingestors import row_validation_error, SqlValidator
 from django.test import SimpleTestCase
 
 
@@ -34,3 +34,10 @@ class TestIngestors(SimpleTestCase):
             'error_columns': ['dollars_budgeted', 'dollars_spent']
         }
         self.assertEqual(row_validation_error(rule, row_dict), exp_result)
+
+
+class TestSqlValidator(SimpleTestCase):
+    def test_cast_values(self):
+        self.assertEqual(SqlValidator.cast_values(
+            ("1", "3.4", "Test", "Number 1", "123 ")),
+            [1, 3.4, "Test", "Number 1", 123])

@@ -323,6 +323,29 @@ class JsonlogicValidatorFailureConditions(JsonlogicValidator):
 
 
 class SqlValidator(RowwiseValidator):
+    @staticmethod
+    def cast_values(row_values):
+        # This will help clean up the data and cast them to numbers when
+        # appropriate
+        # TODO: This may be a temporary fix, like to revisit to see if "type"
+        # should be something defined in settings.py along with column names
+        cvalues = []
+        for val in row_values:
+            newval = val.strip()
+            if type(newval) == str:
+                if newval.isdigit():
+                    newval = int(newval)
+                elif newval.replace('.', '', 1).isdigit():
+                    newval = float(newval)
+                elif newval.replace(',', '').isdigit():
+                    newval = int(newval.replace(',', ''))
+                elif newval.replace(',', '').replace('.', '', 1).isdigit():
+                    newval = float(newval)
+
+            cvalues.append(newval)
+
+        return cvalues
+
     def __init__(self, *args, **kwargs):
 
         self.db = sqlite3.connect(':memory:')
@@ -338,7 +361,6 @@ class SqlValidator(RowwiseValidator):
         return sql.split(';')[0]
 
     def evaluate(self, rule, row):
-
         if not rule:
             return True  # rule not implemented
 
@@ -348,9 +370,11 @@ class SqlValidator(RowwiseValidator):
         sql = f"select {rule} from ( select {aliases} )"
         sql = self.first_statement_only(sql)
 
-        self.db_cursor.execute(sql, tuple(row.values()))
+        cvalues = SqlValidator.cast_values(row.values())
 
-        return bool(self.db_cursor.fetchone()[0])
+        self.db_cursor.execute(sql, tuple(cvalues))
+        result = self.db_cursor.fetchone()[0]
+        return bool(result)
 
 
 class SqlValidatorFailureConditions(SqlValidator):
