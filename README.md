@@ -21,13 +21,15 @@ each user may submit multiple files.
 
 ## Requirements
 
-* Python (3.5, 3.6)
+* Python (3.7)
 * Django (1.11)
 * Goodtables
 * pyyaml
-* django-rest-framework
+* djangorestframework
 * psycopg2
-* json-logic-py (https://github.com/qubitdigital/json-logic-py)
+* json_logic_qubit
+* dj-database-url
+* requests
 
 ---
 
