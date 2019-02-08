@@ -331,8 +331,9 @@ class SqlValidator(RowwiseValidator):
         # should be something defined in settings.py along with column names
         cvalues = []
         for val in row_values:
-            newval = val.strip()
+            newval = val
             if type(newval) == str:
+                newval = newval.strip()
                 if newval.isdigit():
                     newval = int(newval)
                 elif newval.replace('.', '', 1).isdigit():
