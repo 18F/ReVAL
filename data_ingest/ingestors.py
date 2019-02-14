@@ -7,6 +7,7 @@ import re
 import sqlite3
 import urllib.parse
 from collections import OrderedDict, defaultdict
+from decimal import Decimal, InvalidOperation
 
 import goodtables
 import json_logic
@@ -334,14 +335,21 @@ class SqlValidator(RowwiseValidator):
             newval = val
             if type(newval) == str:
                 newval = newval.strip()
-                if newval.isdigit():
-                    newval = int(newval)
-                elif newval.replace('.', '', 1).isdigit():
-                    newval = float(newval)
-                elif newval.replace(',', '').isdigit():
-                    newval = int(newval.replace(',', ''))
-                elif newval.replace(',', '').replace('.', '', 1).isdigit():
-                    newval = float(newval)
+                try:
+                    dnewval = Decimal(newval.replace(',', ''))
+                    try:
+                        inewval = int(dnewval)
+                        fnewval = float(dnewval)
+                        if inewval == fnewval:
+                            newval = inewval
+                        else:
+                            newval = fnewval
+                    except ValueError:
+                        # will take the newval.strip() as the value
+                        pass
+                except InvalidOperation:
+                    # will take the newval.strip() as the value
+                    pass
 
             cvalues.append(newval)
 

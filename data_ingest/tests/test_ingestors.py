@@ -39,5 +39,5 @@ class TestIngestors(SimpleTestCase):
 class TestSqlValidator(SimpleTestCase):
     def test_cast_values(self):
         self.assertEqual(SqlValidator.cast_values(
-            ("1", "3.4", "Test", "Number 1", "123 ", 1, 2.05)),
-            [1, 3.4, "Test", "Number 1", 123, 1, 2.05])
+            ("1", "3.4", "Test", "Number 1", "123 ", 1, 2.05, "NaN", "2e3", "-12.0", "-4", "-12.45", "1,230,000")),
+            [1, 3.4, "Test", "Number 1", 123, 1, 2.05, "NaN", 2000, -12, -4, -12.45, 1230000])
