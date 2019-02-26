@@ -38,7 +38,7 @@ urlpatterns = [
         views.insert,
         name="insert",
     ),
-    url(r"^api/validate", api_views.validate),
+    url(r"^api/validate", api_views.validate, name="validate"),
     url(r"^api/", include(router.urls)),
     url(
         r"^",
