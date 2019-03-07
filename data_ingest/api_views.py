@@ -1,3 +1,7 @@
+import csv
+import io
+import logging
+
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import decorators, response, viewsets
 from rest_framework.parsers import JSONParser
@@ -5,8 +9,8 @@ from rest_framework.parsers import JSONParser
 from . import ingest_settings, ingestors
 from .parsers import CsvParser
 from .serializers import UploadSerializer
+from .utils import get_ordered_headers
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +45,13 @@ def validate(request):
     """
     if request.content_type == 'application/json':
         data = to_tabular(request.data)
+    elif request.content_type == 'text/csv':
+        # data = request.data
+        data = reorder_csv(request.data)
     else:
         data = request.data
     result = ingestors.apply_validators_to(data)
+
     return response.Response(result)
 
 
@@ -66,13 +74,36 @@ def to_tabular(incoming):
             headers.add(header)
 
     headers = list(headers)
-    output = [headers]
+
+    o_headers = get_ordered_headers(headers)
+
+    output = [o_headers]
     for row in incoming:
         row_data = []
-        for header in headers:
+        for header in o_headers:
             logger.debug(f"Fetching: {header}")
             val = row.get(header, None)
             row_data.append(val)
             logger.debug(f'Set to: {val}')
         output.append(row_data)
     return output
+
+
+def reorder_csv(incoming):
+    data = incoming.copy()
+    csvbuffer = io.StringIO(data['source'].decode('UTF-8'))
+
+    output = io.StringIO()
+    headers = []
+    writer = None
+    for row in csv.DictReader(csvbuffer):
+        if not headers:
+            # write headers first
+            headers = get_ordered_headers(list(row.keys()))
+            writer = csv.DictWriter(output, fieldnames=headers)
+            writer.writeheader()
+
+        writer.writerow(row)
+
+    data['source'] = output.getvalue().encode('UTF-8')
+    return data

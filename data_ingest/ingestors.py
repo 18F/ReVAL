@@ -19,6 +19,7 @@ from django.core import exceptions, files
 from django.utils.module_loading import import_string
 
 from .ingest_settings import UPLOAD_SETTINGS
+from .utils import get_ordered_headers
 
 logger = logging.getLogger(__name__)
 
@@ -103,10 +104,18 @@ def rows_from_source(raw_source):
         stream = tabulator.Stream(source, headers=1, encoding='utf-8')
 
     stream.open()
-    result = OrderedDict(
-        (row_num, OrderedDict((k, v) for (k, v) in zip(headers, vals) if k))
-        for (row_num, headers, vals) in stream.iter(extended=True))
-    return (stream.headers, result)
+
+    hs = next(stream.iter(extended=True))[1]
+    stream.reset()
+    o_headers = get_ordered_headers(hs)
+
+    result = OrderedDict()
+    for (row_num, headers, vals) in stream.iter(extended=True):
+        data = dict(zip(headers, vals))
+        o_data = OrderedDict((h, data[h]) for h in o_headers)
+        result[row_num] = o_data
+
+    return(o_headers, result)
 
 
 class UnsupportedException(Exception):
@@ -187,6 +196,16 @@ class GoodtablesValidator(Validator):
             # Produce a dictionary of errors by row number
             errs = defaultdict(list)
             for err in unformatted_table["errors"]:
+                # Pop 'message-data' because it may include exception object, which will cause issue when
+                # returning as JSON later.  This info should already be included in 'message'
+                err.pop('message-data', None)
+
+                if err.get('column-number'):
+                    if len(headers) > (err['column-number']):
+                        header = headers[err['column-number'] - 1]
+                        err['error_columns'] = [header]
+                        column_num = 'column ' + str(err['column-number'])
+                        err['message'] = err['message'].replace(column_num, column_num + ' (' + header + ')')
                 rn = err.pop('row-number', None)
                 if rn:
                     errs[rn].append(err)
@@ -282,8 +301,14 @@ class RowwiseValidator(Validator):
                                    'message': f'Unable to evaluate, missing columns: {missing_columns}',
                                    'error_columns': []})
                     continue
-                if rule['code'] and not self.invert_if_needed(self.evaluate(rule['code'], row)):
-                    errors.append(row_validation_error(rule, row))
+                try:
+                    if rule['code'] and not self.invert_if_needed(self.evaluate(rule['code'], row)):
+                        errors.append(row_validation_error(rule, row))
+                except Exception as e:
+                    errors.append({'severity': 'Error',
+                                   'code': rule['error_code'],
+                                   'message': e.args[0],
+                                   'error_columns': []})
 
             # errors = [
             #     row_validation_error(rule, row) for rule in self.validator
@@ -383,6 +408,7 @@ class SqlValidator(RowwiseValidator):
 
         self.db_cursor.execute(sql, tuple(cvalues))
         result = self.db_cursor.fetchone()[0]
+
         return bool(result)
 
 
@@ -437,8 +463,6 @@ def count_valid_rows(validation_results):
 
 
 def apply_validators_to(source):
-
-    # for (rn, headers, row_vals) in stream.iter(extended=True):
 
     overall_result = {}
     for validator in validators():
