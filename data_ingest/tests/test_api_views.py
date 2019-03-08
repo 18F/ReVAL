@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from data_ingest.api_views import reorder_csv, to_tabular
 
+
 class TestJSONtoTable(SimpleTestCase):
 
     def test_to_tabular(self):
@@ -22,6 +23,7 @@ class TestJSONtoTable(SimpleTestCase):
             for col, value in obj.items():
                 processed_column_index = result[0].index(col)
                 self.assertEqual(result[i+1][processed_column_index], value)
+
 
 class TestReorderCSV(SimpleTestCase):
 
