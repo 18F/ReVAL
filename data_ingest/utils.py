@@ -19,6 +19,10 @@ def get_schema_headers():
 
 def get_ordered_headers(headers):
     correct_headers = get_schema_headers()
+
+    if correct_headers == headers:
+        return headers
+
     working_headers = headers.copy()
     o_headers = []
     for h in correct_headers:

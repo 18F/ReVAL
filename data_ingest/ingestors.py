@@ -105,7 +105,9 @@ def rows_from_source(raw_source):
 
     stream.open()
 
+    # This will get the first row
     hs = next(stream.iter(extended=True))[1]
+    # Reset the pointer to the beginning
     stream.reset()
     o_headers = get_ordered_headers(hs)
 
