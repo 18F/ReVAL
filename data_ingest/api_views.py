@@ -2,6 +2,7 @@ import csv
 import io
 import logging
 
+from collections import OrderedDict
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import decorators, response, viewsets
 from rest_framework.parsers import JSONParser
@@ -95,15 +96,32 @@ def reorder_csv(incoming):
 
     output = io.StringIO()
     headers = []
+    header_mapping = {}
     writer = None
-    for row in csv.DictReader(csvbuffer):
+    # This will make sure empty lines are not deleted
+    lines = (',' if line.isspace() else line for line in csvbuffer)
+
+    for row in csv.DictReader(lines):
         if not headers:
             # write headers first
             headers = get_ordered_headers(list(row.keys()))
-            writer = csv.DictWriter(output, fieldnames=headers)
+            writer = csv.DictWriter(output, fieldnames=headers, extrasaction='ignore', lineterminator='\n')
             writer.writeheader()
+            if (isinstance(ingest_settings.UPLOAD_SETTINGS['STREAM_ARGS']['headers'], list)):
+                header_mapping = dict(zip(row.keys(), headers))
+        # If there's extra item in the row
+        if row.get(None):
+            vals = []
+            for v in row.values():
+                if isinstance(v, list):
+                    vals.extend(v)
+                else:
+                    vals.append(v)
+            write_row = ",".join(vals)
 
-        writer.writerow(row)
+            output.write(write_row + '\n')
+        else:
+            writer.writerow(OrderedDict([(header_mapping.get(k, k), v) for k, v in row.items()]))
 
     data['source'] = output.getvalue().encode('UTF-8')
     return data

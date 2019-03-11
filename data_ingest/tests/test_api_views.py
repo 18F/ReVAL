@@ -31,7 +31,15 @@ class TestReorderCSV(SimpleTestCase):
     def test_reorder_csv(self, mock_headers):
         mock_headers.return_value = ['c', 'a', 'b']
         data = {'source': b'a,b,c\n1,2,3\n4,5,6\n'}
-        self.assertEqual({'source': b'c,a,b\r\n3,1,2\r\n6,4,5\r\n'}, reorder_csv(data))
+        self.assertEqual({'source': b'c,a,b\n3,1,2\n6,4,5\n'}, reorder_csv(data))
 
         data = {'source': b''}
         self.assertEqual({'source': b''}, reorder_csv(data))
+
+        data = {'source': b'a,b,c\n,\n\n1,2,3\n4,5,\n'}
+        self.assertEqual({'source': b'c,a,b\n,,\n,,\n3,1,2\n,4,5\n'}, reorder_csv(data))
+
+        with patch('data_ingest.api_views.ingest_settings.UPLOAD_SETTINGS',
+                   {'STREAM_ARGS': {'headers': ['c', 'a', 'b']}}):
+            data = {'source': b'$q,$r,$e\n1,2,3\n4,5,6\n'}
+            self.assertEqual({'source': b'c,a,b\n1,2,3\n4,5,6\n'}, reorder_csv(data))

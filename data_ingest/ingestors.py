@@ -58,7 +58,8 @@ class Validator:
         if isinstance(UPLOAD_SETTINGS['STREAM_ARGS']['headers'],
                       list) and (not self.SUPPORTS_HEADER_OVERRIDE):
             raise exceptions.ImproperlyConfigured(
-                "Listing ['STREAM_ARGS']['headers'] not supported by this validator"
+                "Listing ['STREAM_ARGS']['headers'] not supported by this validator (" +
+                type(self).__name__ + ")"
             )
 
     def load_file(self):

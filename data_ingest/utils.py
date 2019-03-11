@@ -4,8 +4,6 @@ from .ingest_settings import UPLOAD_SETTINGS
 
 def get_schema_headers():
     ordered_header = []
-    if isinstance(UPLOAD_SETTINGS['STREAM_ARGS']['headers'], list):
-        ordered_header = UPLOAD_SETTINGS['STREAM_ARGS']['headers']
 
     good_table_validator = 'data_ingest.ingestors.GoodtablesValidator'
     schema = [loc for loc, val_type in UPLOAD_SETTINGS['VALIDATORS'].items()
@@ -18,8 +16,10 @@ def get_schema_headers():
 
 
 def get_ordered_headers(headers):
-    correct_headers = get_schema_headers()
+    if isinstance(UPLOAD_SETTINGS['STREAM_ARGS']['headers'], list):
+        return UPLOAD_SETTINGS['STREAM_ARGS']['headers']
 
+    correct_headers = get_schema_headers()
     if correct_headers == headers:
         return headers
 

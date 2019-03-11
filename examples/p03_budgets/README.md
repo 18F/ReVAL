@@ -1,7 +1,7 @@
 
 # Budgets example app
 
-Demonstrates `data_ingest` with some more advanced [customizations](../../docs/custom.md)
+Demonstrates `data_ingest` with some more advanced [customizations](../../docs/customize.md)
 
 ## Non-default features
 
@@ -18,16 +18,6 @@ additions/exceptions:
   with a custom inserter for TSVs
   
 - Additions to `p03_budget/settings.py`:
-
-DATA_INGEST = {
-    'VALIDATORS': {
-        # 'usda_fns.json': 'data_ingest.ingestors.GoodtablesValidator',
-        'usda_sql_rules.yml': 'data_ingest.ingestors.SqlValidator',
-    },
-    'STREAM_ARGS': {'sheet': 'Data',  # Uses the 'Data' sheet from workbook if .xlsx
-                    'headers': UPLOAD_COLUMNS, },
-    'OLD_HEADER_ROW': 1,
-}
 
 DATA_INGEST = {
     'INGESTOR': 'budget_data_ingest.ingestors.Ingestor',

@@ -6,12 +6,8 @@ from data_ingest.utils import get_schema_headers, get_ordered_headers
 
 class TestUtils(SimpleTestCase):
 
-    @patch("data_ingest.utils.UPLOAD_SETTINGS",
-           {
-            'STREAM_ARGS': {'headers': ["a", "b", "c"]},
-            'VALIDATORS': {None: 'data_ingest.ingestors.GoodtablesValidator', }, })
     def test_get_schema_headers_in_settings(self):
-        self.assertEqual(["a", "b", "c"], get_schema_headers())
+        self.assertEqual([], get_schema_headers())
 
     @patch("data_ingest.utils.UPLOAD_SETTINGS",
            {
@@ -36,6 +32,13 @@ class TestUtils(SimpleTestCase):
                                       ]
                                     }
         self.assertEqual(["test 1", "test 2"], get_schema_headers())
+
+    @patch("data_ingest.utils.UPLOAD_SETTINGS",
+           {
+            'STREAM_ARGS': {'headers': ["a", "b", "c"]},
+            'VALIDATORS': {None: 'data_ingest.ingestors.GoodtablesValidator', }, })
+    def test_get_ordered_headers_in_settings(self):
+        self.assertEqual(["a", "b", "c"], get_ordered_headers(["$a", "$b"]))
 
     @patch("data_ingest.utils.get_schema_headers")
     def test_get_ordered_headers(self, mock_sch_headers):
