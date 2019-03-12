@@ -111,12 +111,8 @@ def reorder_csv(incoming):
                 header_mapping = dict(zip(row.keys(), headers))
         # If there's extra item in the row
         if row.get(None):
-            vals = []
-            for v in row.values():
-                if isinstance(v, list):
-                    vals.extend(v)
-                else:
-                    vals.append(v)
+            vals = [row.get(header, '') for header in headers]
+            vals.extend(row.get(None))
             write_row = ",".join(vals)
 
             output.write(write_row + '\n')
