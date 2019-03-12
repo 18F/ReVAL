@@ -288,8 +288,8 @@ class RowwiseValidator(Validator):
         (table['headers'], numbered_rows) = rows_from_source(source)
         for (rn, row) in numbered_rows.items():
 
+            # This is to remove the header row
             if rn == UPLOAD_SETTINGS['OLD_HEADER_ROW']:
-                table['headers'] = list(row.values())
                 continue
 
             errors = []
