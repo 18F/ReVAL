@@ -91,10 +91,10 @@ def to_tabular(incoming):
 
 
 def reorder_csv(incoming):
-    data = incoming.copy()
+    if incoming.get('source') is None:
+        return incoming
 
-    if data.get('source') is None:
-        return data
+    data = incoming.copy()
 
     csvbuffer = io.StringIO(data['source'].decode('UTF-8'))
 
