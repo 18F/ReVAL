@@ -33,6 +33,9 @@ class TestReorderCSV(SimpleTestCase):
         data = {'source': b'a,b,c\n1,2,3\n4,5,6\n'}
         self.assertEqual({'source': b'c,a,b\n3,1,2\n6,4,5\n'}, reorder_csv(data))
 
+        data = {}
+        self.assertEqual({}, reorder_csv(data))
+
         data = {'source': b''}
         self.assertEqual({'source': b''}, reorder_csv(data))
 

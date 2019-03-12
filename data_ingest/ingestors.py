@@ -95,7 +95,7 @@ def rows_from_source(raw_source):
     try:
         f_source = io.BytesIO(source['source'])
         byteslike = True
-    except (TypeError, AttributeError):
+    except (TypeError, AttributeError, KeyError):
         byteslike = False
 
     if byteslike:
@@ -107,7 +107,11 @@ def rows_from_source(raw_source):
     stream.open()
 
     # This will get the first row
-    hs = next(stream.iter(extended=True))[1]
+    try:
+        hs = next(stream.iter(extended=True))[1]
+    # nothing in the stream
+    except StopIteration:
+        hs = []
     # Reset the pointer to the beginning
     stream.reset()
     o_headers = get_ordered_headers(hs)
