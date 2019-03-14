@@ -13,10 +13,10 @@ class Upload(models.Model):
     An abstract model intended to be subclassed by the project
     to further define the Upload object.
 
-    Tracks state and history of the upload 
+    Tracks state and history of the upload
     and who has modified it at each step.
 
-    Also can resolve duplicate file issues, 
+    Also can resolve duplicate file issues,
     if `unique_metadata_fields` is defined in the project.
     """
     class Meta:
