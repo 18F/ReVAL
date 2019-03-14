@@ -1,8 +1,10 @@
 # django-data-ingest
 
-`data_ingest` is a reusable Django project managing data submitted as file uploads
-to a central
-gathering point.  Each file generally contains multiple data rows, and
+`data_ingest` is a reusable Django project managing data submitted as file uploads to a central gathering point. 
+
+It performs data validation, basic change tracking and duplicate file handling.
+
+Each file generally contains multiple data rows, and
 each user may submit multiple files.
 
 ---
@@ -50,8 +52,8 @@ Add `'data_ingest'` to your `INSTALLED_APPS` setting.
 
 ## Examples
 
-Several [examples are provided](./examples/) to demonstrate default and customized
-behavior of  `data_ingest`. Follow the [development](#development) instructions to close this repository and install the dependencies required for the examples.
+Several [examples are provided](./examples/) to demonstrate default and customized behavior of  `data_ingest`.
+Follow the [development](#development) instructions to close this repository and install the dependencies required for the examples.
 
 ### [default installation](examples/defaults/README.md)
 
