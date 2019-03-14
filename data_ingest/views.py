@@ -5,30 +5,29 @@ from django.views.generic import DetailView, ListView
 
 from . import ingest_settings
 
+UploadModel = ingest_settings.upload_model_class
 
 class UploadList(LoginRequiredMixin, ListView):
-    model = ingest_settings.upload_model_class
+    model = UploadModel
     template_name = ingest_settings.UPLOAD_SETTINGS['LIST_TEMPLATE']
 
     def get_queryset(self):
-        return ingest_settings.upload_model_class.objects.filter(
+        return UploadModel.objects.filter(
             submitter=self.request.user).exclude(
                 status='DELETED').order_by("-created_at")
 
 
 class UploadDetail(LoginRequiredMixin, DetailView):
 
-    model = ingest_settings.upload_model_class
+    model = UploadModel
     template_name = ingest_settings.UPLOAD_SETTINGS['DETAIL_TEMPLATE']
 
 
 @login_required
 def duplicate_upload(request, old_upload_id, new_upload_id):
 
-    old_upload = ingest_settings.upload_model_class.objects.get(
-        pk=old_upload_id)
-    new_upload = ingest_settings.upload_model_class.objects.get(
-        pk=new_upload_id)
+    old_upload = UploadModel.objects.get(pk=old_upload_id)
+    new_upload = UploadModel.objects.get(pk=new_upload_id)
 
     data = {'old_upload': old_upload, 'new_upload': new_upload}
 
@@ -37,12 +36,12 @@ def duplicate_upload(request, old_upload_id, new_upload_id):
 
 @login_required
 def replace_upload(request, old_upload_id, new_upload_id):
-    """Replaces an upload with another upload already in progress."""
+    """
+    Replaces an upload with another upload already in progress.
+    """
 
-    old_upload = ingest_settings.upload_model_class.objects.get(
-        pk=old_upload_id)
-    new_upload = ingest_settings.upload_model_class.objects.get(
-        pk=new_upload_id)
+    old_upload = UploadModel.objects.get(pk=old_upload_id)
+    new_upload = UploadModel.objects.get(pk=new_upload_id)
 
     new_upload.replaces = old_upload
     new_upload.save()
@@ -51,7 +50,7 @@ def replace_upload(request, old_upload_id, new_upload_id):
 
 def _delete_upload(upload_id):
 
-    upload = ingest_settings.upload_model_class.objects.get(pk=upload_id)
+    upload = UploadModel.objects.get(pk=upload_id)
     upload.status = 'DELETED'
     upload.save()
 
@@ -113,7 +112,7 @@ def upload(request, replace_upload_id=None, **kwargs):
 
 
 def review_errors(request, upload_id):
-    upload = ingest_settings.upload_model_class.objects.get(pk=upload_id)
+    upload = UploadModel.objects.get(pk=upload_id)
     if upload.validation_results['valid']:
         return redirect('confirm-upload', upload_id)
     data = upload.validation_results["tables"][0]
@@ -123,7 +122,7 @@ def review_errors(request, upload_id):
 
 
 def confirm_upload(request, upload_id):
-    upload = ingest_settings.upload_model_class.objects.get(pk=upload_id)
+    upload = UploadModel.objects.get(pk=upload_id)
     data = upload.validation_results["tables"][0]
     data["file_metadata"] = upload.file_metadata_as_params()
     data['upload_id'] = upload.id
@@ -131,7 +130,7 @@ def confirm_upload(request, upload_id):
 
 
 def complete_upload(request, upload_id):
-    upload = ingest_settings.upload_model_class.objects.get(pk=upload_id)
+    upload = UploadModel.objects.get(pk=upload_id)
     upload.status = 'STAGED'
     upload.save()
     if upload.replaces:
@@ -141,7 +140,7 @@ def complete_upload(request, upload_id):
 
 
 def detail(request, upload_id):
-    upload = ingest_settings.upload_model_class.objects.get(pk=upload_id)
+    upload = UploadModel.objects.get(pk=upload_id)
     if upload.status == 'LOADING':
         if upload.validation_results['valid']:
             return redirect('confirm-upload', upload_id)
@@ -152,7 +151,7 @@ def detail(request, upload_id):
 
 
 def insert(request, upload_id):
-    upload = ingest_settings.upload_model_class.objects.get(pk=upload_id)
+    upload = UploadModel.objects.get(pk=upload_id)
     if upload.status != 'STAGED':
         return redirect('upload-detail', upload_id)
     ingestor = ingest_settings.ingestor_class(upload)
