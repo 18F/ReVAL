@@ -7,6 +7,7 @@ from . import ingest_settings
 
 UploadModel = ingest_settings.upload_model_class
 
+
 class UploadList(LoginRequiredMixin, ListView):
     model = UploadModel
     template_name = ingest_settings.UPLOAD_SETTINGS['LIST_TEMPLATE']
