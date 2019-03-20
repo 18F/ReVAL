@@ -244,18 +244,53 @@ class GoodtablesValidator(Validator):
 def row_validation_error(rule, row_dict):
     """Dictionary describing a single row validation error"""
 
-    return {
-        'severity':
-        rule.get('severity', 'Error'),
-        'code':
-        rule.get('error_code'),
-        'message':
-        rule.get('message', '').format(**row_dict),
-        'error_columns': [
+    error = {}
+    error['severity'] = rule.get('severity', 'Error')
+    error['code'] = rule.get('error_code')
+    error['error_columns'] = [
             k for (idx, k) in enumerate(row_dict.keys())
             if k in rule['columns']
         ]
-    }
+
+    # create message
+    message = rule.get('message', '')
+    # Pattern that will match everything that looks like this: {...}
+    pattern = re.compile(r'\{.*?\}')
+    fields = pattern.findall(message)
+    for field in fields:
+        # Remove { }
+        key = field[1:-1].strip()
+        # Direct Substitution
+        if key in row_dict.keys():
+            message = message.replace(field, row_dict[key])
+        # Expression Calculation and Substitution
+        else:
+            # This will put out the two field names (strip out any spaces), and the operator
+            # (operand1 operator operand2)
+            expression = re.match(r'^\s*(.*?)\s*([\+\-\*/])\s*(.*?)\s*$', key)
+            try:
+                operand1, operator, operand2 = expression.groups()
+
+                value1 = RowwiseValidator.cast_value(row_dict.get(operand1, ''))
+                value2 = RowwiseValidator.cast_value(row_dict.get(operand2, ''))
+
+                # only supporting int/float operations
+                supported_type = (float, int)
+                if any(isinstance(value1, t) for t in supported_type) and \
+                   any(isinstance(value2, t) for t in supported_type):
+                    # Only using a controlled set of operations here, the operation is
+                    # well-examined to know it doesn't create any security issue
+                    result = eval(f'{value1} {operator} {value2}')
+                    message = message.replace(field, str(result))
+
+            except AttributeError:
+                # This means the expression is malformed, will not replace field with anything
+                continue
+
+    error['message'] = message
+    # error['message'] = rule.get('message', '').format(**row_dict)
+
+    return error
 
 
 class RowwiseValidator(Validator):
@@ -280,8 +315,36 @@ class RowwiseValidator(Validator):
             list of headers in DATA_INGEST['STREAM_ARGS']['header']"""
         )
 
-    def validate(self, source):
+    @staticmethod
+    def cast_value(value):
+        newval = value
+        if type(newval) == str:
+            newval = newval.strip()
+            try:
+                dnewval = Decimal(newval.replace(',', ''))
+                try:
+                    inewval = int(dnewval)
+                    fnewval = float(dnewval)
+                    if inewval == fnewval:
+                        newval = inewval
+                    else:
+                        newval = fnewval
+                except ValueError:
+                    # will take the newval.strip() as the value
+                    pass
+            except InvalidOperation:
+                # will take the newval.strip() as the value
+                pass
 
+        return newval
+
+    @staticmethod
+    def cast_values(row_values):
+        # This will help clean up the data and cast them to numbers when
+        # appropriate
+        return [RowwiseValidator.cast_value(value) for value in row_values]
+
+    def validate(self, source):
         table = {
             'invalid_row_count': 0,
             'valid_row_count': 0,
@@ -356,36 +419,6 @@ class JsonlogicValidatorFailureConditions(JsonlogicValidator):
 
 
 class SqlValidator(RowwiseValidator):
-    @staticmethod
-    def cast_values(row_values):
-        # This will help clean up the data and cast them to numbers when
-        # appropriate
-        # TODO: This may be a temporary fix, like to revisit to see if "type"
-        # should be something defined in settings.py along with column names
-        cvalues = []
-        for val in row_values:
-            newval = val
-            if type(newval) == str:
-                newval = newval.strip()
-                try:
-                    dnewval = Decimal(newval.replace(',', ''))
-                    try:
-                        inewval = int(dnewval)
-                        fnewval = float(dnewval)
-                        if inewval == fnewval:
-                            newval = inewval
-                        else:
-                            newval = fnewval
-                    except ValueError:
-                        # will take the newval.strip() as the value
-                        pass
-                except InvalidOperation:
-                    # will take the newval.strip() as the value
-                    pass
-
-            cvalues.append(newval)
-
-        return cvalues
 
     def __init__(self, *args, **kwargs):
 
