@@ -47,9 +47,10 @@ class TestIngestors(SimpleTestCase):
                       }
                     ]
                   },
-                  "message": "{category_misspelled}: spent/budget: {dollars_spent/ dollars_budgeted} spent+budget: " +
+                  "message": "{category}: spent/budget: {dollars_spent/ dollars_budgeted} spent+budget: " +
                              "{dollars_spent+dollars_budgeted} spent-budget: {dollars_spent-dollars_budgeted} " +
-                             "spent*budget: {dollars_spent*dollars_budgeted} {d/b}",
+                             "spent*budget: {dollars_spent*dollars_budgeted} spent + 4: {dollars_spent + 4} " +
+                             "20.56 * budget: {20.56 * dollars_budgeted}",
                   "columns": [
                     "dollars_spent",
                     "dollars_budgeted"
@@ -62,10 +63,14 @@ class TestIngestors(SimpleTestCase):
         exp_result = {
             'severity': 'Error',
             'code': None,
-            'message': "{category_misspelled}: spent/budget: 1.15 spent+budget: 4300 spent-budget: 300 spent*budget: " +
-                       "4600000 {d/b}",
+            'message': "red tape: spent/budget: 1.15 spent+budget: 4300 spent-budget: 300 spent*budget: " +
+                       "4600000 spent + 4: 2304 20.56 * budget: 41120.0",
             'error_columns': ['dollars_budgeted', 'dollars_spent']
         }
+        self.assertEqual(row_validation_error(rule, row_dict), exp_result)
+
+        rule["message"] = "{d/b} {category}"
+        exp_result["message"] = 'Unable to evaluate {d/b}'
         self.assertEqual(row_validation_error(rule, row_dict), exp_result)
 
 
