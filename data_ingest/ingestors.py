@@ -294,12 +294,11 @@ def row_validation_error(rule, row_dict):
                     message = message.replace(field, str(result))
 
             except (KeyError, AttributeError):
-                # This means the expression is malformed, will not replace field with anything
+                # This means the expression is malformed or key are misspelled
                 message = f"Unable to evaluate {field}"
                 break
 
     error['message'] = message
-    # error['message'] = rule.get('message', '').format(**row_dict)
 
     return error
 
