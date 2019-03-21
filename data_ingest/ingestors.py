@@ -1,3 +1,4 @@
+import ast
 import csv
 import io
 import json
@@ -267,15 +268,25 @@ def row_validation_error(rule, row_dict):
         else:
             # This will put out the two field names (strip out any spaces), and the operator
             # (operand1 operator operand2)
+            # current supported operator is seen in the middle parenthesis
             expression = re.match(r'^\s*(.*?)\s*([\+\-\*/])\s*(.*?)\s*$', key)
             try:
-                operand1, operator, operand2 = expression.groups()
-
-                value1 = RowwiseValidator.cast_value(row_dict.get(operand1, ''))
-                value2 = RowwiseValidator.cast_value(row_dict.get(operand2, ''))
-
                 # only supporting int/float operations
                 supported_type = (float, int)
+                operand1, operator, operand2 = expression.groups()
+
+                # If operands are numbers
+                value1 = RowwiseValidator.cast_value(operand1)
+                value2 = RowwiseValidator.cast_value(operand2)
+
+                # If operands are not numbers, they may be key to row_dict, get the real values
+                if not any(isinstance(value1, t) for t in supported_type):
+                    value1 = RowwiseValidator.cast_value(row_dict[operand1])
+
+                if not any(isinstance(value2, t) for t in supported_type):
+                    value2 = RowwiseValidator.cast_value(row_dict[operand2])
+
+                # If they are all supported type, then this expression can be evaluated
                 if any(isinstance(value1, t) for t in supported_type) and \
                    any(isinstance(value2, t) for t in supported_type):
                     # Only using a controlled set of operations here, the operation is
@@ -283,9 +294,10 @@ def row_validation_error(rule, row_dict):
                     result = eval(f'{value1} {operator} {value2}')
                     message = message.replace(field, str(result))
 
-            except AttributeError:
+            except (KeyError, AttributeError):
                 # This means the expression is malformed, will not replace field with anything
-                continue
+                message = f"Unable to evaluate {field}"
+                break
 
     error['message'] = message
     # error['message'] = rule.get('message', '').format(**row_dict)
@@ -377,7 +389,7 @@ class RowwiseValidator(Validator):
                 except Exception as e:
                     errors.append({'severity': 'Error',
                                    'code': rule['error_code'],
-                                   'message': e.args[0],
+                                   'message': f'{type(e).__name__}: {e.args[0]}',
                                    'error_columns': []})
 
             # errors = [
