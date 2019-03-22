@@ -288,14 +288,30 @@ def row_validation_error(rule, row_dict):
                 # If they are all supported type, then this expression can be evaluated
                 if any(isinstance(value1, t) for t in supported_type) and \
                    any(isinstance(value2, t) for t in supported_type):
-                    # Only using a controlled set of operations here, the operation is
-                    # well-examined to know it doesn't create any security issue
-                    result = eval(f'{value1} {operator} {value2}')
+                    # Right now being super explicit about which operator we support
+                    if operator == '+':
+                        result = f'{value1 + value2}'
+                    elif operator == '-':
+                        result = f'{value1 - value2}'
+                    elif operator == '*':
+                        result = f'{value1 * value2}'
+                    elif operator == '/':
+                        result = f'{value1 / value2}'
+                    else:
+                        # it really shouldn't have gotten here because we are only matching the allowed operation above
+                        raise UnsupportedException()
+
+                    # Will only use this when we are very sure there is no issue
+                    # result = eval(f'{value1} {operator} {value2}')
+
                     message = message.replace(field, str(result))
 
             except (KeyError, AttributeError):
                 # This means the expression is malformed or key are misspelled
                 message = f"Unable to evaluate {field}"
+                break
+            except UnsupportedException:
+                message = f"Unsupported operation in {field}"
                 break
 
     error['message'] = message
