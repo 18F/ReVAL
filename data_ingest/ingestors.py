@@ -119,7 +119,7 @@ def rows_from_source(raw_source):
     result = OrderedDict()
     for (row_num, headers, vals) in stream.iter(extended=True):
         data = dict(zip(headers, vals))
-        o_data = OrderedDict((h, data[h]) for h in o_headers)
+        o_data = OrderedDict((h, data.get(h, '')) for h in o_headers)
         result[row_num] = o_data
 
     return(o_headers, result)
@@ -266,13 +266,15 @@ def row_validation_error(rule, row_dict):
         # Expression Calculation and Substitution
         else:
             # This will put out the two field names (strip out any spaces), and the operator
-            # (operand1 operator operand2)
-            # current supported operator is seen in the middle parenthesis
-            expression = re.match(r'^\s*(.*?)\s*([\+\-\*/])\s*(.*?)\s*$', key)
+            # and the rest of field to check for precision specification
+            # (operand1 operator operand2 rest)
+            # current supported operator is seen in the 2nd parenthesis
+            expression = re.match(r'^\s*(\S+)\s*([\+\-\*/])\s*([^:\s]+)(\S*)\s*$', key)
+
             try:
                 # only supporting int/float operations
                 supported_type = (float, int)
-                operand1, operator, operand2 = expression.groups()
+                operand1, operator, operand2, rest = expression.groups()
 
                 # If operands are numbers
                 value1 = RowwiseValidator.cast_value(operand1)
@@ -290,13 +292,13 @@ def row_validation_error(rule, row_dict):
                    any(isinstance(value2, t) for t in supported_type):
                     # Right now being super explicit about which operator we support
                     if operator == '+':
-                        result = f'{value1 + value2}'
+                        result = value1 + value2
                     elif operator == '-':
-                        result = f'{value1 - value2}'
+                        result = value1 - value2
                     elif operator == '*':
-                        result = f'{value1 * value2}'
+                        result = value1 * value2
                     elif operator == '/':
-                        result = f'{value1 / value2}'
+                        result = value1 / value2
                     else:
                         # it really shouldn't have gotten here because we are only matching the allowed operation above
                         raise UnsupportedException()
@@ -304,9 +306,19 @@ def row_validation_error(rule, row_dict):
                     # Will only use this when we are very sure there is no issue
                     # result = eval(f'{value1} {operator} {value2}')
 
+                    # If precision is supplied, the "rest" should include this information in the following form:
+                    # ':number_of_digits_after_decimal_place'
+                    if rest:
+                        if len(rest) > 1 and rest[0] == ':':
+                            precision = int(rest[1:])
+                            result = f'{result:.{precision}f}'
+                        else:
+                            # This means this is malformed
+                            raise ValueError
+
                     message = message.replace(field, str(result))
 
-            except (KeyError, AttributeError):
+            except (KeyError, AttributeError, ValueError):
                 # This means the expression is malformed or key are misspelled
                 message = f"Unable to evaluate {field}"
                 break
