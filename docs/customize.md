@@ -54,6 +54,17 @@ These rules may look like
 - `code`: An expression in the appropriate language (such as SQL or JsonLogic)
 - `message`: Text to display to submitter when a row violates this rule.
 
+#### Messages
+
+Messages also support the use of simple string interpolation.  Anything that is included
+inside the curly brackets `{}` will be evaluated and replaced by its value.
+- `{column}`: By putting the column name inside the curly brackets, this will be replaced
+  with the actual value of this row's column.
+- `{A op B}`: `A` is a column name or a number (integer or decimal number), `op` is an arithmetic
+  operator `+`, `-`, `*` or `/`, and `B` is a column name or a number (integer or decimal number).
+- `{A op B:C}`: `A op B` is the same as above, `C` is the number of decimal places to display
+  after the decimal.
+
 ### Optional fields 
 
 - `error_code`: A user-defined code for this rule

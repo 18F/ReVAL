@@ -50,7 +50,7 @@ class TestIngestors(SimpleTestCase):
                   "message": "{category}: spent/budget: {dollars_spent/ dollars_budgeted} spent+budget: " +
                              "{dollars_spent+dollars_budgeted} spent-budget: {dollars_spent-dollars_budgeted} " +
                              "spent*budget: {dollars_spent*dollars_budgeted} spent + 4: {dollars_spent + 4} " +
-                             "20.56 * budget: {20.56 * dollars_budgeted}",
+                             "20.56 * budget: {20.56 * dollars_budgeted} 12.56 / budget: {12.56 / dollars_budgeted:4}",
                   "columns": [
                     "dollars_spent",
                     "dollars_budgeted"
@@ -64,13 +64,29 @@ class TestIngestors(SimpleTestCase):
             'severity': 'Error',
             'code': None,
             'message': "red tape: spent/budget: 1.15 spent+budget: 4300 spent-budget: 300 spent*budget: " +
-                       "4600000 spent + 4: 2304 20.56 * budget: 41120.0",
+                       "4600000 spent + 4: 2304 20.56 * budget: 41120.0 12.56 / budget: 0.0063",
             'error_columns': ['dollars_budgeted', 'dollars_spent']
         }
         self.assertEqual(row_validation_error(rule, row_dict), exp_result)
 
         rule["message"] = "{d/b} {category}"
         exp_result["message"] = 'Unable to evaluate {d/b}'
+        self.assertEqual(row_validation_error(rule, row_dict), exp_result)
+
+        rule["message"] = "{dollars_budgeted/dollars_spent:}"
+        exp_result["message"] = 'Unable to evaluate {dollars_budgeted/dollars_spent:}'
+        self.assertEqual(row_validation_error(rule, row_dict), exp_result)
+
+        rule["message"] = "{dollars_spent/dollars_budgeted 123}"
+        exp_result["message"] = 'Unable to evaluate {dollars_spent/dollars_budgeted 123}'
+        self.assertEqual(row_validation_error(rule, row_dict), exp_result)
+
+        rule["message"] = "{dollars_spent/dollars_budgeted :12}"
+        exp_result["message"] = 'Unable to evaluate {dollars_spent/dollars_budgeted :12}'
+        self.assertEqual(row_validation_error(rule, row_dict), exp_result)
+
+        rule["message"] = "{dollars_spent/dollars_budgeted:category}"
+        exp_result["message"] = 'Unable to evaluate {dollars_spent/dollars_budgeted:category}'
         self.assertEqual(row_validation_error(rule, row_dict), exp_result)
 
 
