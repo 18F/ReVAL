@@ -1,3 +1,4 @@
+import abc
 import csv
 import io
 import json
@@ -24,7 +25,66 @@ from .utils import get_ordered_headers
 logger = logging.getLogger(__name__)
 
 
-class Validator:
+class ValidatorOutput:
+
+    def __init__(self, headers, rows_in_dict):
+        self.headers = headers
+        self.rows_in_dict = rows_in_dict
+        self.row_errors = defaultdict(list)
+        self.whole_table_errors = []
+
+    def create_error(self, severity, code, message, error_columns):
+        error = {}
+        error["severity"] = severity
+        error["code"] = code
+        error["message"] = message
+        error["error_columns"] = error_columns
+
+        return error
+
+    def add_row_error(self, row_number, severity, code, message, error_columns):
+        error = self.create_error(severity, code, message, error_columns)
+
+        self.row_errors[row_number].append(error)
+        # Error object has severity code message error_columns
+
+    def add_whole_table_error(self, severity, code, message, error_columns):
+        error = self.create_error(severity, code, message, error_columns)
+
+        self.whole_table_errors.append(error)
+
+    def create_rows(self):
+        """Create a list of rows, where each row consists of the row number, the list of errors,
+        the actual data"""
+        rows = []
+        for (row_number, row_data) in self.rows_in_dict.items():
+            rows.append({
+                "row_number": row_number,
+                "errors": self.row_errors.get(row_number, []),
+                "data": row_data
+            })
+
+        return rows
+
+    def get_output(self):
+        """This will generate the validation output based on stored values"""
+        table = {}
+        table["headers"] = self.headers
+        table["whole_table_errors"] = self.whole_table_errors
+        table["rows"] = self.create_rows()
+        table["valid_row_count"] = [(not row["errors"]) for row in table["rows"]].count(True)
+        table["invalid_row_count"] = len(table["rows"]) - table["valid_row_count"]
+
+        # This needs to evaluate again at some point if this is even possible to run validator for more than
+        # one table other than using GoodTables
+        result = {}
+        result["tables"] = [table]
+        result["valid"] = (table["invalid_row_count"] == 0)
+
+        return result
+
+
+class Validator(abc.ABC):
 
     SUPPORTS_HEADER_OVERRIDE = False
     INVERT_LOGIC = False
@@ -88,6 +148,10 @@ class Validator:
             else:
                 return self.load_file()
         return self.filename
+
+    @abc.abstractmethod
+    def validate(self, source):
+        """Validate the data with source and return an error JSON object"""
 
 
 def rows_from_source(raw_source):
@@ -183,62 +247,97 @@ class GoodtablesValidator(Validator):
             'valid': False}
     ``
         """
-
-        (headers, rows) = rows_from_source(source)
-        result = {"valid": unformatted["valid"], "tables": []}
-
         if len(unformatted["tables"]) > 1:
             raise UnsupportedException('Input with > 1 table not supported.')
 
-        for unformatted_table in unformatted["tables"]:
+        unformatted_table = unformatted["tables"][0]
+        # headers = unformatted_table["headers"]
+        (headers, rows) = rows_from_source(source)
+        output = ValidatorOutput(unformatted_table["headers"], rows)
 
-            table = {
-                "valid_row_count": 0,
-                "invalid_row_count": 0,
-                "headers": unformatted_table["headers"],
-                "rows": [],
-                "whole_table_errors": [],
-            }
+        for err in unformatted_table["errors"]:
+            error_columns = []
+            message = err['message']
+            # This is to include the header name with the column number and to define error_columns
+            if err.get('column-number'):
+                if len(headers) > (err['column-number']):
+                    header = headers[err['column-number'] - 1]
+                    error_columns = [header]
+                    column_num = 'column ' + str(err['column-number'])
+                    message = err['message'].replace(column_num, column_num + ' (' + header + ')')
 
-            # Produce a dictionary of errors by row number
-            errs = defaultdict(list)
-            for err in unformatted_table["errors"]:
-                # Pop 'message-data' because it may include exception object, which will cause issue when
-                # returning as JSON later.  This info should already be included in 'message'
-                err.pop('message-data', None)
+            if err.get('row-number'):
+                output.add_row_error(err['row-number'], "Error", err["code"], message, error_columns)
+            else:
+                output.add_whole_table_error("Error", err["code"], message, error_columns)
 
-                if err.get('column-number'):
-                    if len(headers) > (err['column-number']):
-                        header = headers[err['column-number'] - 1]
-                        err['error_columns'] = [header]
-                        column_num = 'column ' + str(err['column-number'])
-                        err['message'] = err['message'].replace(column_num, column_num + ' (' + header + ')')
-                rn = err.pop('row-number', None)
-                if rn:
-                    errs[rn].append(err)
-                else:
-                    table['whole_table_errors'].append(err)
-                    result['valid'] = False
+        return output.get_output()
+        #     # Pop 'message-data' because it may include exception object, which will cause issue when
+        #     # returning as JSON later.  This info should already be included in 'message'
+        #     err.pop('message-data', None)
 
-            for (rn, raw_row) in rows.items():
+        #     rn = err.pop('row-number', None)
+        #     if rn:
+        #         errs[rn].append(err)
+        #     else:
+        #         table['whole_table_errors'].append(err)
+        #         result['valid'] = False
 
-                # Assemble a description of each row
-                row_errs = errs.get(rn, [])
-                row = {
-                    "row_number": rn,
-                    "errors": row_errs,
-                    "data": raw_row,
-                }
-                table["rows"].append(row)
+        # (headers, rows) = rows_from_source(source)
+        # result = {"valid": unformatted["valid"], "tables": []}
 
-                if row_errs:
-                    table["invalid_row_count"] += 1
-                else:
-                    table["valid_row_count"] += 1
+        # if len(unformatted["tables"]) > 1:
+        #     raise UnsupportedException('Input with > 1 table not supported.')
 
-            result["tables"].append(table)
+        # for unformatted_table in unformatted["tables"]:
 
-        return result
+        #     table = {
+        #         "valid_row_count": 0,
+        #         "invalid_row_count": 0,
+        #         "headers": unformatted_table["headers"],
+        #         "rows": [],
+        #         "whole_table_errors": [],
+        #     }
+
+        #     # Produce a dictionary of errors by row number
+        #     errs = defaultdict(list)
+        #     for err in unformatted_table["errors"]:
+        #         # Pop 'message-data' because it may include exception object, which will cause issue when
+        #         # returning as JSON later.  This info should already be included in 'message'
+        #         err.pop('message-data', None)
+
+        #         if err.get('column-number'):
+        #             if len(headers) > (err['column-number']):
+        #                 header = headers[err['column-number'] - 1]
+        #                 err['error_columns'] = [header]
+        #                 column_num = 'column ' + str(err['column-number'])
+        #                 err['message'] = err['message'].replace(column_num, column_num + ' (' + header + ')')
+        #         rn = err.pop('row-number', None)
+        #         if rn:
+        #             errs[rn].append(err)
+        #         else:
+        #             table['whole_table_errors'].append(err)
+        #             result['valid'] = False
+
+        #     for (rn, raw_row) in rows.items():
+
+        #         # Assemble a description of each row
+        #         row_errs = errs.get(rn, [])
+        #         row = {
+        #             "row_number": rn,
+        #             "errors": row_errs,
+        #             "data": raw_row,
+        #         }
+        #         table["rows"].append(row)
+
+        #         if row_errs:
+        #             table["invalid_row_count"] += 1
+        #         else:
+        #             table["valid_row_count"] += 1
+
+        #     result["tables"].append(table)
+
+        # return result
 
 
 def row_validation_error(rule, row_dict):
@@ -383,13 +482,17 @@ class RowwiseValidator(Validator):
         return [RowwiseValidator.cast_value(value) for value in row_values]
 
     def validate(self, source):
+
+        (headers, numbered_rows) = rows_from_source(source)
+        output = ValidatorOutput(headers, numbered_rows)
+
         table = {
             'invalid_row_count': 0,
             'valid_row_count': 0,
             'whole_table_errors': [],
         }
 
-        rows = []
+        # rows = []
         (table['headers'], numbered_rows) = rows_from_source(source)
         for (rn, row) in numbered_rows.items():
 
@@ -397,50 +500,63 @@ class RowwiseValidator(Validator):
             if rn == UPLOAD_SETTINGS['OLD_HEADER_ROW']:
                 continue
 
-            errors = []
+            # errors = []
             # Check for columns required by validator
             received_columns = set(table['headers'])
             for rule in self.validator:
                 expected_columns = set(rule['columns'])
                 missing_columns = expected_columns.difference(received_columns)
                 if missing_columns:
-                    errors.append({'severity': 'Error',
-                                   'code': rule['error_code'],
-                                   'message': f'Unable to evaluate, missing columns: {missing_columns}',
-                                   'error_columns': []})
+                    output.add_row_error(rn, 'Error', rule['error_code'],
+                                         f'Unable to evaluate, missing columns: {missing_columns}', [])
+                    # errors.append({'severity': 'Error',
+                    #                'code': rule['error_code'],
+                    #                'message': f'Unable to evaluate, missing columns: {missing_columns}',
+                    #                'error_columns': []})
                     continue
                 try:
                     if rule['code'] and not self.invert_if_needed(self.evaluate(rule['code'], row)):
-                        errors.append(row_validation_error(rule, row))
+                        error = row_validation_error(rule, row)
+                        output.add_row_error(rn, error['severity'], error['code'],
+                                             error['message'], error['error_columns'])
+                        # errors.append(row_validation_error(rule, row))
                 except Exception as e:
-                    errors.append({'severity': 'Error',
-                                   'code': rule['error_code'],
-                                   'message': f'{type(e).__name__}: {e.args[0]}',
-                                   'error_columns': []})
+                    output.add_row_error(rn, 'Error', rule['error_code'],
+                                         f'{type(e).__name__}: {e.args[0]}', [])
+                    # errors.append({'severity': 'Error',
+                    #                'code': rule['error_code'],
+                    #                'message': f'{type(e).__name__}: {e.args[0]}',
+                    #                'error_columns': []})
 
             # errors = [
             #     row_validation_error(rule, row) for rule in self.validator
             #     if not self.invert_if_needed(self.evaluate(rule['code'], row))
             # ]
-            if errors:
-                table['invalid_row_count'] += 1
-            else:
-                table['valid_row_count'] += 1
-            rows.append({
-                'row_number': rn,
-                'data': row,
-                'errors': errors,
-            })
-        table['rows'] = rows
+        #     if errors:
+        #         table['invalid_row_count'] += 1
+        #     else:
+        #         table['valid_row_count'] += 1
+        #     rows.append({
+        #         'row_number': rn,
+        #         'data': row,
+        #         'errors': errors,
+        #     })
+        # table['rows'] = rows
+        # # Does this make sense anymore given that we are doing more than 1 validator, and what does
+        # # two tables means in RowwiseValidator vs GoodTableValidator??
+        # result = {
+        #     'tables': [
+        #         table,
+        #     ],
+        #     'valid': (table['invalid_row_count'] == 0)
+        # }
 
-        result = {
-            'tables': [
-                table,
-            ],
-            'valid': (table['invalid_row_count'] == 0)
-        }
+        # return result
+        return output.get_output()
 
-        return result
+    @abc.abstractmethod
+    def evaluate(self, rule, row):
+        """Evaluate the row based on the rule, and return True/False"""
 
 
 class JsonlogicValidator(RowwiseValidator):
