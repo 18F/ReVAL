@@ -175,3 +175,162 @@ class TestValidationOutput(SimpleTestCase):
         self.assertEqual(result["tables"][0]["invalid_row_count"], 2)
 
         self.assertEqual(result["valid"], False)
+
+    def test_combine(self):
+        self.assertEqual(ValidatorOutput.combine({}, {}), {})
+
+        output1 = {
+            "valid": False,
+            "tables": [
+                {
+                    "headers": ["a", "b", "c"],
+                    "rows": [
+                        {
+                            "row_number": 2,
+                            "errors": [],
+                            "data": {"a": 1, "b": 2, "c": 3}
+                        },
+                        {
+                            "row_number": 3,
+                            "errors": [
+                                {
+                                    "severity": "Error",
+                                    "code": "4E",
+                                    "message": "Incorrect type",
+                                    "error_columns": ["b"]
+                                },
+                                {
+                                    "severity": "Error",
+                                    "code": "9E",
+                                    "message": "Incorrect range",
+                                    "error_columns": ["c"]
+                                }
+                            ],
+                            "data": {"a": 4, "b": 5, "c": 6}
+                        }
+                    ],
+                    "whole_table_errors": [
+                        {
+                            "severity": "Error",
+                            "code": "12",
+                            "message": "Incorrect form",
+                            "error_columns": ["a"]
+                        }
+                    ],
+                    "valid_row_count": 1,
+                    "invalid_row_count": 1,
+                }
+            ]
+        }
+
+        output2 = {
+            "valid": False,
+            "tables": [
+                {
+                    "headers": ["a", "b", "c"],
+                    "rows": [
+                        {
+                            "row_number": 2,
+                            "errors": [
+                                {
+                                    "severity": "Error",
+                                    "code": "14E",
+                                    "message": "a is smaller than b",
+                                    "error_columns": ["a", "b"]
+                                }
+                            ],
+                            "data": {"a": 1, "b": 2, "c": 3}
+                        },
+                        {
+                            "row_number": 3,
+                            "errors": [
+                                {
+                                    "severity": "Error",
+                                    "code": "70E",
+                                    "message": "c cannot be 6",
+                                    "error_columns": ["c"]
+                                },
+                                {
+                                    "severity": "Warning",
+                                    "code": "20W",
+                                    "message": "Incorrect range",
+                                    "error_columns": ["c"]
+                                }
+                            ],
+                            "data": {"a": 4, "b": 5, "c": 6}
+                        }
+                    ],
+                    "whole_table_errors": [
+                        {
+                            "severity": "Error",
+                            "code": "40",
+                            "message": "structure issue",
+                            "error_columns": ["a", "b"]
+                        }
+                    ],
+                    "valid_row_count": 0,
+                    "invalid_row_count": 2,
+                }
+            ]
+        }
+
+        exp_result = {
+            'tables': [
+                {
+                    'headers': ['a', 'b', 'c'],
+                    'whole_table_errors': [
+                        {'severity': 'Error', 'code': '12', 'message': 'Incorrect form', 'error_columns': ['a']},
+                        {'severity': 'Error', 'code': '40', 'message': 'structure issue', 'error_columns': ['a', 'b']}
+                    ],
+                    'rows': [
+                        {
+                            'row_number': 2,
+                            'errors': [
+                                {
+                                    'severity': 'Error',
+                                    'code': '14E',
+                                    'message': 'a is smaller than b',
+                                    'error_columns': ['a', 'b']
+                                }
+                            ],
+                            'data': {'a': 1, 'b': 2, 'c': 3}
+                        },
+                        {
+                            'row_number': 3,
+                            'errors': [
+                                {
+                                    'severity': 'Error',
+                                    'code': '4E',
+                                    'message': 'Incorrect type',
+                                    'error_columns': ['b']
+                                },
+                                {
+                                    'severity': 'Error',
+                                    'code': '9E',
+                                    'message': 'Incorrect range',
+                                    'error_columns': ['c']
+                                },
+                                {
+                                    'severity': 'Error',
+                                    'code': '70E',
+                                    'message': 'c cannot be 6',
+                                    'error_columns': ['c']
+                                },
+                                {
+                                    'severity': 'Warning',
+                                    'code': '20W',
+                                    'message': 'Incorrect range',
+                                    'error_columns': ['c']
+                                }
+                            ],
+                            'data': {'a': 4, 'b': 5, 'c': 6}
+                        }
+                    ],
+                    'valid_row_count': 0,
+                    'invalid_row_count': 2
+                }
+            ],
+            'valid': False
+        }
+        result = ValidatorOutput.combine(output1, output2)
+        self.assertDictEqual(exp_result, result)

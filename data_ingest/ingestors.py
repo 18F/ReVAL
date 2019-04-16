@@ -83,6 +83,49 @@ class ValidatorOutput:
 
         return result
 
+    @staticmethod
+    def combine(output1, output2):
+        """
+        Combine two validation results together
+        """
+        if not output1:
+            return output2
+        elif not output2:
+            return output1
+
+        table = {}
+        table["headers"] = output1["tables"][0]["headers"]
+        table["whole_table_errors"] = output1['tables'][0]['whole_table_errors'] + \
+            output2['tables'][0]['whole_table_errors']
+        table["rows"] = []
+
+        # Will assume output1 and output2 have the same number of rows, else you will get unexpected behaviors
+        for (row_number, row) in enumerate(output1['tables'][0]['rows']):
+            table["rows"].append({
+                "row_number": row['row_number'],
+                "errors": row['errors'] + output2['tables'][0]['rows'][row_number]['errors'],
+                "data": row['data']
+            })
+
+        table["valid_row_count"] = [(not row["errors"]) for row in table["rows"]].count(True)
+        table["invalid_row_count"] = len(table["rows"]) - table["valid_row_count"]
+
+        result = {}
+        result["tables"] = [table]
+        result["valid"] = (table["invalid_row_count"] == 0)
+
+        return result
+
+        # if results0:
+        #     for (rn, row) in enumerate(results0['tables'][0]['rows']):
+        #         row['errors'].extend(results1['tables'][0]['rows'][rn]['errors'])
+        #     results0['tables'][0]['whole_table_errors'].extend(
+        #         results1['tables'][0]['whole_table_errors'])
+        #     results0['valid'] = results0['valid'] and results1['valid']
+        #     return results0
+        # else:
+        #     return results1
+
 
 class Validator(abc.ABC):
 
@@ -486,14 +529,14 @@ class RowwiseValidator(Validator):
         (headers, numbered_rows) = rows_from_source(source)
         output = ValidatorOutput(headers, numbered_rows)
 
-        table = {
-            'invalid_row_count': 0,
-            'valid_row_count': 0,
-            'whole_table_errors': [],
-        }
+        # table = {
+        #     'invalid_row_count': 0,
+        #     'valid_row_count': 0,
+        #     'whole_table_errors': [],
+        # }
 
         # rows = []
-        (table['headers'], numbered_rows) = rows_from_source(source)
+        # (table['headers'], numbered_rows) = rows_from_source(source)
         for (rn, row) in numbered_rows.items():
 
             # This is to remove the header row
@@ -502,7 +545,7 @@ class RowwiseValidator(Validator):
 
             # errors = []
             # Check for columns required by validator
-            received_columns = set(table['headers'])
+            received_columns = set(headers)  # table['headers'])
             for rule in self.validator:
                 expected_columns = set(rule['columns'])
                 missing_columns = expected_columns.difference(received_columns)
@@ -614,23 +657,23 @@ class SqlValidatorFailureConditions(SqlValidator):
     INVERT_LOGIC = True
 
 
-def combine_validation_results(results0, results1):
-    """
-    Adds two dictionaries of validation results, meshing row-wise results
+# def combine_validation_results(results0, results1):
+#     """
+#     Adds two dictionaries of validation results, meshing row-wise results
 
-    :param results0: A dictionary of validation results.  Will be mutated.
-    :param results1: A dictionary to be added to results0
-    :return: results0 with results included
-    """
-    if results0:
-        for (rn, row) in enumerate(results0['tables'][0]['rows']):
-            row['errors'].extend(results1['tables'][0]['rows'][rn]['errors'])
-        results0['tables'][0]['whole_table_errors'].extend(
-            results1['tables'][0]['whole_table_errors'])
-        results0['valid'] = results0['valid'] and results1['valid']
-        return results0
-    else:
-        return results1
+#     :param results0: A dictionary of validation results.  Will be mutated.
+#     :param results1: A dictionary to be added to results0
+#     :return: results0 with results included
+#     """
+#     if results0:
+#         for (rn, row) in enumerate(results0['tables'][0]['rows']):
+#             row['errors'].extend(results1['tables'][0]['rows'][rn]['errors'])
+#         results0['tables'][0]['whole_table_errors'].extend(
+#             results1['tables'][0]['whole_table_errors'])
+#         results0['valid'] = results0['valid'] and results1['valid']
+#         return results0
+#     else:
+#         return results1
 
 
 def validators():
@@ -646,14 +689,14 @@ def validators():
         yield validator
 
 
-def count_valid_rows(validation_results):
-    validation_results['valid_row_count'] = 0
-    validation_results['invalid_row_count'] = 0
-    for row in validation_results['tables'][0]['rows']:
-        if row['errors']:
-            validation_results['invalid_row_count'] += 1
-        else:
-            validation_results['valid_row_count'] += 1
+# def count_valid_rows(validation_results):
+#     validation_results['valid_row_count'] = 0
+#     validation_results['invalid_row_count'] = 0
+#     for row in validation_results['tables'][0]['rows']:
+#         if row['errors']:
+#             validation_results['invalid_row_count'] += 1
+#         else:
+#             validation_results['valid_row_count'] += 1
 
 
 def apply_validators_to(source):
@@ -661,9 +704,10 @@ def apply_validators_to(source):
     overall_result = {}
     for validator in validators():
         validation_results = validator.validate(source)
-        overall_result = combine_validation_results(
-            results0=overall_result, results1=validation_results)
-    count_valid_rows(overall_result)
+        overall_result = ValidatorOutput.combine(overall_result, validation_results)
+        # overall_result = combine_validation_results(
+        #     results0=overall_result, results1=validation_results)
+    # count_valid_rows(overall_result)
     return overall_result
 
 
