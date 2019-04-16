@@ -24,8 +24,9 @@ from .utils import get_ordered_headers
 
 logger = logging.getLogger(__name__)
 
+
 ###########################################
-##  Helper functions to manage validators
+#  Helper functions to manage validators
 ###########################################
 def rows_from_source(raw_source):
     source = raw_source.copy()
@@ -85,13 +86,14 @@ def apply_validators_to(source):
 
 
 ###########################################
-##  Exception
+#  Exception
 ###########################################
 class UnsupportedException(Exception):
     pass
 
+
 ###########################################
-##  Validator Output
+#  Validator Output
 ###########################################
 class ValidatorOutput:
 
@@ -187,7 +189,7 @@ class ValidatorOutput:
 
 
 ###########################################
-##  Validators
+#  Validators
 ###########################################
 class Validator(abc.ABC):
 
@@ -441,7 +443,8 @@ class RowwiseValidator(Validator):
                         elif operator == '/':
                             result = value1 / value2
                         else:
-                            # it really shouldn't have gotten here because we are only matching the allowed operation above
+                            # it really shouldn't have gotten here because we are only matching the allowed
+                            # operation above
                             raise UnsupportedException()
 
                         # Will only use this when we are very sure there is no issue
@@ -469,9 +472,7 @@ class RowwiseValidator(Validator):
 
         return new_message
 
-
     def validate(self, source):
-
         (headers, numbered_rows) = rows_from_source(source)
         output = ValidatorOutput(headers, numbered_rows)
 
@@ -502,7 +503,7 @@ class RowwiseValidator(Validator):
                                                 k for (idx, k) in enumerate(row.keys())
                                                 if k in rule['columns']
                                              ]
-                                            )
+                                             )
                 except Exception as e:
                     output.add_row_error(rn, 'Error', rule['error_code'],
                                          f'{type(e).__name__}: {e.args[0]}', [])
@@ -569,7 +570,7 @@ class SqlValidatorFailureConditions(SqlValidator):
 
 
 ###########################################
-##  Ingestor
+#  Ingestor
 ###########################################
 class Ingestor:
     """The default ingestor assumes that the data source is already rectangular"""
