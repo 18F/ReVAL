@@ -614,7 +614,6 @@ class RowwiseValidator(Validator):
             if rn == UPLOAD_SETTINGS['OLD_HEADER_ROW']:
                 continue
 
-            # errors = []
             # Check for columns required by validator
             received_columns = set(headers)
             for rule in self.validator:
