@@ -1,17 +1,17 @@
 
 # Budgets example app
 
-Demonstrates `data_ingest` with some basic [customizations](../../docs/custom.md)
+Demonstrates `data_ingest` with some basic [customizations](../../docs/customize.md)
 
 ## Non-default features
 
-- [Metadata](../../docs/custom.md) is collected for each file upload.
+- [Metadata](../../docs/customize.md) is collected for each file upload.
 
-- [Uniqueness is enforced](../../docs/custom.md) for two of the metadata fields
+- [Uniqueness is enforced](../../docs/customize.md) for two of the metadata fields
 
-- [A Table Schema](../../docs/custom.md) enforces rules on the uploaded data
+- [A Table Schema](../../docs/customize.md) enforces rules on the uploaded data
 
-- Data is injected [into a database table](../../docs/custom.md) instead of to JSON files
+- Data is injected [into a database table](../../docs/customize.md) instead of to JSON files
 
 ## Configuring the project
 

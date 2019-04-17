@@ -1,3 +1,4 @@
+import abc
 import csv
 import io
 import json
@@ -24,7 +25,224 @@ from .utils import get_ordered_headers
 logger = logging.getLogger(__name__)
 
 
-class Validator:
+###########################################
+#  Helper functions to manage validators
+###########################################
+def validators():
+    """
+    Generates Validator instances based on settings.py:UPLOAD_SETTINGS['VALIDATORS']
+
+    :return: Iterator of Validator instances
+
+    """
+    for (filename, validator_type) in UPLOAD_SETTINGS['VALIDATORS'].items():
+        validator = import_string(validator_type)(
+            name=validator_type, filename=filename)
+        yield validator
+
+
+def apply_validators_to(source):
+
+    overall_result = {}
+    for validator in validators():
+        validation_results = validator.validate(source)
+        overall_result = ValidatorOutput.combine(overall_result, validation_results)
+    return overall_result
+
+
+###########################################
+#  Exception
+###########################################
+class UnsupportedException(Exception):
+    pass
+
+
+###########################################
+#  Validator Output
+###########################################
+class ValidatorOutput:
+    """
+    This class will be used to create a standard validator output.  Validator should make use of this class
+    to generate the standard validator output and its other functionalities to combine output if using more
+    than one validator at a time
+    """
+
+    def __init__(self, headers, rows_in_dict):
+        """
+        Init - Initiate objects to generate output later
+
+        Parameters:
+        headers - a list of field names in the source
+        rows_in_dict - a list of rows of the source.  Each row is a dictionary that consist of the row data.
+                       Each row dictionary consists of `row_number` which is integer, and `row_data` which is
+                       an ordered dictionary the data (key - header/field name, value - data of that field)
+        """
+        self.headers = headers
+        self.rows_in_dict = rows_in_dict
+        self.row_errors = defaultdict(list)
+        self.whole_table_errors = []
+
+    def create_error(self, severity, code, message, error_columns):
+        """
+        Create standardized error dictionary
+
+        Parameters:
+        severity - severity of this error, right now "Error" or "Warning"
+        code - error code
+        message - error message that describe what the error is
+        error_columns - a list of all the field names that are associated with this error
+
+        Returns:
+        Dictionary with the following items: severity, code, message, error_columns
+        """
+        error = {}
+        error["severity"] = severity
+        error["code"] = code
+        error["message"] = message
+        error["error_columns"] = error_columns
+
+        return error
+
+    def add_row_error(self, row_number, severity, code, message, error_columns):
+        """
+        Add row specific error to the list of row errors
+
+        Parameters:
+        row_number - the number indicate which row this error belongs
+        severity - severity of this error, right now "Error" or "Warning"
+        code - error code
+        message - error message that describe what the error is
+        error_columns - a list of all the field names that are associated with this error
+
+        Returns:
+        None
+        """
+        error = self.create_error(severity, code, message, error_columns)
+
+        self.row_errors[row_number].append(error)
+
+    def add_whole_table_error(self, severity, code, message, error_columns):
+        """
+        Add error that applies to the whole table to the list of whole table errors
+
+        Parameters:
+        severity - severity of this error, right now "Error" or "Warning"
+        code - error code
+        message - error message that describe what the error is
+        error_columns - a list of all the field names that are associated with this error
+
+        Returns:
+        None
+        """
+        error = self.create_error(severity, code, message, error_columns)
+
+        self.whole_table_errors.append(error)
+
+    def create_rows(self):
+        """
+        Create a list of row dictionary to indicates the errors it has
+
+        Parameters:
+        None
+
+        Returns:
+        A list of row dictionary
+        - row dictionary consists of the following items:
+          - row_number - a number to indicate the row
+          - errors - a list of error dictionaries for this row
+            - error - each error should match the specification from `create_error`
+          - data - a dictionary of key (field name) / value (data for that field) pairs
+        """
+        rows = []
+        for (row_number, row_data) in self.rows_in_dict.items():
+            rows.append({
+                "row_number": row_number,
+                "errors": self.row_errors.get(row_number, []),
+                "data": row_data
+            })
+
+        return rows
+
+    def get_output(self):
+        """
+        Generate the validation output based on stored values
+
+        Parameters:
+        None
+
+        Returns:
+        A dictionary with the following items:
+        - tables - a list of table object
+          - table - a dictionary with the following items:
+            - headers - a list of field names for the data
+            - whole_table_errors - a list of errors that are related to the entire table
+            - rows - a dictionary generated from `create_rows`.  See specification there.
+            - valid_row_count - an integer indicates the number of valid rows in the data
+            - invalid_row_count - an integer indicates the number of invalid rows in the data
+        - valid - boolean to indicates whether the data is valid or not
+        """
+        table = {}
+        table["headers"] = self.headers
+        table["whole_table_errors"] = self.whole_table_errors
+        table["rows"] = self.create_rows()
+        table["valid_row_count"] = [(not row["errors"]) for row in table["rows"]].count(True)
+        table["invalid_row_count"] = len(table["rows"]) - table["valid_row_count"]
+
+        # This needs to evaluate again at some point if this is even possible to run validator for more than
+        # one table other than using GoodTables, the old code didn't allow more than one table, so should we
+        # even need a list of tables?
+        result = {}
+        result["tables"] = [table]
+        result["valid"] = (table["invalid_row_count"] == 0)
+
+        return result
+
+    @staticmethod
+    def combine(output1, output2):
+        """
+        Combine two validation outputs together.  This function expects validation outputs that follows
+        the specification indicated in `get_output`
+
+        Parameters:
+        output1 - validation output that follows the spec in `get_output`
+        output2 - validation output that follows the spec in `get_output`
+
+        Returns:
+        A dictionary with the same specification as `get_output` output
+        """
+        if not output1:
+            return output2
+        elif not output2:
+            return output1
+
+        table = {}
+        table["headers"] = output1["tables"][0]["headers"]
+        table["whole_table_errors"] = output1['tables'][0]['whole_table_errors'] + \
+            output2['tables'][0]['whole_table_errors']
+        table["rows"] = []
+
+        # Will assume output1 and output2 have the same number of rows, else you will get unexpected behaviors
+        for (row_number, row) in enumerate(output1['tables'][0]['rows']):
+            table["rows"].append({
+                "row_number": row['row_number'],
+                "errors": row['errors'] + output2['tables'][0]['rows'][row_number]['errors'],
+                "data": row['data']
+            })
+
+        table["valid_row_count"] = [(not row["errors"]) for row in table["rows"]].count(True)
+        table["invalid_row_count"] = len(table["rows"]) - table["valid_row_count"]
+
+        result = {}
+        result["tables"] = [table]
+        result["valid"] = (table["invalid_row_count"] == 0)
+
+        return result
+
+
+###########################################
+#  Validators
+###########################################
+class Validator(abc.ABC):
 
     SUPPORTS_HEADER_OVERRIDE = False
     INVERT_LOGIC = False
@@ -89,44 +307,52 @@ class Validator:
                 return self.load_file()
         return self.filename
 
+    @staticmethod
+    def rows_from_source(raw_source):
+        source = raw_source.copy()
+        try:
+            f_source = io.BytesIO(source['source'])
+            byteslike = True
+        except (TypeError, AttributeError, KeyError):
+            byteslike = False
 
-def rows_from_source(raw_source):
-    source = raw_source.copy()
-    try:
-        f_source = io.BytesIO(source['source'])
-        byteslike = True
-    except (TypeError, AttributeError, KeyError):
-        byteslike = False
+        if byteslike:
+            source['source'] = f_source
+            stream = tabulator.Stream(**source, encoding='utf-8')
+        else:
+            stream = tabulator.Stream(source, headers=1, encoding='utf-8')
 
-    if byteslike:
-        source['source'] = f_source
-        stream = tabulator.Stream(**source, encoding='utf-8')
-    else:
-        stream = tabulator.Stream(source, headers=1, encoding='utf-8')
+        stream.open()
 
-    stream.open()
+        # This will get the first row
+        try:
+            hs = next(stream.iter(extended=True))[1]
+        # nothing in the stream
+        except StopIteration:
+            hs = []
+        # Reset the pointer to the beginning
+        stream.reset()
+        o_headers = get_ordered_headers(hs)
 
-    # This will get the first row
-    try:
-        hs = next(stream.iter(extended=True))[1]
-    # nothing in the stream
-    except StopIteration:
-        hs = []
-    # Reset the pointer to the beginning
-    stream.reset()
-    o_headers = get_ordered_headers(hs)
+        result = OrderedDict()
+        for (row_num, headers, vals) in stream.iter(extended=True):
+            data = dict(zip(headers, vals))
+            o_data = OrderedDict((h, data.get(h, '')) for h in o_headers)
+            result[row_num] = o_data
 
-    result = OrderedDict()
-    for (row_num, headers, vals) in stream.iter(extended=True):
-        data = dict(zip(headers, vals))
-        o_data = OrderedDict((h, data.get(h, '')) for h in o_headers)
-        result[row_num] = o_data
+        return(o_headers, result)
 
-    return(o_headers, result)
+    @abc.abstractmethod
+    def validate(self, source):
+        """
+        Validate the data from source and return a standard validation output
 
+        Parameters:
+        source - raw source
 
-class UnsupportedException(Exception):
-    pass
+        Returns:
+        A dictionary object that follows the specification of `ValidatorOutput.get_output`
+        """
 
 
 class GoodtablesValidator(Validator):
@@ -183,152 +409,31 @@ class GoodtablesValidator(Validator):
             'valid': False}
     ``
         """
-
-        (headers, rows) = rows_from_source(source)
-        result = {"valid": unformatted["valid"], "tables": []}
-
         if len(unformatted["tables"]) > 1:
             raise UnsupportedException('Input with > 1 table not supported.')
 
-        for unformatted_table in unformatted["tables"]:
+        unformatted_table = unformatted["tables"][0]
+        # headers = unformatted_table["headers"]
+        (headers, rows) = Validator.rows_from_source(source)
+        output = ValidatorOutput(unformatted_table["headers"], rows)
 
-            table = {
-                "valid_row_count": 0,
-                "invalid_row_count": 0,
-                "headers": unformatted_table["headers"],
-                "rows": [],
-                "whole_table_errors": [],
-            }
+        for err in unformatted_table["errors"]:
+            error_columns = []
+            message = err['message']
+            # This is to include the header name with the column number and to define error_columns
+            if err.get('column-number'):
+                if len(headers) > (err['column-number']):
+                    header = headers[err['column-number'] - 1]
+                    error_columns = [header]
+                    column_num = 'column ' + str(err['column-number'])
+                    message = err['message'].replace(column_num, column_num + ' (' + header + ')')
 
-            # Produce a dictionary of errors by row number
-            errs = defaultdict(list)
-            for err in unformatted_table["errors"]:
-                # Pop 'message-data' because it may include exception object, which will cause issue when
-                # returning as JSON later.  This info should already be included in 'message'
-                err.pop('message-data', None)
+            if err.get('row-number'):
+                output.add_row_error(err['row-number'], "Error", err["code"], message, error_columns)
+            else:
+                output.add_whole_table_error("Error", err["code"], message, error_columns)
 
-                if err.get('column-number'):
-                    if len(headers) > (err['column-number']):
-                        header = headers[err['column-number'] - 1]
-                        err['error_columns'] = [header]
-                        column_num = 'column ' + str(err['column-number'])
-                        err['message'] = err['message'].replace(column_num, column_num + ' (' + header + ')')
-                rn = err.pop('row-number', None)
-                if rn:
-                    errs[rn].append(err)
-                else:
-                    table['whole_table_errors'].append(err)
-                    result['valid'] = False
-
-            for (rn, raw_row) in rows.items():
-
-                # Assemble a description of each row
-                row_errs = errs.get(rn, [])
-                row = {
-                    "row_number": rn,
-                    "errors": row_errs,
-                    "data": raw_row,
-                }
-                table["rows"].append(row)
-
-                if row_errs:
-                    table["invalid_row_count"] += 1
-                else:
-                    table["valid_row_count"] += 1
-
-            result["tables"].append(table)
-
-        return result
-
-
-def row_validation_error(rule, row_dict):
-    """Dictionary describing a single row validation error"""
-
-    error = {}
-    error['severity'] = rule.get('severity', 'Error')
-    error['code'] = rule.get('error_code')
-    error['error_columns'] = [
-            k for (idx, k) in enumerate(row_dict.keys())
-            if k in rule['columns']
-        ]
-
-    # create message
-    message = rule.get('message', '')
-    # Pattern that will match everything that looks like this: {...}
-    pattern = re.compile(r'\{.*?\}')
-    fields = pattern.findall(message)
-    for field in fields:
-        # Remove { }
-        key = field[1:-1].strip()
-        # Direct Substitution
-        if key in row_dict.keys():
-            message = message.replace(field, row_dict[key])
-        # Expression Calculation and Substitution
-        else:
-            # This will put out the two field names (strip out any spaces), and the operator
-            # and the rest of field to check for precision specification
-            # (operand1 operator operand2 rest)
-            # current supported operator is seen in the 2nd parenthesis
-            expression = re.match(r'^\s*(\S+)\s*([\+\-\*/])\s*([^:\s]+)(\S*)\s*$', key)
-
-            try:
-                # only supporting int/float operations
-                supported_type = (float, int)
-                operand1, operator, operand2, rest = expression.groups()
-
-                # If operands are numbers
-                value1 = RowwiseValidator.cast_value(operand1)
-                value2 = RowwiseValidator.cast_value(operand2)
-
-                # If operands are not numbers, they may be key to row_dict, get the real values
-                if not any(isinstance(value1, t) for t in supported_type):
-                    value1 = RowwiseValidator.cast_value(row_dict[operand1])
-
-                if not any(isinstance(value2, t) for t in supported_type):
-                    value2 = RowwiseValidator.cast_value(row_dict[operand2])
-
-                # If they are all supported type, then this expression can be evaluated
-                if any(isinstance(value1, t) for t in supported_type) and \
-                   any(isinstance(value2, t) for t in supported_type):
-                    # Right now being super explicit about which operator we support
-                    if operator == '+':
-                        result = value1 + value2
-                    elif operator == '-':
-                        result = value1 - value2
-                    elif operator == '*':
-                        result = value1 * value2
-                    elif operator == '/':
-                        result = value1 / value2
-                    else:
-                        # it really shouldn't have gotten here because we are only matching the allowed operation above
-                        raise UnsupportedException()
-
-                    # Will only use this when we are very sure there is no issue
-                    # result = eval(f'{value1} {operator} {value2}')
-
-                    # If precision is supplied, the "rest" should include this information in the following form:
-                    # ':number_of_digits_after_decimal_place'
-                    if rest:
-                        if len(rest) > 1 and rest[0] == ':':
-                            precision = int(rest[1:])
-                            result = f'{result:.{precision}f}'
-                        else:
-                            # This means this is malformed
-                            raise ValueError
-
-                    message = message.replace(field, str(result))
-
-            except (KeyError, AttributeError, ValueError):
-                # This means the expression is malformed or key are misspelled
-                message = f"Unable to evaluate {field}"
-                break
-            except UnsupportedException:
-                message = f"Unsupported operation in {field}"
-                break
-
-    error['message'] = message
-
-    return error
+        return output.get_output()
 
 
 class RowwiseValidator(Validator):
@@ -355,6 +460,16 @@ class RowwiseValidator(Validator):
 
     @staticmethod
     def cast_value(value):
+        """
+        This will help clean the value and cast the value to its type
+        i.e. "123" is an integer, so it will be casted to become 123
+
+        Parameters:
+        value - a string that needs to be casted
+
+        Returns:
+        a value that has been processed and casted to its type (string, integer, or float)
+        """
         newval = value
         if type(newval) == str:
             newval = newval.strip()
@@ -378,69 +493,165 @@ class RowwiseValidator(Validator):
 
     @staticmethod
     def cast_values(row_values):
-        # This will help clean up the data and cast them to numbers when
-        # appropriate
+        """
+        This will help clean up a list of data and cast them to numbers when appropriate
+
+        Parameters:
+        row_values - a list of values
+
+        Returns:
+        a list of casted values
+        """
         return [RowwiseValidator.cast_value(value) for value in row_values]
 
-    def validate(self, source):
-        table = {
-            'invalid_row_count': 0,
-            'valid_row_count': 0,
-            'whole_table_errors': [],
-        }
+    @staticmethod
+    def replace_message(message, row_dict):
+        """
+        String Intepolation for message.  Anything that is included inside the curly brackets {} will
+        be evaluated and replaced by its value.
 
-        rows = []
-        (table['headers'], numbered_rows) = rows_from_source(source)
+        - {column}: By putting the column name inside the curly brackets, this will be replaced with the
+          actual value of this row's column.
+        - {A op B}: A is a column name or a number (integer or decimal number), op is an arithmetic operator
+          +, -, * or /, and B is a column name or a number (integer or decimal number).
+        - {A op B:C}: A op B is the same as above, C is the number of decimal places to display after the decimal.
+
+        Parameters:
+        message - a string
+        row_dict - a dictionary of key(field name) / value(field data) pair
+
+        Returns:
+        string - a new message with content in {} replaced
+
+        """
+        # create message
+        new_message = message
+        # Pattern that will match everything that looks like this: {...}
+        pattern = re.compile(r'\{.*?\}')
+        fields = pattern.findall(new_message)
+        for field in fields:
+            # Remove { }
+            key = field[1:-1].strip()
+            # Direct Substitution
+            if key in row_dict.keys():
+                new_message = new_message.replace(field, row_dict[key])
+            # Expression Calculation and Substitution
+            else:
+                # This will put out the two field names (strip out any spaces), and the operator
+                # and the rest of field to check for precision specification
+                # (operand1 operator operand2 rest)
+                # current supported operator is seen in the 2nd parenthesis
+                expression = re.match(r'^\s*(\S+)\s*([\+\-\*/])\s*([^:\s]+)(\S*)\s*$', key)
+
+                try:
+                    # only supporting int/float operations
+                    supported_type = (float, int)
+                    operand1, operator, operand2, rest = expression.groups()
+
+                    # If operands are numbers
+                    value1 = RowwiseValidator.cast_value(operand1)
+                    value2 = RowwiseValidator.cast_value(operand2)
+
+                    # If operands are not numbers, they may be key to row_dict, get the real values
+                    if not any(isinstance(value1, t) for t in supported_type):
+                        value1 = RowwiseValidator.cast_value(row_dict[operand1])
+
+                    if not any(isinstance(value2, t) for t in supported_type):
+                        value2 = RowwiseValidator.cast_value(row_dict[operand2])
+
+                    # If they are all supported type, then this expression can be evaluated
+                    if any(isinstance(value1, t) for t in supported_type) and \
+                       any(isinstance(value2, t) for t in supported_type):
+                        # Right now being super explicit about which operator we support
+                        if operator == '+':
+                            result = value1 + value2
+                        elif operator == '-':
+                            result = value1 - value2
+                        elif operator == '*':
+                            result = value1 * value2
+                        elif operator == '/':
+                            result = value1 / value2
+                        else:
+                            # it really shouldn't have gotten here because we are only matching the allowed
+                            # operation above
+                            raise UnsupportedException()
+
+                        # Will only use this when we are very sure there is no issue
+                        # result = eval(f'{value1} {operator} {value2}')
+
+                        # If precision is supplied, the "rest" should include this information in the following form:
+                        # ':number_of_digits_after_decimal_place'
+                        if rest:
+                            if len(rest) > 1 and rest[0] == ':':
+                                precision = int(rest[1:])
+                                result = f'{result:.{precision}f}'
+                            else:
+                                # This means this is malformed
+                                raise ValueError
+
+                        new_message = new_message.replace(field, str(result))
+
+                except (KeyError, AttributeError, ValueError):
+                    # This means the expression is malformed or key are misspelled
+                    new_message = f"Unable to evaluate {field}"
+                    break
+                except UnsupportedException:
+                    new_message = f"Unsupported operation in {field}"
+                    break
+
+        return new_message
+
+    def validate(self, source):
+        """
+        Implemented validate method
+        """
+        (headers, numbered_rows) = Validator.rows_from_source(source)
+        output = ValidatorOutput(headers, numbered_rows)
+
         for (rn, row) in numbered_rows.items():
 
             # This is to remove the header row
             if rn == UPLOAD_SETTINGS['OLD_HEADER_ROW']:
                 continue
 
-            errors = []
             # Check for columns required by validator
-            received_columns = set(table['headers'])
+            received_columns = set(headers)
             for rule in self.validator:
                 expected_columns = set(rule['columns'])
                 missing_columns = expected_columns.difference(received_columns)
                 if missing_columns:
-                    errors.append({'severity': 'Error',
-                                   'code': rule['error_code'],
-                                   'message': f'Unable to evaluate, missing columns: {missing_columns}',
-                                   'error_columns': []})
+                    output.add_row_error(rn, 'Error', rule['error_code'],
+                                         f'Unable to evaluate, missing columns: {missing_columns}', [])
                     continue
                 try:
                     if rule['code'] and not self.invert_if_needed(self.evaluate(rule['code'], row)):
-                        errors.append(row_validation_error(rule, row))
+
+                        output.add_row_error(rn,
+                                             rule.get('severity', 'Error'),
+                                             rule.get('error_code'),
+                                             RowwiseValidator.replace_message(rule.get('message', ''), row),
+                                             [
+                                                k for (idx, k) in enumerate(row.keys())
+                                                if k in rule['columns']
+                                             ]
+                                             )
                 except Exception as e:
-                    errors.append({'severity': 'Error',
-                                   'code': rule['error_code'],
-                                   'message': f'{type(e).__name__}: {e.args[0]}',
-                                   'error_columns': []})
+                    output.add_row_error(rn, 'Error', rule['error_code'],
+                                         f'{type(e).__name__}: {e.args[0]}', [])
+        return output.get_output()
 
-            # errors = [
-            #     row_validation_error(rule, row) for rule in self.validator
-            #     if not self.invert_if_needed(self.evaluate(rule['code'], row))
-            # ]
-            if errors:
-                table['invalid_row_count'] += 1
-            else:
-                table['valid_row_count'] += 1
-            rows.append({
-                'row_number': rn,
-                'data': row,
-                'errors': errors,
-            })
-        table['rows'] = rows
+    @abc.abstractmethod
+    def evaluate(self, rule, row):
+        """
+        Evaluate the row based on the rule
 
-        result = {
-            'tables': [
-                table,
-            ],
-            'valid': (table['invalid_row_count'] == 0)
-        }
+        Parameters:
+        rule - the rule that needs to apply to the row
+        row - the dictionary of key(field name)/value(field data) pair
 
-        return result
+        Returns:
+        Boolean - True/False
+        """
 
 
 class JsonlogicValidator(RowwiseValidator):
@@ -498,59 +709,9 @@ class SqlValidatorFailureConditions(SqlValidator):
     INVERT_LOGIC = True
 
 
-def combine_validation_results(results0, results1):
-    """
-    Adds two dictionaries of validation results, meshing row-wise results
-
-    :param results0: A dictionary of validation results.  Will be mutated.
-    :param results1: A dictionary to be added to results0
-    :return: results0 with results included
-    """
-    if results0:
-        for (rn, row) in enumerate(results0['tables'][0]['rows']):
-            row['errors'].extend(results1['tables'][0]['rows'][rn]['errors'])
-        results0['tables'][0]['whole_table_errors'].extend(
-            results1['tables'][0]['whole_table_errors'])
-        results0['valid'] = results0['valid'] and results1['valid']
-        return results0
-    else:
-        return results1
-
-
-def validators():
-    """
-    Generates Validator instances based on settings.py:UPLOAD_SETTINGS['VALIDATORS']
-
-    :return: Iterator of Validator instances
-
-    """
-    for (filename, validator_type) in UPLOAD_SETTINGS['VALIDATORS'].items():
-        validator = import_string(validator_type)(
-            name=validator_type, filename=filename)
-        yield validator
-
-
-def count_valid_rows(validation_results):
-    validation_results['valid_row_count'] = 0
-    validation_results['invalid_row_count'] = 0
-    for row in validation_results['tables'][0]['rows']:
-        if row['errors']:
-            validation_results['invalid_row_count'] += 1
-        else:
-            validation_results['valid_row_count'] += 1
-
-
-def apply_validators_to(source):
-
-    overall_result = {}
-    for validator in validators():
-        validation_results = validator.validate(source)
-        overall_result = combine_validation_results(
-            results0=overall_result, results1=validation_results)
-    count_valid_rows(overall_result)
-    return overall_result
-
-
+###########################################
+#  Ingestor
+###########################################
 class Ingestor:
     """The default ingestor assumes that the data source is already rectangular"""
 
