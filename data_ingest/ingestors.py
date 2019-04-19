@@ -20,7 +20,8 @@ from django.core import exceptions, files
 from django.utils.module_loading import import_string
 
 from .ingest_settings import UPLOAD_SETTINGS
-from .utils import get_ordered_headers
+# from .utils import get_ordered_headers, to
+import data_ingest.utils as utils
 
 logger = logging.getLogger(__name__)
 
@@ -41,11 +42,11 @@ def validators():
         yield validator
 
 
-def apply_validators_to(source):
+def apply_validators_to(source, content_type):
 
     overall_result = {}
     for validator in validators():
-        validation_results = validator.validate(source)
+        validation_results = validator.validate(source, content_type)
         overall_result = ValidatorOutput.combine(overall_result, validation_results)
     return overall_result
 
@@ -332,7 +333,7 @@ class Validator(abc.ABC):
             hs = []
         # Reset the pointer to the beginning
         stream.reset()
-        o_headers = get_ordered_headers(hs)
+        o_headers = utils.get_ordered_headers(hs)
 
         result = OrderedDict()
         for (row_num, headers, vals) in stream.iter(extended=True):
@@ -343,7 +344,7 @@ class Validator(abc.ABC):
         return(o_headers, result)
 
     @abc.abstractmethod
-    def validate(self, source):
+    def validate(self, source, content_type):
         """
         Validate the data from source and return a standard validation output
 
@@ -357,23 +358,31 @@ class Validator(abc.ABC):
 
 class GoodtablesValidator(Validator):
 
-    def validate(self, source):
+    def validate(self, source, content_type):
+
+        if content_type == 'application/json':
+            data = utils.to_tabular(source)
+        elif content_type == 'text/csv':
+            data = utils.reorder_csv(source)
+        else:
+            UnsupportedException("Content type is not supported by GoodtablesValidator")
+
 
         try:
-            source['source'].decode()
+            data['source'].decode()
             byteslike = True
         except (TypeError, KeyError, AttributeError):
             byteslike = False
 
         if byteslike:
-            validate_params = source.copy()
+            validate_params = data.copy()
             validate_params['schema'] = self.validator
-            validate_params['source'] = io.BytesIO(source['source'])
+            validate_params['source'] = io.BytesIO(data['source'])
         else:
-            validate_params = {'source': source, 'schema': self.validator, "headers": 1}
+            validate_params = {'source': data, 'schema': self.validator, "headers": 1}
 
         result = goodtables.validate(**validate_params)
-        return self.formatted(source, result)
+        return self.formatted(data, result)
 
     def formatted(self, source, unformatted):
         """
@@ -601,11 +610,19 @@ class RowwiseValidator(Validator):
 
         return new_message
 
-    def validate(self, source):
+    def validate(self, source, content_type):
         """
         Implemented validate method
         """
-        (headers, numbered_rows) = Validator.rows_from_source(source)
+
+        if content_type == 'application/json':
+            data = utils.to_tabular(source)
+        elif content_type == 'text/csv':
+            data = utils.reorder_csv(source)
+        else:
+            UnsupportedException("Content type is not supported by " + self.__name__)
+
+        (headers, numbered_rows) = Validator.rows_from_source(data)
         output = ValidatorOutput(headers, numbered_rows)
 
         for (rn, row) in numbered_rows.items():
@@ -708,6 +725,11 @@ class SqlValidatorFailureConditions(SqlValidator):
 
     INVERT_LOGIC = True
 
+
+class JsonSchemaValidator(Validator):
+
+    def validate(self, source, content_type):
+        return {}
 
 ###########################################
 #  Ingestor
