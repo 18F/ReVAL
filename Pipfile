@@ -12,6 +12,7 @@ json_logic_qubit = "*"
 psycopg2-binary = "*"
 pyyaml = "*"
 requests = "*"
+jsonschema = "*"
 
 [dev-packages]
 flake8 = "*"
