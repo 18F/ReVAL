@@ -80,4 +80,4 @@ Run the server.
     python manage.py runserver
 
 Visit http://localhost:8000/data_ingest/, login as `chris/publicservice`, and try uploading
-some CSVs (like the provided [example](staff.csv)).
+some CSVs (like the provided [example](b01.csv)).
