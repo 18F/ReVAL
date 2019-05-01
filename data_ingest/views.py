@@ -112,12 +112,6 @@ def upload(request, replace_upload_id=None, **kwargs):
                   {"form": form})
 
 
-# left import here for ease-of-movement
-# since i suspect this is not the right place
-from django.template.defaulttags import register
-@register.filter
-def get_item(dictionary, key):
-    return dictionary.get(key)
 
 def review_errors(request, upload_id):
     upload = UploadModel.objects.get(pk=upload_id)
