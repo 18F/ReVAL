@@ -4,5 +4,5 @@ from django import template
 register = template.Library()
 
 @register.filter
-def get_key(dictionary, key):
+def get_value(dictionary, key):
     return dictionary.get(key)
