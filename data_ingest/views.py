@@ -112,7 +112,6 @@ def upload(request, replace_upload_id=None, **kwargs):
                   {"form": form})
 
 
-
 def review_errors(request, upload_id):
     upload = UploadModel.objects.get(pk=upload_id)
     if upload.validation_results['valid']:
