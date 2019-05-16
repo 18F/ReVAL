@@ -46,7 +46,7 @@ class TestRowwiseValidator(SimpleTestCase):
 
 class TestValidationOutput(SimpleTestCase):
     def test_add_row_error(self):
-        output = ValidatorOutput(["column1", "column2", "column3"],
+        output = ValidatorOutput(headers=["column1", "column2", "column3"],
                                  [(1, {"column1": "abc", "column2": "efg", "column3": "hij"}),
                                   (2, {"column1": "xyz", "column2": "klm", "column3": "nop"})])
 
@@ -70,7 +70,7 @@ class TestValidationOutput(SimpleTestCase):
                              {"severity": "Info", "code": "I30", "message": "Information", "error_columns": []})
 
     def test_create_rows(self):
-        output = ValidatorOutput(["column1", "column2", "column3"],
+        output = ValidatorOutput(headers=["column1", "column2", "column3"],
                                  OrderedDict([(1, {"column1": "abc", "column2": "efg", "column3": "hij"}),
                                               (2, {"column1": "xyz", "column2": "klm", "column3": "nop"})]))
 
@@ -100,7 +100,7 @@ class TestValidationOutput(SimpleTestCase):
         self.assertDictEqual(rows[1]["data"], {"column1": "xyz", "column2": "klm", "column3": "nop"})
 
     def test_get_output(self):
-        output = ValidatorOutput(["column1", "column2", "column3"],
+        output = ValidatorOutput(headers=["column1", "column2", "column3"],
                                  OrderedDict([(1, {"column1": "abc", "column2": "efg", "column3": "hij"}),
                                               (2, {"column1": "xyz", "column2": "klm", "column3": "nop"})]))
 

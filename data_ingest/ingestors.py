@@ -69,22 +69,22 @@ class ValidatorOutput:
     than one validator at a time
     """
 
-    def __init__(self, headers, rows_in_dict):
+    def __init__(self, rows_in_dict, headers=[]):
         """
         Init - Initiate objects to generate output later
 
         Parameters:
-        headers - a list of field names in the source
         rows_in_dict - a list of rows of the source.  Each row is a dictionary that consist of the row data.
                        Each row dictionary consists of `row_number` which is integer, and `row_data` which is
                        an ordered dictionary the data (key - header/field name, value - data of that field)
+        headers - (optional) a list of field names in the source (if relevant, i.e. tabular data)
         """
-        self.headers = headers
         self.rows_in_dict = rows_in_dict
+        self.headers = headers
         self.row_errors = defaultdict(list)
         self.whole_table_errors = []
 
-    def create_error(self, severity, code, message, error_columns):
+    def create_error(self, severity, code, message, fields):
         """
         Create standardized error dictionary
 
@@ -92,20 +92,20 @@ class ValidatorOutput:
         severity - severity of this error, right now "Error" or "Warning"
         code - error code
         message - error message that describe what the error is
-        error_columns - a list of all the field names that are associated with this error
+        fields - a list of all the field names that are associated with this error
 
         Returns:
-        Dictionary with the following items: severity, code, message, error_columns
+        Dictionary with the following items: severity, code, message, fields
         """
         error = {}
         error["severity"] = severity
         error["code"] = code
         error["message"] = message
-        error["error_columns"] = error_columns
+        error["fields"] = fields
 
         return error
 
-    def add_row_error(self, row_number, severity, code, message, error_columns):
+    def add_row_error(self, row_number, severity, code, message, fields):
         """
         Add row specific error to the list of row errors
 
@@ -114,16 +114,16 @@ class ValidatorOutput:
         severity - severity of this error, right now "Error" or "Warning"
         code - error code
         message - error message that describe what the error is
-        error_columns - a list of all the field names that are associated with this error
+        fields - a list of all the field names that are associated with this error
 
         Returns:
         None
         """
-        error = self.create_error(severity, code, message, error_columns)
+        error = self.create_error(severity, code, message, fields)
 
         self.row_errors[row_number].append(error)
 
-    def add_whole_table_error(self, severity, code, message, error_columns):
+    def add_whole_table_error(self, severity, code, message, fields):
         """
         Add error that applies to the whole table to the list of whole table errors
 
@@ -131,12 +131,12 @@ class ValidatorOutput:
         severity - severity of this error, right now "Error" or "Warning"
         code - error code
         message - error message that describe what the error is
-        error_columns - a list of all the field names that are associated with this error
+        fields - a list of all the field names that are associated with this error
 
         Returns:
         None
         """
-        error = self.create_error(severity, code, message, error_columns)
+        error = self.create_error(severity, code, message, fields)
 
         self.whole_table_errors.append(error)
 
@@ -156,6 +156,7 @@ class ValidatorOutput:
           - data - a dictionary of key (field name) / value (data for that field) pairs
         """
         result = []
+        # There may be time that 
         rows = self.rows_in_dict.items() if isinstance(self.rows_in_dict, dict) else enumerate(self.rows_in_dict)
         for (row_number, row_data) in rows:
             result.append({
@@ -427,23 +428,23 @@ class GoodtablesValidator(Validator):
         unformatted_table = unformatted["tables"][0]
         # headers = unformatted_table["headers"]
         (headers, rows) = Validator.rows_from_source(source)
-        output = ValidatorOutput(unformatted_table["headers"], rows)
+        output = ValidatorOutput(rows, headers=unformatted_table["headers"])
 
         for err in unformatted_table["errors"]:
-            error_columns = []
+            fields = []
             message = err['message']
-            # This is to include the header name with the column number and to define error_columns
+            # This is to include the header name with the column number and to define fields
             if err.get('column-number'):
                 if len(headers) > (err['column-number']):
                     header = headers[err['column-number'] - 1]
-                    error_columns = [header]
+                    fields = [header]
                     column_num = 'column ' + str(err['column-number'])
                     message = err['message'].replace(column_num, column_num + ' (' + header + ')')
 
             if err.get('row-number'):
-                output.add_row_error(err['row-number'], "Error", err["code"], message, error_columns)
+                output.add_row_error(err['row-number'], "Error", err["code"], message, fields)
             else:
-                output.add_whole_table_error("Error", err["code"], message, error_columns)
+                output.add_whole_table_error("Error", err["code"], message, fields)
 
         return output.get_output()
 
@@ -626,7 +627,7 @@ class RowwiseValidator(Validator):
             UnsupportedException("Content type is not supported by " + self.__name__)
 
         (headers, numbered_rows) = Validator.rows_from_source(data)
-        output = ValidatorOutput(headers, numbered_rows)
+        output = ValidatorOutput(numbered_rows, headers=headers)
 
         for (rn, row) in numbered_rows.items():
 
@@ -741,10 +742,10 @@ class JsonschemaValidator(Validator):
             # Check the schema to make sure there's no error
             json_validator.check_schema(self.validator)
 
-            if type(source) is list:
-                output = ValidatorOutput(self.validator, source)
-            else:
-                output = ValidatorOutput(self.validator, [source])
+            if type(source) is list: # validating an array of objects
+                output = ValidatorOutput(source)
+            else: # validating only one object
+                output = ValidatorOutput([source])
 
             errors = json_validator.iter_errors(source)
 
