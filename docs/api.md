@@ -17,31 +17,38 @@ error information.
 
 ### Validate JSON data
 
-    curl -X POST -H "Content-Type: application/json" -d @test_cases.json http://localhost:8000/data_ingest/api/validate/
+```shell
+curl -X POST -H "Content-Type: application/json" -d @test_cases.json http://localhost:8000/data_ingest/api/validate/
+```
 
 or, in Python,
 
-    url = 'http://localhost:8000/data_ingest/api/validate/'
-    import requests
-    import json
-    with open('test_cases.json') as infile:
-        content = json.load(infile)
-    resp = requests.post(url, json=content)
-    resp.json()
+```python
+url = 'http://localhost:8000/data_ingest/api/validate/'
+import requests
+import json
+with open('test_cases.json') as infile:
+    content = json.load(infile)
+resp = requests.post(url, json=content)
+resp.json()
+```
 
 ### Validate CSV data
 
-    curl -X POST -H "Content-Type: text/csv" --data-binary @test_cases.csv http://localhost:8000/data_ingest/api/validate/  
-    
+```shell
+curl -X POST -H "Content-Type: text/csv" --data-binary @test_cases.csv http://localhost:8000/data_ingest/api/validate/
+```
+
 or, in Python,
 
-    import requests
-    url = 'http://localhost:8000/data_ingest/api/validate/'
-    with open('test_cases.csv') as infile:
-        content = infile.read()
-    resp = requests.post(url, data=content, headers={"Content-Type": "text/csv"})
-    resp.json()
-
+```python
+import requests
+url = 'http://localhost:8000/data_ingest/api/validate/'
+with open('test_cases.csv') as infile:
+    content = infile.read()
+resp = requests.post(url, data=content, headers={"Content-Type": "text/csv"})
+resp.json()
+```
 
 ### Responses
 
@@ -78,78 +85,80 @@ The response will be a JSON object with the following items:
 
 ##### Example Value
 
-    {
-        "tables": [
-            {
-                "headers": [
-                    "category",
-                    "dollars_budgeted",
-                    "dollars_spent",
-                    "extra"
-                ],
-                "whole_table_errors": [
-                    {
-                        "severity": "Error",
-                        "code": "extra-header",
-                        "message": "There is an extra header in column 4",
-                        "error_columns": []
+```json
+{
+    "tables": [
+        {
+            "headers": [
+                "category",
+                "dollars_budgeted",
+                "dollars_spent",
+                "extra"
+            ],
+            "whole_table_errors": [
+                {
+                    "severity": "Error",
+                    "code": "extra-header",
+                    "message": "There is an extra header in column 4",
+                    "error_columns": []
+                }
+            ],
+            "rows": [
+                {
+                    "row_number": 2,
+                    "errors": [
+                        {
+                            "severity": "Error",
+                            "code": "blank-row",
+                            "message": "Row 2 is completely blank",
+                            "error_columns": []
+                        }
+                    ],
+                    "data": {
+                        "category": "",
+                        "dollars_budgeted": "",
+                        "dollars_spent": "",
+                        "extra": ""
                     }
-                ],
-                "rows": [
-                    {
-                        "row_number": 2,
-                        "errors": [
-                            {
-                                "severity": "Error",
-                                "code": "blank-row",
-                                "message": "Row 2 is completely blank",
-                                "error_columns": []
-                            }
-                        ],
-                        "data": {
-                            "category": "",
-                            "dollars_budgeted": "",
-                            "dollars_spent": "",
-                            "extra": ""
-                        }
-                    },
-                    {
-                        "row_number": 3,
-                        "errors": [],
-                        "data": {
-                            "category": "pencils",
-                            "dollars_budgeted": "500",
-                            "dollars_spent": "400",
-                            "extra": "1"
-                        }
-                    },
-                    {
-                        "row_number": 4,
-                        "errors": [
-                            {
-                                "severity": "Error",
-                                "code": null,
-                                "message": "spending should not exceed budget",
-                                "error_columns": [
-                                    "dollars_budgeted",
-                                    "dollars_spent"
-                                ]
-                            }
-                        ],
-                        "data": {
-                            "category": "red tape",
-                            "dollars_budgeted": "2000",
-                            "dollars_spent": "2300",
-                            "extra": "2"
-                        }
+                },
+                {
+                    "row_number": 3,
+                    "errors": [],
+                    "data": {
+                        "category": "pencils",
+                        "dollars_budgeted": "500",
+                        "dollars_spent": "400",
+                        "extra": "1"
                     }
-                ],
-                "valid_row_count": 1,
-                "invalid_row_count": 2
-            }
-        ],
-        "valid": false
-    }
+                },
+                {
+                    "row_number": 4,
+                    "errors": [
+                        {
+                            "severity": "Error",
+                            "code": null,
+                            "message": "spending should not exceed budget",
+                            "error_columns": [
+                                "dollars_budgeted",
+                                "dollars_spent"
+                            ]
+                        }
+                    ],
+                    "data": {
+                        "category": "red tape",
+                        "dollars_budgeted": "2000",
+                        "dollars_spent": "2300",
+                        "extra": "2"
+                    }
+                }
+            ],
+            "valid_row_count": 1,
+            "invalid_row_count": 2
+        }
+    ],
+    "valid": false
+}
+```
 
 #### Code: 400 - Bad Request
 
@@ -162,6 +171,8 @@ The response will be a JSON object to indicate the error.
 
 i.e. This is to indicate incorrect JSON format when media type is JSON.
 
-    {
-        "detail": "JSON parse error - Expecting value: line 1 column 1 (char 0)"
-    }
+```json
+{
+    "detail": "JSON parse error - Expecting value: line 1 column 1 (char 0)"
+}
+```

@@ -12,7 +12,11 @@ each user may submit multiple files.
 ## Features
 
 - Flexible input format
-- Validation with [goodtables](https://github.com/frictionlessdata/goodtables-py), [JSON Logic](https://github.com/QubitProducts/json-logic-py), [SQL](https://sqlite.org/lang_keywords.html), or a custom validation class
+- Validation with:
+  - [goodtables](https://github.com/frictionlessdata/goodtables-py)
+  - [JSON Logic](https://github.com/QubitProducts/json-logic-py)
+  - [SQL](https://sqlite.org/lang_keywords.html)
+  - a custom validation class
 - Row-by-row feedback on validation results
 - Manage and track status of data submissions
 - Re-submit previous submissions
@@ -39,15 +43,18 @@ each user may submit multiple files.
 
 Install using `pipenv`...
 
-    pipenv install django-data-ingest
+```shell
+pipenv install django-data-ingest
+```
 
 Add `'data_ingest'` to your `INSTALLED_APPS` setting.
 
-    INSTALLED_APPS = (
-        ...
-        'data_ingest',
-    )
-
+```python
+INSTALLED_APPS = (
+    ...
+    'data_ingest',
+)
+```
 ---
 
 ## Examples
@@ -65,7 +72,7 @@ Follow the [development](#development) instructions to close this repository and
 
 ## API
 
-For more information on how to use the API for validation.  See documentation [here](docs/api.md).
+For more information on how to use the API for validation.  See [documentation for API validation](docs/api.md).
 
 ---
 
@@ -79,17 +86,22 @@ See [CONTRIBUTING](CONTRIBUTING.md) for additional information.
 
 To start developing on Django Data Ingest, clone the repository:
 
-    git clone git@github.com:18f/django-data-ingest.git
+```shell
+git clone git@github.com:18f/django-data-ingest.git
+```
 
 Install development dependencies:
 
-    pipenv install --dev
+```shell
+pipenv install --dev
+```
 
 ### Test Suite
 
 To execute the test suite, install the development dependencies and run:
-
-    python runtests.py
+```shell
+python runtests.py
+```
 
 ---
 
