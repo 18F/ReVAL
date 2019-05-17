@@ -12,7 +12,7 @@ each user may submit multiple files.
 ## Features
 
 - Flexible input format
-- Validation with [goodtables](), [JSON Schema](), [SQL](), or a custom validation class
+- Validation with [goodtables](https://github.com/frictionlessdata/goodtables-py), [JSON Logic](https://github.com/QubitProducts/json-logic-py), [SQL](https://sqlite.org/lang_keywords.html), or a custom validation class
 - Row-by-row feedback on validation results
 - Manage and track status of data submissions
 - Re-submit previous submissions
@@ -60,6 +60,12 @@ Follow the [development](#development) instructions to close this repository and
 ### [p02_budgets](examples/p02_budgets/README.md)
 
 ### [p03_budgets](examples/p03_budgets/README.md)
+
+---
+
+## API
+
+For more information on how to use the API for validation.  See documentation [here](docs/api.md).
 
 ---
 
