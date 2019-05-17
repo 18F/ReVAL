@@ -55,7 +55,7 @@ The response will be a JSON object with the following items:
   - **tables** - a list of **table** JSON objects
   - **valid** - boolean to indicates whether the data is valid or not
 
-###### Definitions
+##### Definitions
   - **table** - a JSON object with the following items:
     - **headers** - a list of field names for the data
     - **whole_table_errors** - a list of **error** JSON objects that are related to the entire table
@@ -71,7 +71,7 @@ The response will be a JSON object with the following items:
 
 
   - **error** - a JSON object that indicates the details of an error
-    - **severity** - severity of this error, right now "Error" or "Warning"
+    - **severity** - severity of this error, right now `Error` or `Warning`
     - **code** - error code
     - **message** - error message that describe what the error is
     - **error_columns** - a list of all the field names that are associated with this error
