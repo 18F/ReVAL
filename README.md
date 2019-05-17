@@ -72,7 +72,7 @@ Follow the [development](#development) instructions to close this repository and
 
 ## API
 
-For more information on how to use the API for validation.  See [API documentation](docs/api.md).
+To perform data validation with API.  See [API documentation](docs/api.md).
 
 ---
 
