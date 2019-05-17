@@ -17,7 +17,7 @@ error information.
 
 ### Validate JSON data
 
-```shell
+```zsh
 curl -X POST -H "Content-Type: application/json" -d @test_cases.json http://localhost:8000/data_ingest/api/validate/
 ```
 
@@ -35,7 +35,7 @@ resp.json()
 
 ### Validate CSV data
 
-```shell
+```zsh
 curl -X POST -H "Content-Type: text/csv" --data-binary @test_cases.csv http://localhost:8000/data_ingest/api/validate/
 ```
 

@@ -43,7 +43,7 @@ each user may submit multiple files.
 
 Install using `pipenv`...
 
-```shell
+```zsh
 pipenv install django-data-ingest
 ```
 
@@ -72,7 +72,7 @@ Follow the [development](#development) instructions to close this repository and
 
 ## API
 
-For more information on how to use the API for validation.  See [documentation for API validation](docs/api.md).
+For more information on how to use the API for validation.  See [API documentation](docs/api.md).
 
 ---
 
@@ -86,20 +86,20 @@ See [CONTRIBUTING](CONTRIBUTING.md) for additional information.
 
 To start developing on Django Data Ingest, clone the repository:
 
-```shell
+```zsh
 git clone git@github.com:18f/django-data-ingest.git
 ```
 
 Install development dependencies:
 
-```shell
+```zsh
 pipenv install --dev
 ```
 
 ### Test Suite
 
 To execute the test suite, install the development dependencies and run:
-```shell
+```zsh
 python runtests.py
 ```
 
