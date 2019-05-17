@@ -52,29 +52,29 @@ After data is posted to the `validate` endpoint, one will expect a JSON response
 ##### Description
 
 The response will be a JSON object with the following items:
-  - *tables* - a list of *table* JSON objects
-  - *valid* - boolean to indicates whether the data is valid or not
+  - **tables** - a list of **table** JSON objects
+  - **valid** - boolean to indicates whether the data is valid or not
 
 ###### Definitions
-  - *table* - a JSON object with the following items:
-    - *headers* - a list of field names for the data
-    - *whole_table_errors* - a list of *error* JSON objects that are related to the entire table
-    - *rows* - a list of *row* JSON objects
-    - *valid_row_count* - an integer indicates the number of valid rows in the data
-    - *invalid_row_count* - an integer indicates the number of invalid rows in the data
+  - **table** - a JSON object with the following items:
+    - **headers** - a list of field names for the data
+    - **whole_table_errors** - a list of **error** JSON objects that are related to the entire table
+    - **rows** - a list of **row** JSON objects
+    - **valid_row_count** - an integer indicates the number of valid rows in the data
+    - **invalid_row_count** - an integer indicates the number of invalid rows in the data
 
 
-  - *row* -  a JSON object that indicates the errors each row has:
-    - *row_number* - a number to indicate the row
-    - *errors* - a list of *error* JSON objects for this row
-    - *data* - a dictionary of key (field name) / value (data for that field) pairs
+  - **row** -  a JSON object that indicates the errors each row has:
+    - **row_number** - a number to indicate the row
+    - **errors** - a list of **error** JSON objects for this row
+    - **data** - a dictionary of key (field name) / value (data for that field) pairs
 
 
-  - *error* - a JSON object that indicates the details of an error
-    - *severity* - severity of this error, right now "Error" or "Warning"
-    - *code* - error code
-    - *message* - error message that describe what the error is
-    - *error_columns* - a list of all the field names that are associated with this error
+  - **error** - a JSON object that indicates the details of an error
+    - **severity** - severity of this error, right now "Error" or "Warning"
+    - **code** - error code
+    - **message** - error message that describe what the error is
+    - **error_columns** - a list of all the field names that are associated with this error
 
 ##### Example Value
 
