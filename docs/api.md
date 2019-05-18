@@ -170,7 +170,7 @@ GoodTables validator comes with its own set of error codes.  See the [validation
 
 ###### Rowwise Validator
 
-This includes both JSON Logic Validator and SQL Validator.  This type of validators requires the app's owner to define an error code for each rule definition.  Check with app's owner to obtain a list of error codes.  For more details on how to create your own rules definition file, see [documentation on customizing a rowwise validator](customize.md#with-a-rowwise-validator).
+This includes both JSON Logic Validator and SQL Validator.  This type of validators requires the app's owner to define an error code for each rule definition.  Check with app's owner to obtain a list of error codes.  For more details on how to create your own rules, see [documentation on customizing a rowwise validator](customize.md#with-a-rowwise-validator).
 
 
 #### Code: 400 - Bad Request
