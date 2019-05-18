@@ -166,11 +166,11 @@ Each validator will provide a different set of error codes.  Some of the codes w
 
 ###### GoodTables Validator
 
-GoodTables validator comes with its own set of error codes.  See the type of [validation](https://github.com/frictionlessdata/goodtables-py#validation) it performs where each check is an error code. Here's the [data quality specification](https://github.com/frictionlessdata/data-quality-spec/blob/master/spec.json) that defines all the available error codes from GoodTables.
+GoodTables validator comes with its own set of error codes.  See the [validation](https://github.com/frictionlessdata/goodtables-py#validation) it performs where each check is an error code. Here's the [data quality specification](https://github.com/frictionlessdata/data-quality-spec/blob/master/spec.json) that defines all the available error codes from GoodTables.
 
 ###### Rowwise Validator
 
-This includes both JSON Logic Validator and SQL Validator.  This type of validators requires the app's owner to define their own set of error codes for each rule.  Check with app's owner to obtain a list of error codes.  For more details on how to create your own rules definition file, see [documentation on customizing a rowwise validator](customize.md#with-a-rowwise-validator).
+This includes both JSON Logic Validator and SQL Validator.  This type of validators requires the app's owner to define an error code for each rule definition.  Check with app's owner to obtain a list of error codes.  For more details on how to create your own rules definition file, see [documentation on customizing a rowwise validator](customize.md#with-a-rowwise-validator).
 
 
 #### Code: 400 - Bad Request
