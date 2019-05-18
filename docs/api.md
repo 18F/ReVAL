@@ -79,7 +79,7 @@ The response will be a JSON object with the following items:
 
   - **error** - a JSON object that indicates the details of an error
     - **severity** - severity of this error, right now `Error` or `Warning`
-    - **code** - error code.  See [Error Codes] for details
+    - **code** - error code.  See [Error Codes](#error-codes) for details
     - **message** - error message that describe what the error is
     - **error_columns** - a list of all the field names that are associated with this error
 
