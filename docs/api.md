@@ -79,7 +79,7 @@ The response will be a JSON object with the following items:
 
   - **error** - a JSON object that indicates the details of an error
     - **severity** - severity of this error, right now `Error` or `Warning`
-    - **code** - error code
+    - **code** - error code.  See [Error Codes](#error-codes) for details
     - **message** - error message that describe what the error is
     - **error_columns** - a list of all the field names that are associated with this error
 
@@ -159,6 +159,19 @@ The response will be a JSON object with the following items:
     "valid": false
 }
 ```
+
+##### Error Codes
+
+Each validator will provide a different set of error codes.  Some of the codes will be provided by the validator based on the available checks it performs.  Some validators will require app's owner to define their own set of error codes.  In this case, the app's owner will provide the error code specification.
+
+###### GoodTables Validator
+
+GoodTables validator comes with its own set of error codes.  See the [validation](https://github.com/frictionlessdata/goodtables-py#validation) it performs where each check is an error code. Here's the [data quality specification](https://github.com/frictionlessdata/data-quality-spec/blob/master/spec.json) that defines all the available error codes from GoodTables.
+
+###### Rowwise Validator
+
+This includes both JSON Logic Validator and SQL Validator.  This type of validators requires the app's owner to define an error code for each rule definition.  Check with app's owner to obtain a list of error codes.  For more details on how to create your own rules, see [documentation on customizing a rowwise validator](customize.md#with-a-rowwise-validator).
+
 
 #### Code: 400 - Bad Request
 
