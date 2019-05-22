@@ -89,4 +89,4 @@ some CSVs (like the provided [example](b01.csv)).
 
 ## To run on Cloud.gov
 
-Please following [cloud.gov deployment instruction](../cloud.gov.md)
+Please follow the [cloud.gov deployment instruction](../cloud.gov.md)

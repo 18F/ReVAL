@@ -6,13 +6,23 @@ An example is available at [examples/defaults](../examples/defaults.md)
 
 ## Creating the minimal project
 
-Install `data ingest`
+Create a folder for your Django project name (replace `myproject` with the project name) and go into the folder:
+```bash
+mkdir myproject
+cd myproject
+```
 
-    pipenv install -e git+https://github.com/18F/django-data-ingest.git@master#egg=django-data-ingest
+Install `django-data-ingest`:
+- Replace `<version>` with the latest tag i.e. `v0.2` or
+- Replace with `master` if you would like to work with the latest development version
+```bash
+    pipenv install -e git+https://github.com/18F/django-data-ingest.git@<version>#egg=django-data-ingest
+```
 
-Begin your Django project as usual.  Replace `<myproject>` with the name of your project.
-
-    django-admin.py startproject myproject
+Begin your Django project as usual.  Replace `myproject` with the name of your project.  This will create your Django project in the current directory
+```bash
+    django-admin.py startproject myproject .
+```
 
 In `myproject/settings.py`, add `rest_framework` and `data_ingest` to `INSTALLED_APPS`.
 
@@ -28,7 +38,7 @@ INSTALLED_APPS = [
     'data_ingest',
 ]
 ```
-Also in `<myproject>/settings.py`, change the `DATABASE` settings to a PostgreSQL database.  Replace `myprojectdb` with the name of your database.
+Also in `myproject/settings.py`, change the `DATABASE` settings to a PostgreSQL database.  Replace `myprojectdb` with the name of your database.
 
 ```python
 DATABASES = {
@@ -75,7 +85,8 @@ CSV files.
 
 ## To run on Cloud.gov
 
-Please following [cloud.gov deployment instruction](cloud.gov.md)
+Please follow the [cloud.gov deployment instruction](cloud.gov.md)
+
 
 ## Default behavior
 
