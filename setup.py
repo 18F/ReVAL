@@ -16,9 +16,9 @@ setup(
     license='CC0-1.0',
     description='Django app to upload, validate, review, and accept data files',
     long_description=README,
-    url='https://github.com/18F/data-federation-ingest',
+    url='https://github.com/18F/django-data-ingest',
     author='18F',
-    author_email='catherine.devlin@gsa.gov',
+    author_email='data-federation@gsa.gov',
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',

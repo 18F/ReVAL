@@ -39,19 +39,23 @@ each user may submit multiple files.
 
 ---
 
-## Installation
+## Quick Installation
 
-Install using `pipenv`...
+If you would like to use `django-data-ingest` in your Django project, install using `pipenv` in your project...
+
+- Replace `<version>` with the latest tag i.e. `v0.2` or
+- Replace with `master` if you would like to work with the latest development version
 
 ```bash
-pipenv install django-data-ingest
+pipenv install -e git+https://github.com/18F/django-data-ingest.git@<version>#egg=django-data-ingest
 ```
 
-Add `'data_ingest'` to your `INSTALLED_APPS` setting.
+Add `'rest_framework'`, and `'data_ingest'` to your `INSTALLED_APPS` setting.
 
 ```python
 INSTALLED_APPS = (
     ...
+    'rest_framework',
     'data_ingest',
 )
 ```
@@ -75,6 +79,11 @@ Follow the [development](#development) instructions to close this repository and
 To perform data validation with API, see [API documentation](docs/api.md).
 
 ---
+
+## Deployment on Cloud.gov
+
+All of the examples provided will show you how to run them locally.  If you are interested in using [cloud.gov](https://cloud.gov) as your platform, here's a [basic installation guide on cloud.gov deployment](docs/cloud.gov.md).
+
 
 ## Contributing
 

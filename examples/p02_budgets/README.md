@@ -15,7 +15,7 @@ Demonstrates `data_ingest` with some basic [customizations](../../docs/customize
 
 ## Configuring the project
 
-Mostly, the project was created like the [default one](default.md), with these
+Mostly, the project was created like the [default one](../defaults/README.md), with these
 exceptions:
 
 - Created a `budget_data_ingest` project:
@@ -40,44 +40,53 @@ exceptions:
 
 - Additions/edits to `p02_budget/settings.py`:
 
-    INSTALLED_APPS = [
-        'django.contrib.admin',
-        ...
-        'budget_data_ingest',
-        'data_ingest',
-    ]
+```python
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    ...
+    'budget_data_ingest',
+    'data_ingest',
+]
 
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'budget_ingestor',
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'budget_ingestor',
     }
+}
 
-    DATA_INGEST = {
-        'MODEL': 'budget_data_ingest.models.Upload',
-        'FORM': 'budget_data_ingest.forms.UploadForm',
-        'DESTINATION': 'budget_data_ingest.models.BudgetItem',
-        'VALIDATORS': {
-            'table_schema.json': 'data_ingest.ingestors.GoodtablesValidator',
-            'json_logic.json': 'data_ingest.ingestors.JsonlogicValidator',
-            'sql_rules.json': 'data_ingest.ingestors.SqlValidator',
-        },       
-    }
-
+DATA_INGEST = {
+    'MODEL': 'budget_data_ingest.models.Upload',
+    'FORM': 'budget_data_ingest.forms.UploadForm',
+    'DESTINATION': 'budget_data_ingest.models.BudgetItem',
+    'VALIDATORS': {
+        'table_schema.json': 'data_ingest.ingestors.GoodtablesValidator',
+        'json_logic.json': 'data_ingest.ingestors.JsonlogicValidator',
+        'sql_rules.json': 'data_ingest.ingestors.SqlValidator',
+    },
+}
+```
 ## To run locally
 
 Create a PostgreSQL database named `budget_ingestor`, run the inital migrations, and
 create a user account.
 
-    createdb budget_ingestor
-    python manage.py migrate
-    python manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_user(
-        'chris', 'chris@gsa.gov', 'publicservice')"
+```bash
+createdb budget_ingestor
+python manage.py migrate
+python manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_user(
+    'chris', 'chris@gsa.gov', 'publicservice')"
+```
 
 Run the server.
 
-    python manage.py runserver
+```bash
+python manage.py runserver
+```
 
 Visit http://localhost:8000/data_ingest/, login as `chris/publicservice`, and try uploading
 some CSVs (like the provided [example](b01.csv)).
+
+## To run on Cloud.gov
+
+Please following [cloud.gov deployment instruction](../cloud.gov.md)
