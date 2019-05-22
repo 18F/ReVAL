@@ -22,3 +22,7 @@ Run the server.
 
 Visit http://localhost:8000/data_ingest/, login as `chris/publicservice`, and try uploading
 some CSVs (like the provided [example](staff.csv)).
+
+## To run on Cloud.gov
+
+Please follow the [cloud.gov deployment instruction](../cloud.gov.md).
