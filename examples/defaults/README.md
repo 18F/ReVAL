@@ -25,4 +25,4 @@ some CSVs (like the provided [example](staff.csv)).
 
 ## To run on Cloud.gov
 
-Please follow the [cloud.gov deployment instruction](../cloud.gov.md)
+Please follow the [cloud.gov deployment instruction](../cloud.gov.md).

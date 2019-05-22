@@ -85,7 +85,7 @@ CSV files.
 
 ## To run on Cloud.gov
 
-Please follow the [cloud.gov deployment instruction](cloud.gov.md)
+Please follow the [cloud.gov deployment instruction](cloud.gov.md).
 
 
 ## Default behavior

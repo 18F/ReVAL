@@ -54,4 +54,4 @@ some CSVs (like the provided [example](budget.csv)).
 
 ## To run on Cloud.gov
 
-Please follow the [cloud.gov deployment instruction](../cloud.gov.md)
+Please follow the [cloud.gov deployment instruction](../cloud.gov.md).
