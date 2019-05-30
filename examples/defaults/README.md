@@ -11,6 +11,8 @@ Created according to the [default setup instructions](../../docs/default.md)
 Create a PostgreSQL database named `default_ingestor`,
 run the initial migrations, and create a user account.
 
+This database is used for logging in and uploading files.  This is **not** used as the database for validation with SQL.  `SQLValidator` is currently using an in-memory SQLite database for validation.
+
     createdb default_ingestor
     python manage.py migrate
     python manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_user(

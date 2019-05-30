@@ -59,6 +59,9 @@ INSTALLED_APPS = (
     'data_ingest',
 )
 ```
+
+Please see [default installation](./examples/defaults/) for more setup instructions.
+
 ---
 
 ## Examples
