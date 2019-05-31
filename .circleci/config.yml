@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:3.6.5
+      - image: circleci/python:3.6.8
         environment:
           TZ: America/New_York
           PIPENV_VENV_IN_PROJECT: "TRUE"
