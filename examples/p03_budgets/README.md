@@ -11,7 +11,7 @@ Demonstrates `data_ingest` with some more advanced [customizations](../../docs/c
 
 ## Configuring the project
 
-Mostly, the project was created like the [default one](default.md), with these
+Mostly, the project was created like the [default one](../defaults/README.md), with these
 additions/exceptions:
 
 - Subclass `Ingestor` in [`budget_data_ingest/ingestors.py`](budget_data_ingest/ingestors.py)
@@ -19,6 +19,7 @@ additions/exceptions:
   
 - Additions to `p03_budget/settings.py`:
 
+```python
 DATA_INGEST = {
     'INGESTOR': 'budget_data_ingest.ingestors.Ingestor',
     'DESTINATION_FORMAT': 'tsv',
@@ -28,20 +29,29 @@ DATA_INGEST = {
     },
     'OLD_HEADER_ROW': 1,
 }
+```
 
 ## To run locally
 
 Create a PostgreSQL database named `budget_ingestor`, run the inital migrations, and
 create a user account.
 
+```bash
     createdb p03_budget_ingestor
     python manage.py migrate
     python manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_user(
         'chris', 'chris@gsa.gov', 'publicservice')"
+```
 
 Run the server.
 
+```bash
     python manage.py runserver
+```
 
 Visit http://localhost:8000/data_ingest/, login as `chris/publicservice`, and try uploading
 some CSVs (like the provided [example](budget.csv)).
+
+## To run on Cloud.gov
+
+Please follow the [cloud.gov deployment instruction](../cloud.gov.md).

@@ -17,6 +17,6 @@ jsonschema = "*"
 [dev-packages]
 flake8 = "*"
 coverage = "*"
-bandit = "*"
+bandit = "==1.5.1"
 codecov = "*"
 django-data-ingest = {editable = true,path = "."}

@@ -12,7 +12,11 @@ each user may submit multiple files.
 ## Features
 
 - Flexible input format
-- Validation with [goodtables](), [JSON Schema](), [SQL](), or a custom validation class
+- Validation with:
+  - [goodtables](https://github.com/frictionlessdata/goodtables-py)
+  - [JSON Logic](https://github.com/QubitProducts/json-logic-py)
+  - [SQL](https://sqlite.org/lang_keywords.html)
+  - a custom validation class
 - Row-by-row feedback on validation results
 - Manage and track status of data submissions
 - Re-submit previous submissions
@@ -35,18 +39,28 @@ each user may submit multiple files.
 
 ---
 
-## Installation
+## Quick Installation
 
-Install using `pipenv`...
+If you would like to use `django-data-ingest` in your Django project, install using `pipenv` in your project...
 
-    pipenv install django-data-ingest
+- Replace `<version>` with the latest tag i.e. `v0.2` or
+- Replace with `master` if you would like to work with the latest development version
 
-Add `'data_ingest'` to your `INSTALLED_APPS` setting.
+```bash
+pipenv install -e git+https://github.com/18F/django-data-ingest.git@<version>#egg=django-data-ingest
+```
 
-    INSTALLED_APPS = (
-        ...
-        'data_ingest',
-    )
+Add `'rest_framework'`, and `'data_ingest'` to your `INSTALLED_APPS` setting.
+
+```python
+INSTALLED_APPS = (
+    ...
+    'rest_framework',
+    'data_ingest',
+)
+```
+
+Please see [default installation](./examples/defaults/) for more setup instructions.
 
 ---
 
@@ -63,6 +77,17 @@ Follow the [development](#development) instructions to close this repository and
 
 ---
 
+## API
+
+To perform data validation with API, see [API documentation](docs/api.md).
+
+---
+
+## Deployment on Cloud.gov
+
+All of the examples provided will show you how to run them locally.  If you are interested in using [cloud.gov](https://cloud.gov) as your platform, here's a [basic installation guide on cloud.gov deployment](docs/cloud.gov.md).
+
+
 ## Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md) for additional information.
@@ -73,17 +98,22 @@ See [CONTRIBUTING](CONTRIBUTING.md) for additional information.
 
 To start developing on Django Data Ingest, clone the repository:
 
-    git clone git@github.com:18f/django-data-ingest.git
+```bash
+git clone git@github.com:18f/django-data-ingest.git
+```
 
 Install development dependencies:
 
-    pipenv install --dev
+```bash
+pipenv install --dev
+```
 
 ### Test Suite
 
 To execute the test suite, install the development dependencies and run:
-
-    python runtests.py
+```bash
+python runtests.py
+```
 
 ---
 
