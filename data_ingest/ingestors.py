@@ -369,7 +369,7 @@ class GoodtablesValidator(Validator):
         elif content_type == 'text/csv':
             data = utils.reorder_csv(source)
         else:
-            UnsupportedException("Content type is not supported by GoodtablesValidator")
+            UnsupportedException("Content type is not supported by " + self.__name__)
 
 
         try:
@@ -751,144 +751,10 @@ class JsonschemaValidator(Validator):
 
             for error in errors:
                 if error.path:
-                    output.add_row_error(error.path[0], "Error", error.validator, error.message, list(error.path)[1:])
+                    output.add_row_error(error.path[0] + 1, "Error", error.validator, error.message, list(error.path)[1:])
                 else:
-                    output.add_row_error(0, "Error", error.validator, error.message, [])
-                # print("^^^^^^^^^^^^^^^^error loop")
-                # for error in errors:
-                print("***********one error at a time")
-                #print(error)
-                e = error
-                print("message")
-                print(e.message)
-                print("validator")
-                print(e.validator)
-                print("validator_value")
-                print(e.validator_value)
-                print("schema")
-                print(e.schema)
-                print("relative_schema_path")
-                print(e.relative_schema_path)
-                print("absolute_schema_path")
-                print(e.absolute_schema_path)
-                print("schema_path")
-                print(e.schema_path)
-                print("relative_path")
-                print(e.relative_path)
-                print("absolute_path")
-                print(e.absolute_path)
-                print("path")
-                print(e.path)
-                print("instance")
-                print(e.instance)
-                print("context")
-                print(e.context)
-                print("cause")
-                print(e.cause)
-                print("parent")
-                print(e.parent)
+                    output.add_row_error(1, "Error", error.validator, error.message, [])
 
-
-            errors = json_validator.iter_errors(source)
-            print("^^^^^^^^^^^^^^^^^^^error with context")
-            for error in errors:
-                for suberror in sorted(error.context, key=lambda e: e.schema_path):
-                    print(list(suberror.schema_path), suberror.message, sep=", ")
-
-
-            tree = jsonschema.exceptions.ErrorTree(json_validator.iter_errors(source))
-            print("^^^^^^^^^^^^^^^^^^^error tree")
-            print(tree)
-            # val.validate(source)
-            # print(sorted(val.iter_errors(source), key=lambda e: e.path))
-            # v = Draft7Validator(self.validator)
-            # errors = sorted(v.iter_errors(source), key=lambda e: e.path)
-            # print("errors")
-            # print(errors)
-            # for error in errors:
-            #     print("one error at a time")
-            #     print(error)
-            #     e = error
-            #     print("message")
-            #     print(e.message)
-            #     print("validator")
-            #     print(e.validator)
-            #     print("validator_value")
-            #     print(e.validator_value)
-            #     print("schema")
-            #     print(e.schema)
-            #     print("relative_schema_path")
-            #     print(e.relative_schema_path)
-            #     print("absolute_schema_path")
-            #     print(e.absolute_schema_path)
-            #     print("schema_path")
-            #     print(e.schema_path)
-            #     print("relative_path")
-            #     print(e.relative_path)
-            #     print("absolute_path")
-            #     print(e.absolute_path)
-            #     print("path")
-            #     print(e.path)
-            #     print("instance")
-            #     print(e.instance)
-            #     print("context")
-            #     print(e.context)
-            #     print("cause")
-            #     print(e.cause)
-            #     print("parent")
-            #     print(e.parent)
-            #     for suberror in sorted(error.context, key=lambda e: e.schema_path):
-            #         print(list(suberror.schema_path), suberror.message, sep=", ")
-
-        except jsonschema.exceptions.SchemaError as e:
-            pass
-
-        except jsonschema.exceptions.ValidationError as e:
-            result = {
-                "message": e.message,
-                "validator": e.validator,
-                "validator_value": e.validator_value,
-                "schema": e.schema,
-                # "relative_schema_path": e.relative_schema_path,
-                # "absolute_schema_path": e.absolute_schema_path,
-                # "schema_path": e.schema_path,
-                # "relative_path": e.relative_path,
-                # "absolute_path": e.absolute_path,
-                # "path": e.path,
-                "instance": e.instance,
-                "context": e.context,
-                "cause": e.cause,
-                "parent": e.parent
-            }
-            print(result)
-            print("message")
-            print(e.message)
-            print("validator")
-            print(e.validator)
-            print("validator_value")
-            print(e.validator_value)
-            print("schema")
-            print(e.schema)
-            print("relative_schema_path")
-            print(e.relative_schema_path)
-            print("absolute_schema_path")
-            print(e.absolute_schema_path)
-            print("schema_path")
-            print(e.schema_path)
-            print("relative_path")
-            print(e.relative_path)
-            print("absolute_path")
-            print(e.absolute_path)
-            print("path")
-            print(e.path)
-            print("instance")
-            print(e.instance)
-            print("context")
-            print(e.context)
-            print("cause")
-            print(e.cause)
-            print("parent")
-            print(e.parent)
         return output.get_output()
 
 
