@@ -1,8 +1,5 @@
-import csv
-import io
 import logging
 
-from collections import OrderedDict
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import decorators, response, viewsets
 from rest_framework.parsers import JSONParser
@@ -10,7 +7,6 @@ from rest_framework.parsers import JSONParser
 from . import ingest_settings, ingestors
 from .parsers import CsvParser
 from .serializers import UploadSerializer
-from .utils import get_ordered_headers
 
 
 logger = logging.getLogger(__name__)
@@ -44,19 +40,6 @@ def validate(request):
     Received JSON objects are converted to tabular format wherein all
     observed keys are considered headers/columns.
     """
-    # if request.content_type == 'application/json':
-    #     print("*******************request.data******************")
-    #     print(request.data)
-    #     data = to_tabular(request.data)
-    #     print("********************data*********************")
-    #     print(data)
-    # elif request.content_type == 'text/csv':
-    #     # data = request.data
-    #     data = reorder_csv(request.data)
-    # else:
-    #     data = request.data
     result = ingestors.apply_validators_to(request.data, request.content_type)
 
     return response.Response(result)
-
-

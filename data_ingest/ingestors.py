@@ -156,7 +156,7 @@ class ValidatorOutput:
           - data - a dictionary of key (field name) / value (data for that field) pairs
         """
         result = []
-        # There may be time that 
+        # @TODO: Need to revisit this to see if we need to do it this way
         rows = self.rows_in_dict.items() if isinstance(self.rows_in_dict, dict) else enumerate(self.rows_in_dict)
         for (row_number, row_data) in rows:
             result.append({
@@ -164,7 +164,6 @@ class ValidatorOutput:
                 "errors": self.row_errors.get(row_number, []),
                 "data": row_data
             })
-
 
         return result
 
@@ -370,7 +369,6 @@ class GoodtablesValidator(Validator):
             data = utils.reorder_csv(source)
         else:
             UnsupportedException("Content type is not supported by " + self.__name__)
-
 
         try:
             data['source'].decode()
@@ -742,9 +740,9 @@ class JsonschemaValidator(Validator):
         # Check the schema to make sure there's no error
         json_validator.check_schema(self.validator)
 
-        if type(source) is list: # validating an array of objects
+        if type(source) is list:  # validating an array of objects
             output = ValidatorOutput(source)
-        else: # validating only one object
+        else:  # validating only one object
             output = ValidatorOutput([source])
 
         errors = json_validator.iter_errors(source)

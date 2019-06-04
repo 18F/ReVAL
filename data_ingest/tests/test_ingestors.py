@@ -1,9 +1,14 @@
 from collections import OrderedDict
-from data_ingest.ingestors import RowwiseValidator, ValidatorOutput
 from django.test import SimpleTestCase
+
+# This ingest_settings file is imported because there was a weird order that this needs to be imported before
+# ingestor so that it will not run into a data_ingest.ingestors.Ingestor not found when importing Ingestor
+import data_ingest.ingest_settings
+from data_ingest.ingestors import RowwiseValidator, ValidatorOutput
 
 
 class TestRowwiseValidator(SimpleTestCase):
+
     def test_cast_values(self):
         self.assertEqual(RowwiseValidator.cast_values(
             ("1", "3.4", "Test", "Number 1", "123 ", 1, 2.05, "NaN", "2e3", "-12.0", "-4", "-12.45", "1,230,000")),
@@ -45,42 +50,41 @@ class TestRowwiseValidator(SimpleTestCase):
 
 
 class TestValidationOutput(SimpleTestCase):
+
     def test_add_row_error(self):
-        output = ValidatorOutput(
-                                 [(1, {"column1": "abc", "column2": "efg", "column3": "hij"}),
+        output = ValidatorOutput([(1, {"column1": "abc", "column2": "efg", "column3": "hij"}),
                                   (2, {"column1": "xyz", "column2": "klm", "column3": "nop"})],
-                                  headers=["column1", "column2", "column3"])
+                                 headers=["column1", "column2", "column3"])
 
         output.add_row_error(1, "Error", "E12", "Incorrect data", ["column1", "column3"])
         self.assertEqual(len(output.row_errors.items()), 1)
         self.assertEqual(len(output.row_errors[1]), 1)
         self.assertDictEqual(output.row_errors[1][0], {"severity": "Error", "code": "E12",
                                                        "message": "Incorrect data",
-                                                       "error_columns": ["column1", "column3"]})
+                                                       "fields": ["column1", "column3"]})
 
         output.add_row_error(1, "Warning", "W20", "Incorrect type", ["column2"])
         self.assertEqual(len(output.row_errors.items()), 1)
         self.assertEqual(len(output.row_errors[1]), 2)
         self.assertDictEqual(output.row_errors[1][1], {"severity": "Warning", "code": "W20",
-                                                       "message": "Incorrect type", "error_columns": ["column2"]})
+                                                       "message": "Incorrect type", "fields": ["column2"]})
 
         output.add_row_error(2, "Info", "I30", "Information", [])
         self.assertEqual(len(output.row_errors.items()), 2)
         self.assertEqual(len(output.row_errors[2]), 1)
         self.assertDictEqual(output.row_errors[2][0],
-                             {"severity": "Info", "code": "I30", "message": "Information", "error_columns": []})
+                             {"severity": "Info", "code": "I30", "message": "Information", "fields": []})
 
     def test_create_rows(self):
-        output = ValidatorOutput(
-                                 OrderedDict([(1, {"column1": "abc", "column2": "efg", "column3": "hij"}),
+        output = ValidatorOutput(OrderedDict([(1, {"column1": "abc", "column2": "efg", "column3": "hij"}),
                                               (2, {"column1": "xyz", "column2": "klm", "column3": "nop"})]),
                                  headers=["column1", "column2", "column3"])
 
         output.row_errors = {
             1: [{'severity': 'Error', 'code': 'E12', 'message': 'Incorrect data',
-                 'error_columns': ['column1', 'column3']},
-                {'severity': 'Warning', 'code': 'W20', 'message': 'Incorrect type', 'error_columns': ['column2']}],
-            2: [{'severity': 'Info', 'code': 'I30', 'message': 'Information', 'error_columns': []}]
+                 'fields': ['column1', 'column3']},
+                {'severity': 'Warning', 'code': 'W20', 'message': 'Incorrect type', 'fields': ['column2']}],
+            2: [{'severity': 'Info', 'code': 'I30', 'message': 'Information', 'fields': []}]
         }
 
         rows = output.create_rows()
@@ -89,29 +93,28 @@ class TestValidationOutput(SimpleTestCase):
         self.assertEqual(rows[0]["row_number"], 1)
         self.assertEqual(len(rows[0]["errors"]), 2)
         self.assertDictEqual(rows[0]["errors"][0], {'severity': 'Error', 'code': 'E12', 'message': 'Incorrect data',
-                                                    'error_columns': ['column1', 'column3']})
+                                                    'fields': ['column1', 'column3']})
         self.assertDictEqual(rows[0]["errors"][1], {'severity': 'Warning', 'code': 'W20', 'message': 'Incorrect type',
-                                                    'error_columns': ['column2']})
+                                                    'fields': ['column2']})
         self.assertDictEqual(rows[0]["data"], {"column1": "abc", "column2": "efg", "column3": "hij"})
 
         self.assertEqual(len(rows[1]), 3)
         self.assertEqual(rows[1]["row_number"], 2)
         self.assertEqual(len(rows[1]["errors"]), 1)
         self.assertDictEqual(rows[1]["errors"][0], {'severity': 'Info', 'code': 'I30', 'message': 'Information',
-                                                    'error_columns': []})
+                                                    'fields': []})
         self.assertDictEqual(rows[1]["data"], {"column1": "xyz", "column2": "klm", "column3": "nop"})
 
     def test_get_output(self):
-        output = ValidatorOutput(
-                                 OrderedDict([(1, {"column1": "abc", "column2": "efg", "column3": "hij"}),
+        output = ValidatorOutput(OrderedDict([(1, {"column1": "abc", "column2": "efg", "column3": "hij"}),
                                               (2, {"column1": "xyz", "column2": "klm", "column3": "nop"})]),
                                  headers=["column1", "column2", "column3"],)
 
         output.row_errors = {
             1: [{'severity': 'Error', 'code': 'E12', 'message': 'Incorrect data',
-                 'error_columns': ['column1', 'column3']},
-                {'severity': 'Warning', 'code': 'W20', 'message': 'Incorrect type', 'error_columns': ['column2']}],
-            2: [{'severity': 'Info', 'code': 'I30', 'message': 'Information', 'error_columns': []}]
+                 'fields': ['column1', 'column3']},
+                {'severity': 'Warning', 'code': 'W20', 'message': 'Incorrect type', 'fields': ['column2']}],
+            2: [{'severity': 'Info', 'code': 'I30', 'message': 'Information', 'fields': []}]
         }
 
         result = output.get_output()
@@ -127,7 +130,7 @@ class TestValidationOutput(SimpleTestCase):
         self.assertEqual(result["valid"], False)
 
     def test_combine(self):
-        self.assertEqual(ValidatorOutput.combine({}, {}), {})
+        self.assertEqual(data_ingest.ingestors.ValidatorOutput.combine({}, {}), {})
 
         output1 = {
             "valid": False,
@@ -147,13 +150,13 @@ class TestValidationOutput(SimpleTestCase):
                                     "severity": "Error",
                                     "code": "4E",
                                     "message": "Incorrect type",
-                                    "error_columns": ["b"]
+                                    "fields": ["b"]
                                 },
                                 {
                                     "severity": "Error",
                                     "code": "9E",
                                     "message": "Incorrect range",
-                                    "error_columns": ["c"]
+                                    "fields": ["c"]
                                 }
                             ],
                             "data": {"a": 4, "b": 5, "c": 6}
@@ -164,7 +167,7 @@ class TestValidationOutput(SimpleTestCase):
                             "severity": "Error",
                             "code": "12",
                             "message": "Incorrect form",
-                            "error_columns": ["a"]
+                            "fields": ["a"]
                         }
                     ],
                     "valid_row_count": 1,
@@ -186,7 +189,7 @@ class TestValidationOutput(SimpleTestCase):
                                     "severity": "Error",
                                     "code": "14E",
                                     "message": "a is smaller than b",
-                                    "error_columns": ["a", "b"]
+                                    "fields": ["a", "b"]
                                 }
                             ],
                             "data": {"a": 1, "b": 2, "c": 3}
@@ -198,13 +201,13 @@ class TestValidationOutput(SimpleTestCase):
                                     "severity": "Error",
                                     "code": "70E",
                                     "message": "c cannot be 6",
-                                    "error_columns": ["c"]
+                                    "fields": ["c"]
                                 },
                                 {
                                     "severity": "Warning",
                                     "code": "20W",
                                     "message": "Incorrect range",
-                                    "error_columns": ["c"]
+                                    "fields": ["c"]
                                 }
                             ],
                             "data": {"a": 4, "b": 5, "c": 6}
@@ -215,7 +218,7 @@ class TestValidationOutput(SimpleTestCase):
                             "severity": "Error",
                             "code": "40",
                             "message": "structure issue",
-                            "error_columns": ["a", "b"]
+                            "fields": ["a", "b"]
                         }
                     ],
                     "valid_row_count": 0,
@@ -229,8 +232,8 @@ class TestValidationOutput(SimpleTestCase):
                 {
                     'headers': ['a', 'b', 'c'],
                     'whole_table_errors': [
-                        {'severity': 'Error', 'code': '12', 'message': 'Incorrect form', 'error_columns': ['a']},
-                        {'severity': 'Error', 'code': '40', 'message': 'structure issue', 'error_columns': ['a', 'b']}
+                        {'severity': 'Error', 'code': '12', 'message': 'Incorrect form', 'fields': ['a']},
+                        {'severity': 'Error', 'code': '40', 'message': 'structure issue', 'fields': ['a', 'b']}
                     ],
                     'rows': [
                         {
@@ -240,7 +243,7 @@ class TestValidationOutput(SimpleTestCase):
                                     'severity': 'Error',
                                     'code': '14E',
                                     'message': 'a is smaller than b',
-                                    'error_columns': ['a', 'b']
+                                    'fields': ['a', 'b']
                                 }
                             ],
                             'data': {'a': 1, 'b': 2, 'c': 3}
@@ -252,25 +255,25 @@ class TestValidationOutput(SimpleTestCase):
                                     'severity': 'Error',
                                     'code': '4E',
                                     'message': 'Incorrect type',
-                                    'error_columns': ['b']
+                                    'fields': ['b']
                                 },
                                 {
                                     'severity': 'Error',
                                     'code': '9E',
                                     'message': 'Incorrect range',
-                                    'error_columns': ['c']
+                                    'fields': ['c']
                                 },
                                 {
                                     'severity': 'Error',
                                     'code': '70E',
                                     'message': 'c cannot be 6',
-                                    'error_columns': ['c']
+                                    'fields': ['c']
                                 },
                                 {
                                     'severity': 'Warning',
                                     'code': '20W',
                                     'message': 'Incorrect range',
-                                    'error_columns': ['c']
+                                    'fields': ['c']
                                 }
                             ],
                             'data': {'a': 4, 'b': 5, 'c': 6}

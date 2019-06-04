@@ -2,11 +2,12 @@ from django.test import SimpleTestCase
 from unittest.mock import patch
 
 from data_ingest.utils import (
-  get_schema_headers, 
+  get_schema_headers,
   get_ordered_headers,
   reorder_csv,
   to_tabular
 )
+
 
 class TestUtils(SimpleTestCase):
 
@@ -52,6 +53,7 @@ class TestUtils(SimpleTestCase):
         self.assertEqual(["e", "f"], get_ordered_headers(["e", "f"]))
         self.assertEqual([], get_ordered_headers([]))
         self.assertEqual(["a", "b", "c"], get_ordered_headers(["a", "b", "c"]))
+
 
 class TestJSONtoTable(SimpleTestCase):
 
@@ -101,4 +103,3 @@ class TestReorderCSV(SimpleTestCase):
                    {'STREAM_ARGS': {'headers': ['c', 'a', 'b']}}):
             data = {'source': b'$q,$r,$e\n1,2,3\n4,5,6\n'}
             self.assertEqual({'source': b'c,a,b\n1,2,3\n4,5,6\n'}, reorder_csv(data))
-
