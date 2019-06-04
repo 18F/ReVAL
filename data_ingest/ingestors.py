@@ -22,7 +22,7 @@ from django.utils.module_loading import import_string
 
 from .ingest_settings import UPLOAD_SETTINGS
 # from .utils import get_ordered_headers, to
-import data_ingest.utils as utils
+from . import utils
 
 logger = logging.getLogger(__name__)
 
@@ -735,25 +735,25 @@ class JsonschemaValidator(Validator):
     def validate(self, source, content_type):
         if content_type != "application/json":
             raise UnsupportedException("Content type is not supported by " + self.__name__)
-        try:
-            # Find the correct version of the validator to use for this schema
-            json_validator = jsonschema.validators.validator_for(self.validator)(self.validator)
 
-            # Check the schema to make sure there's no error
-            json_validator.check_schema(self.validator)
+        # Find the correct version of the validator to use for this schema
+        json_validator = jsonschema.validators.validator_for(self.validator)(self.validator)
 
-            if type(source) is list: # validating an array of objects
-                output = ValidatorOutput(source)
-            else: # validating only one object
-                output = ValidatorOutput([source])
+        # Check the schema to make sure there's no error
+        json_validator.check_schema(self.validator)
 
-            errors = json_validator.iter_errors(source)
+        if type(source) is list: # validating an array of objects
+            output = ValidatorOutput(source)
+        else: # validating only one object
+            output = ValidatorOutput([source])
 
-            for error in errors:
-                if error.path:
-                    output.add_row_error(error.path[0] + 1, "Error", error.validator, error.message, list(error.path)[1:])
-                else:
-                    output.add_row_error(1, "Error", error.validator, error.message, [])
+        errors = json_validator.iter_errors(source)
+
+        for error in errors:
+            if error.path:
+                output.add_row_error(error.path[0] + 1, "Error", error.validator, error.message, list(error.path)[1:])
+            else:
+                output.add_row_error(1, "Error", error.validator, error.message, [])
 
         return output.get_output()
 
