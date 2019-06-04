@@ -7,6 +7,7 @@ from .ingest_settings import UPLOAD_SETTINGS
 
 logger = logging.getLogger(__name__)
 
+
 def get_schema_headers():
     ordered_header = []
 
@@ -37,6 +38,7 @@ def get_ordered_headers(headers):
     # add back header that didn't exist in the schema but in headers
     o_headers.extend(working_headers)
     return o_headers
+
 
 def to_tabular(incoming):
     """Coerce incoming json to tabular structure for tabulator
