@@ -749,9 +749,9 @@ class JsonschemaValidator(Validator):
 
         for error in errors:
             if error.path:
-                output.add_row_error(error.path[0] + 1, "Error", error.validator, error.message, list(error.path)[1:])
+                output.add_row_error(error.path[0], "Error", error.validator, error.message, list(error.path)[1:])
             else:
-                output.add_row_error(1, "Error", error.validator, error.message, [])
+                output.add_row_error(0, "Error", error.validator, error.message, [])
 
         return output.get_output()
 

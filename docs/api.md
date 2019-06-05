@@ -72,7 +72,7 @@ The response will be a JSON object with the following items:
 
 
   - **row** -  a JSON object that indicates the errors each row has:
-    - **row_number** - a number to indicate the row
+    - **row_number** - a number to indicate the row (JSONSchemaValidator, counts from 0, otherwise counts from 2)
     - **errors** - a list of **error** JSON objects for this row
     - **data** - a dictionary of key (field name) / value (data for that field) pairs
 
@@ -172,6 +172,9 @@ GoodTables validator comes with its own set of error codes.  See the [validation
 
 This includes both JSON Logic Validator and SQL Validator.  This type of validators requires the app's owner to define an error code for each rule definition.  Check with app's owner to obtain a list of error codes.  For more details on how to create your own rules, see [documentation on customizing a rowwise validator](customize.md#with-a-rowwise-validator).
 
+###### JSON Schema Validator
+
+JSON Schema validator comes with its own set of error codes.  The error code is the "validator" being used to by Julian's JSONSchema.  The [validation keywords](https://json-schema.org/draft-07/json-schema-validation.html#rfc.section.6) will be used as the error code.
 
 #### Code: 400 - Bad Request
 
