@@ -799,8 +799,14 @@ class Ingestor:
         return stream
 
     def validate(self):
+        source = self.source()
+        content_type = None
+        if source['format'] == 'csv':
+            content_type = 'text/csv'
+        elif source['format'] == 'json':
+            content_type = 'application/json'
 
-        return apply_validators_to(self.source())
+        return apply_validators_to(self.source(), content_type)
 
     def meta_named(self, core_name):
 
