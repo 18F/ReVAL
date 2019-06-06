@@ -21,7 +21,6 @@ from django.core import exceptions, files
 from django.utils.module_loading import import_string
 
 from .ingest_settings import UPLOAD_SETTINGS
-# from .utils import get_ordered_headers, to
 from . import utils
 
 logger = logging.getLogger(__name__)
@@ -57,6 +56,14 @@ def apply_validators_to(source, content_type):
 ###########################################
 class UnsupportedException(Exception):
     pass
+
+
+class UnsupportedContentTypeException(Exception):
+    def __init__(self, content_type, validator_name):
+        super(UnsupportedContentTypeException, self).__init__('Content type {} is not supported by {}'
+                                                              .format(content_type, validator_name))
+        self.content_type = content_type
+        self.validator_name = validator_name
 
 
 ###########################################
@@ -156,7 +163,14 @@ class ValidatorOutput:
           - data - a dictionary of key (field name) / value (data for that field) pairs
         """
         result = []
-        # @TODO: Need to revisit this to see if we need to do it this way
+
+        # Right now if we are using JsonschemaValidator, the rows_in_dict is a raw source and it will always be a list
+        # of JSON object.  See validate method in JsonschemaValidator when instantiating the ValidatorOutput.  This is
+        # different than the expected rows_in_dict described in the ValidatorOutput.__init__ method, where each object
+        # of the list include a tuple of row_number and row_data.  So by doing the `enumerate`, it will mimic that
+        # behaviors.  It also means that when using JsonschemaValidator, the row number starts at 0.
+
+        # @TODO: Need to revisit this to see if this is the best way to do this
         rows = self.rows_in_dict.items() if isinstance(self.rows_in_dict, dict) else enumerate(self.rows_in_dict)
         for (row_number, row_data) in rows:
             result.append({
@@ -368,7 +382,7 @@ class GoodtablesValidator(Validator):
         elif content_type == 'text/csv':
             data = utils.reorder_csv(source)
         else:
-            UnsupportedException("Content type is not supported by " + self.__name__)
+            raise UnsupportedContentTypeException(content_type, type(self).__name__)
 
         try:
             data['source'].decode()
@@ -622,7 +636,7 @@ class RowwiseValidator(Validator):
         elif content_type == 'text/csv':
             data = utils.reorder_csv(source)
         else:
-            UnsupportedException("Content type is not supported by " + self.__name__)
+            raise UnsupportedContentTypeException(content_type, type(self).__name__)
 
         (headers, numbered_rows) = Validator.rows_from_source(data)
         output = ValidatorOutput(numbered_rows, headers=headers)
@@ -732,7 +746,7 @@ class JsonschemaValidator(Validator):
 
     def validate(self, source, content_type):
         if content_type != "application/json":
-            raise UnsupportedException("Content type is not supported by " + self.__name__)
+            raise UnsupportedContentTypeException(content_type, type(self).__name__)
 
         # Find the correct version of the validator to use for this schema
         json_validator = jsonschema.validators.validator_for(self.validator)(self.validator)
@@ -740,9 +754,9 @@ class JsonschemaValidator(Validator):
         # Check the schema to make sure there's no error
         json_validator.check_schema(self.validator)
 
-        if type(source) is list:  # validating an array of objects
+        if type(source) is list:  # validating an array (list) of objects
             output = ValidatorOutput(source)
-        else:  # validating only one object
+        else:  # validating only one object but making it a list of objects
             output = ValidatorOutput([source])
 
         errors = json_validator.iter_errors(source)
@@ -805,6 +819,8 @@ class Ingestor:
             content_type = 'text/csv'
         elif source['format'] == 'json':
             content_type = 'application/json'
+        else:
+            content_type = source['format']
 
         return apply_validators_to(self.source(), content_type)
 

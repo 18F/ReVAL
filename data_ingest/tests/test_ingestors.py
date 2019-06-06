@@ -1,10 +1,29 @@
 from collections import OrderedDict
 from django.test import SimpleTestCase
+from unittest.mock import patch
 
 # This ingest_settings file is imported because there was a weird order that this needs to be imported before
 # ingestor so that it will not run into a data_ingest.ingestors.Ingestor not found when importing Ingestor
 import data_ingest.ingest_settings
-from data_ingest.ingestors import RowwiseValidator, ValidatorOutput
+from data_ingest.ingestors import (
+    GoodtablesValidator,
+    JsonschemaValidator,
+    SqlValidator,
+    RowwiseValidator,
+    UnsupportedContentTypeException,
+    ValidatorOutput
+)
+
+
+class TestGoodtablesValidator(SimpleTestCase):
+
+    @patch("data_ingest.ingestors.GoodtablesValidator.__init__")
+    def test_validate_unsupported_content_type(self, mock_init):
+        mock_init.return_value = None
+        gtv = GoodtablesValidator("GoodtablesValidator", "filename")
+        with self.assertRaisesMessage(UnsupportedContentTypeException,
+                                      "Content type pdf is not supported by GoodtablesValidator"):
+            gtv.validate("fake_source", "pdf")
 
 
 class TestRowwiseValidator(SimpleTestCase):
@@ -47,6 +66,28 @@ class TestRowwiseValidator(SimpleTestCase):
         message = "{dollars_spent/dollars_budgeted:category}"
         exp_result = 'Unable to evaluate {dollars_spent/dollars_budgeted:category}'
         self.assertEqual(RowwiseValidator.replace_message(message, row_dict), exp_result)
+
+
+class TestSqlValidator(SimpleTestCase):
+
+    @patch("data_ingest.ingestors.SqlValidator.__init__")
+    def test_validate_unsupported_content_type(self, mock_init):
+        mock_init.return_value = None
+        stv = SqlValidator("SqlValidator", "filename")
+        with self.assertRaisesMessage(UnsupportedContentTypeException,
+                                      "Content type pdf is not supported by SqlValidator"):
+            stv.validate("fake_source", "pdf")
+
+
+class TestJsonschemaValidator(SimpleTestCase):
+
+    @patch("data_ingest.ingestors.JsonschemaValidator.__init__")
+    def test_validate_unsupported_content_type(self, mock_init):
+        mock_init.return_value = None
+        jtv = JsonschemaValidator("JsonschemaValidator", "filename")
+        with self.assertRaisesMessage(UnsupportedContentTypeException,
+                                      "Content type pdf is not supported by JsonschemaValidator"):
+            jtv.validate("fake_source", "pdf")
 
 
 class TestValidationOutput(SimpleTestCase):
