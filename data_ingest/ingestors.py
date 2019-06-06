@@ -58,7 +58,7 @@ class UnsupportedException(Exception):
     pass
 
 
-class UnsupportedContentTypeException(Exception):
+class UnsupportedContentTypeException(UnsupportedException):
     def __init__(self, content_type, validator_name):
         super(UnsupportedContentTypeException, self).__init__('Content type {} is not supported by {}'
                                                               .format(content_type, validator_name))
@@ -820,6 +820,9 @@ class Ingestor:
         elif source['format'] == 'json':
             content_type = 'application/json'
         else:
+            # @TODO: This will need to be revisited.
+            # Right now pulling the file extension instead of actual ContentType as seen in header.  This will be
+            # passed into each validator's validate method and causes an UnsupportedContentTypeException
             content_type = source['format']
 
         return apply_validators_to(self.source(), content_type)
