@@ -64,7 +64,7 @@ The response will be a JSON object with the following items:
 
 ##### Definitions
   - **table** - a JSON object with the following items:
-    - **headers** - a list of field names for the data
+    - **headers** - a list of field names for the data (for tabular data and flat JSON data)
     - **whole_table_errors** - a list of **error** JSON objects that are related to the entire table
     - **rows** - a list of **row** JSON objects
     - **valid_row_count** - an integer indicates the number of valid rows in the data
@@ -72,7 +72,7 @@ The response will be a JSON object with the following items:
 
 
   - **row** -  a JSON object that indicates the errors each row has:
-    - **row_number** - a number to indicate the row
+    - **row_number** - a number to indicate the row (JSONSchemaValidator counts from 0, otherwise counts from 2)
     - **errors** - a list of **error** JSON objects for this row
     - **data** - a dictionary of key (field name) / value (data for that field) pairs
 
@@ -81,7 +81,7 @@ The response will be a JSON object with the following items:
     - **severity** - severity of this error, right now `Error` or `Warning`
     - **code** - error code.  See [Error Codes](#error-codes) for details
     - **message** - error message that describe what the error is
-    - **error_columns** - a list of all the field names that are associated with this error
+    - **fields** - a list of all the field names that are associated with this error
 
 ##### Example Value
 
@@ -100,7 +100,7 @@ The response will be a JSON object with the following items:
                     "severity": "Error",
                     "code": "extra-header",
                     "message": "There is an extra header in column 4",
-                    "error_columns": []
+                    "fields": []
                 }
             ],
             "rows": [
@@ -111,7 +111,7 @@ The response will be a JSON object with the following items:
                             "severity": "Error",
                             "code": "blank-row",
                             "message": "Row 2 is completely blank",
-                            "error_columns": []
+                            "fields": []
                         }
                     ],
                     "data": {
@@ -138,7 +138,7 @@ The response will be a JSON object with the following items:
                             "severity": "Error",
                             "code": null,
                             "message": "spending should not exceed budget",
-                            "error_columns": [
+                            "fields": [
                                 "dollars_budgeted",
                                 "dollars_spent"
                             ]
@@ -172,6 +172,9 @@ GoodTables validator comes with its own set of error codes.  See the [validation
 
 This includes both JSON Logic Validator and SQL Validator.  This type of validators requires the app's owner to define an error code for each rule definition.  Check with app's owner to obtain a list of error codes.  For more details on how to create your own rules, see [documentation on customizing a rowwise validator](customize.md#with-a-rowwise-validator).
 
+###### JSON Schema Validator
+
+JSON Schema validator comes with its own set of error codes.  The error code is the "validator" being used by the recommended [Python JSONSchema Validation](https://github.com/Julian/jsonschema).  The [validation keywords](https://json-schema.org/draft-07/json-schema-validation.html#rfc.section.6) will be used as the error code.
 
 #### Code: 400 - Bad Request
 

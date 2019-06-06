@@ -26,7 +26,7 @@ important, `DATA_INGEST['VALIDATORS']` can be an
 
 [Table Schema](https://frictionlessdata.io/specs/table-schema/)
 supports a variety of validations.  Any valid TableSchema
-can be applied to uploads by including it in `DATA_INGEST['VALIDATION_SCHEMA']` in `settings.py`.
+can be applied to uploads by including it in `DATA_INGEST['VALIDATORS']` in `settings.py`.
 
 ```python
     'VALIDATORS': {
@@ -110,15 +110,26 @@ At this point, SQL Validator uses in-memory SQLite database to perform its valid
 ### Inverting rule logic 
 
 By default, the code of each rule should evaluate to `true` for a row 
-to be valid.  You can reverse this - making each rule in a given validator 
-represent invalidation - in `DATA_INGEST['VALIDATORS']`:
+to be valid.  You can reverse this by defining a new validator and making the attribute `INVERT_LOGIC = True`.  There are currently two validators that do the invert rule logic: `JsonlogicValidatorFailureConditions`, and `SqlValidatorFailureConditions`.  See code in `ingestors.py` for details.
+
+## With a JSON Schema validator
+
+### With a custom JSON Schema
+
+[JSON Schema](https://json-schema.org/understanding-json-schema/index.html)
+supports a variety of validations.  Any valid JSON Schema
+can be applied by including it in `DATA_INGEST['VALIDATORS']` in `settings.py`.
 
 ```python
     'VALIDATORS': {
-        'sql_validators.yml': {'FILE': data_ingest.ingestors.SqlValidator',
-                               'RULES_EXPRESS_SUCCESS': False}
-    },
+        'json_schema.json': 'data_ingest.ingestors.JsonschemaValidator',
+    }
 ```
+
+This can be a file path relative to the Django project's root,
+or the URL of a JSON Schema on the web.
+
+Please note that when using JSON Schema Validator, you will not be able to use other tabular and rowwise validator as they are incompatible.
 
 # Creating a new built-in validator
 

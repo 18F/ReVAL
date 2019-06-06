@@ -12,6 +12,7 @@ from decimal import Decimal, InvalidOperation
 
 import goodtables
 import json_logic
+import jsonschema
 import requests
 import tabulator
 import yaml
@@ -20,7 +21,7 @@ from django.core import exceptions, files
 from django.utils.module_loading import import_string
 
 from .ingest_settings import UPLOAD_SETTINGS
-from .utils import get_ordered_headers
+from . import utils
 
 logger = logging.getLogger(__name__)
 
@@ -41,11 +42,11 @@ def validators():
         yield validator
 
 
-def apply_validators_to(source):
+def apply_validators_to(source, content_type):
 
     overall_result = {}
     for validator in validators():
-        validation_results = validator.validate(source)
+        validation_results = validator.validate(source, content_type)
         overall_result = ValidatorOutput.combine(overall_result, validation_results)
     return overall_result
 
@@ -55,6 +56,14 @@ def apply_validators_to(source):
 ###########################################
 class UnsupportedException(Exception):
     pass
+
+
+class UnsupportedContentTypeException(UnsupportedException):
+    def __init__(self, content_type, validator_name):
+        super(UnsupportedContentTypeException, self).__init__('Content type {} is not supported by {}'
+                                                              .format(content_type, validator_name))
+        self.content_type = content_type
+        self.validator_name = validator_name
 
 
 ###########################################
@@ -67,22 +76,22 @@ class ValidatorOutput:
     than one validator at a time
     """
 
-    def __init__(self, headers, rows_in_dict):
+    def __init__(self, rows_in_dict, headers=[]):
         """
         Init - Initiate objects to generate output later
 
         Parameters:
-        headers - a list of field names in the source
         rows_in_dict - a list of rows of the source.  Each row is a dictionary that consist of the row data.
                        Each row dictionary consists of `row_number` which is integer, and `row_data` which is
                        an ordered dictionary the data (key - header/field name, value - data of that field)
+        headers - (optional) a list of field names in the source (if relevant, i.e. tabular data)
         """
-        self.headers = headers
         self.rows_in_dict = rows_in_dict
+        self.headers = headers
         self.row_errors = defaultdict(list)
         self.whole_table_errors = []
 
-    def create_error(self, severity, code, message, error_columns):
+    def create_error(self, severity, code, message, fields):
         """
         Create standardized error dictionary
 
@@ -90,20 +99,20 @@ class ValidatorOutput:
         severity - severity of this error, right now "Error" or "Warning"
         code - error code
         message - error message that describe what the error is
-        error_columns - a list of all the field names that are associated with this error
+        fields - a list of all the field names that are associated with this error
 
         Returns:
-        Dictionary with the following items: severity, code, message, error_columns
+        Dictionary with the following items: severity, code, message, fields
         """
         error = {}
         error["severity"] = severity
         error["code"] = code
         error["message"] = message
-        error["error_columns"] = error_columns
+        error["fields"] = fields
 
         return error
 
-    def add_row_error(self, row_number, severity, code, message, error_columns):
+    def add_row_error(self, row_number, severity, code, message, fields):
         """
         Add row specific error to the list of row errors
 
@@ -112,16 +121,16 @@ class ValidatorOutput:
         severity - severity of this error, right now "Error" or "Warning"
         code - error code
         message - error message that describe what the error is
-        error_columns - a list of all the field names that are associated with this error
+        fields - a list of all the field names that are associated with this error
 
         Returns:
         None
         """
-        error = self.create_error(severity, code, message, error_columns)
+        error = self.create_error(severity, code, message, fields)
 
         self.row_errors[row_number].append(error)
 
-    def add_whole_table_error(self, severity, code, message, error_columns):
+    def add_whole_table_error(self, severity, code, message, fields):
         """
         Add error that applies to the whole table to the list of whole table errors
 
@@ -129,12 +138,12 @@ class ValidatorOutput:
         severity - severity of this error, right now "Error" or "Warning"
         code - error code
         message - error message that describe what the error is
-        error_columns - a list of all the field names that are associated with this error
+        fields - a list of all the field names that are associated with this error
 
         Returns:
         None
         """
-        error = self.create_error(severity, code, message, error_columns)
+        error = self.create_error(severity, code, message, fields)
 
         self.whole_table_errors.append(error)
 
@@ -153,15 +162,24 @@ class ValidatorOutput:
             - error - each error should match the specification from `create_error`
           - data - a dictionary of key (field name) / value (data for that field) pairs
         """
-        rows = []
-        for (row_number, row_data) in self.rows_in_dict.items():
-            rows.append({
+        result = []
+
+        # Right now if we are using JsonschemaValidator, the rows_in_dict is a raw source and it will always be a list
+        # of JSON object.  See validate method in JsonschemaValidator when instantiating the ValidatorOutput.  This is
+        # different than the expected rows_in_dict described in the ValidatorOutput.__init__ method, where each object
+        # of the list include a tuple of row_number and row_data.  So by doing the `enumerate`, it will mimic that
+        # behaviors.  It also means that when using JsonschemaValidator, the row number starts at 0.
+
+        # @TODO: Need to revisit this to see if this is the best way to do this
+        rows = self.rows_in_dict.items() if isinstance(self.rows_in_dict, dict) else enumerate(self.rows_in_dict)
+        for (row_number, row_data) in rows:
+            result.append({
                 "row_number": row_number,
                 "errors": self.row_errors.get(row_number, []),
                 "data": row_data
             })
 
-        return rows
+        return result
 
     def get_output(self):
         """
@@ -332,7 +350,7 @@ class Validator(abc.ABC):
             hs = []
         # Reset the pointer to the beginning
         stream.reset()
-        o_headers = get_ordered_headers(hs)
+        o_headers = utils.get_ordered_headers(hs)
 
         result = OrderedDict()
         for (row_num, headers, vals) in stream.iter(extended=True):
@@ -343,7 +361,7 @@ class Validator(abc.ABC):
         return(o_headers, result)
 
     @abc.abstractmethod
-    def validate(self, source):
+    def validate(self, source, content_type):
         """
         Validate the data from source and return a standard validation output
 
@@ -357,23 +375,30 @@ class Validator(abc.ABC):
 
 class GoodtablesValidator(Validator):
 
-    def validate(self, source):
+    def validate(self, source, content_type):
+
+        if content_type == 'application/json':
+            data = utils.to_tabular(source)
+        elif content_type == 'text/csv':
+            data = utils.reorder_csv(source)
+        else:
+            raise UnsupportedContentTypeException(content_type, type(self).__name__)
 
         try:
-            source['source'].decode()
+            data['source'].decode()
             byteslike = True
         except (TypeError, KeyError, AttributeError):
             byteslike = False
 
         if byteslike:
-            validate_params = source.copy()
+            validate_params = data.copy()
             validate_params['schema'] = self.validator
-            validate_params['source'] = io.BytesIO(source['source'])
+            validate_params['source'] = io.BytesIO(data['source'])
         else:
-            validate_params = {'source': source, 'schema': self.validator, "headers": 1}
+            validate_params = {'source': data, 'schema': self.validator, "headers": 1}
 
         result = goodtables.validate(**validate_params)
-        return self.formatted(source, result)
+        return self.formatted(data, result)
 
     def formatted(self, source, unformatted):
         """
@@ -415,23 +440,23 @@ class GoodtablesValidator(Validator):
         unformatted_table = unformatted["tables"][0]
         # headers = unformatted_table["headers"]
         (headers, rows) = Validator.rows_from_source(source)
-        output = ValidatorOutput(unformatted_table["headers"], rows)
+        output = ValidatorOutput(rows, headers=unformatted_table["headers"])
 
         for err in unformatted_table["errors"]:
-            error_columns = []
+            fields = []
             message = err['message']
-            # This is to include the header name with the column number and to define error_columns
+            # This is to include the header name with the column number and to define fields
             if err.get('column-number'):
                 if len(headers) > (err['column-number']):
                     header = headers[err['column-number'] - 1]
-                    error_columns = [header]
+                    fields = [header]
                     column_num = 'column ' + str(err['column-number'])
                     message = err['message'].replace(column_num, column_num + ' (' + header + ')')
 
             if err.get('row-number'):
-                output.add_row_error(err['row-number'], "Error", err["code"], message, error_columns)
+                output.add_row_error(err['row-number'], "Error", err["code"], message, fields)
             else:
-                output.add_whole_table_error("Error", err["code"], message, error_columns)
+                output.add_whole_table_error("Error", err["code"], message, fields)
 
         return output.get_output()
 
@@ -601,12 +626,20 @@ class RowwiseValidator(Validator):
 
         return new_message
 
-    def validate(self, source):
+    def validate(self, source, content_type):
         """
         Implemented validate method
         """
-        (headers, numbered_rows) = Validator.rows_from_source(source)
-        output = ValidatorOutput(headers, numbered_rows)
+
+        if content_type == 'application/json':
+            data = utils.to_tabular(source)
+        elif content_type == 'text/csv':
+            data = utils.reorder_csv(source)
+        else:
+            raise UnsupportedContentTypeException(content_type, type(self).__name__)
+
+        (headers, numbered_rows) = Validator.rows_from_source(data)
+        output = ValidatorOutput(numbered_rows, headers=headers)
 
         for (rn, row) in numbered_rows.items():
 
@@ -709,6 +742,34 @@ class SqlValidatorFailureConditions(SqlValidator):
     INVERT_LOGIC = True
 
 
+class JsonschemaValidator(Validator):
+
+    def validate(self, source, content_type):
+        if content_type != "application/json":
+            raise UnsupportedContentTypeException(content_type, type(self).__name__)
+
+        # Find the correct version of the validator to use for this schema
+        json_validator = jsonschema.validators.validator_for(self.validator)(self.validator)
+
+        # Check the schema to make sure there's no error
+        json_validator.check_schema(self.validator)
+
+        if type(source) is list:  # validating an array (list) of objects
+            output = ValidatorOutput(source)
+        else:  # validating only one object but making it a list of objects
+            output = ValidatorOutput([source])
+
+        errors = json_validator.iter_errors(source)
+
+        for error in errors:
+            if error.path:
+                output.add_row_error(error.path[0], "Error", error.validator, error.message, list(error.path)[1:])
+            else:
+                output.add_row_error(0, "Error", error.validator, error.message, [])
+
+        return output.get_output()
+
+
 ###########################################
 #  Ingestor
 ###########################################
@@ -752,8 +813,19 @@ class Ingestor:
         return stream
 
     def validate(self):
+        source = self.source()
+        content_type = None
+        if source['format'] == 'csv':
+            content_type = 'text/csv'
+        elif source['format'] == 'json':
+            content_type = 'application/json'
+        else:
+            # @TODO: This will need to be revisited.
+            # Right now pulling the file extension instead of actual ContentType as seen in header.  This will be
+            # passed into each validator's validate method and causes an UnsupportedContentTypeException
+            content_type = source['format']
 
-        return apply_validators_to(self.source())
+        return apply_validators_to(self.source(), content_type)
 
     def meta_named(self, core_name):
 

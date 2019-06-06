@@ -16,6 +16,7 @@ each user may submit multiple files.
   - [goodtables](https://github.com/frictionlessdata/goodtables-py)
   - [JSON Logic](https://github.com/QubitProducts/json-logic-py)
   - [SQL](https://sqlite.org/lang_keywords.html)
+  - [JSON Schema](https://github.com/Julian/jsonschema)
   - a custom validation class
 - Row-by-row feedback on validation results
 - Manage and track status of data submissions
