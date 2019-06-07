@@ -53,6 +53,7 @@ python manage.py migrate
 python manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_user('user1', 'user1@example.gov', 'password')"
 python manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_user('user2', 'user2@example.gov', 'password')"
 python manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_user('user3', 'user3@example.gov', 'password')"
+python manage.py runserver 0.0.0.0:8080
 ```
 
 Create a `Procfile` file in your base directory with the following information.  This file will run when deployed.
