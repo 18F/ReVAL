@@ -211,7 +211,7 @@ class ValidatorOutput:
         # even need a list of tables?
         result = {}
         result["tables"] = [table]
-        result["valid"] = (table["invalid_row_count"] == 0)
+        result["valid"] = (table["invalid_row_count"] == 0) and not table["whole_table_errors"]
 
         return result
 
@@ -252,7 +252,7 @@ class ValidatorOutput:
 
         result = {}
         result["tables"] = [table]
-        result["valid"] = (table["invalid_row_count"] == 0)
+        result["valid"] = (table["invalid_row_count"] == 0) and not table["whole_table_errors"]
 
         return result
 
