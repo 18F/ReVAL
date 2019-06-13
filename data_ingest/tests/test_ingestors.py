@@ -170,6 +170,28 @@ class TestValidationOutput(SimpleTestCase):
 
         self.assertEqual(result["valid"], False)
 
+        # No row errors but have whole table errors
+        output1 = ValidatorOutput(OrderedDict([(1, {"column1": "abc", "column2": "efg", "column3": "hij"}),
+                                              (2, {"column1": "xyz", "column2": "klm", "column3": "nop"})]),
+                                  headers=["column1", "column2", "column3"],)
+        output1.whole_table_errors = [{'severity': 'Error', 'code': 'E12', 'message': 'Incorrect data',
+                                       'fields': ['column1', 'column3']}]
+
+        result1 = output1.get_output()
+
+        self.assertEqual(len(result1["tables"][0]), 5)
+        self.assertEqual(result1["tables"][0]["headers"], ["column1", "column2", "column3"])
+        self.assertEqual(result1["tables"][0]["whole_table_errors"],
+                         [{'severity': 'Error', 'code': 'E12', 'message': 'Incorrect data',
+                           'fields': ['column1', 'column3']}])
+        # This should probably be mocked
+        # self.assertEqual(result["rows"], )
+        self.assertEqual(result1["tables"][0]["valid_row_count"], 2)
+        self.assertEqual(result1["tables"][0]["invalid_row_count"], 0)
+
+        # This should still be False
+        self.assertEqual(result1["valid"], False)
+
     def test_combine(self):
         self.assertEqual(data_ingest.ingestors.ValidatorOutput.combine({}, {}), {})
 
@@ -328,3 +350,95 @@ class TestValidationOutput(SimpleTestCase):
         }
         result = ValidatorOutput.combine(output1, output2)
         self.assertDictEqual(exp_result, result)
+
+        # only whole table errors
+        output3 = {
+
+            "valid": False,
+            "tables": [
+                {
+                    "headers": ["a", "b", "c"],
+                    "rows": [
+                        {
+                            "row_number": 2,
+                            "errors": [],
+                            "data": {"a": 1, "b": 2, "c": 3}
+                        },
+                        {
+                            "row_number": 3,
+                            "errors": [],
+                            "data": {"a": 4, "b": 5, "c": 6}
+                        }
+                    ],
+                    "whole_table_errors": [
+                        {
+                            "severity": "Error",
+                            "code": "12",
+                            "message": "Incorrect form",
+                            "fields": ["a"]
+                        }
+                    ],
+                    "valid_row_count": 2,
+                    "invalid_row_count": 0,
+                }
+            ]
+        }
+        output4 = {
+            "valid": False,
+            "tables": [
+                {
+                    "headers": ["a", "b", "c"],
+                    "rows": [
+                        {
+                            "row_number": 2,
+                            "errors": [],
+                            "data": {"a": 1, "b": 2, "c": 3}
+                        },
+                        {
+                            "row_number": 3,
+                            "errors": [],
+                            "data": {"a": 4, "b": 5, "c": 6}
+                        }
+                    ],
+                    "whole_table_errors": [
+                        {
+                            "severity": "Error",
+                            "code": "40",
+                            "message": "structure issue",
+                            "fields": ["a", "b"]
+                        }
+                    ],
+                    "valid_row_count": 2,
+                    "invalid_row_count": 0,
+                }
+            ]
+
+        }
+        exp_result1 = {
+            'tables': [
+                {
+                    'headers': ['a', 'b', 'c'],
+                    'whole_table_errors': [
+                        {'severity': 'Error', 'code': '12', 'message': 'Incorrect form', 'fields': ['a']},
+                        {'severity': 'Error', 'code': '40', 'message': 'structure issue', 'fields': ['a', 'b']}
+                    ],
+                    'rows': [
+                        {
+                            'row_number': 2,
+                            'errors': [],
+                            'data': {'a': 1, 'b': 2, 'c': 3}
+                        },
+                        {
+                            'row_number': 3,
+                            'errors': [],
+                            'data': {'a': 4, 'b': 5, 'c': 6}
+                        }
+                    ],
+                    'valid_row_count': 2,
+                    'invalid_row_count': 0
+                }
+            ],
+            'valid': False
+        }
+        result1 = ValidatorOutput.combine(output3, output4)
+        self.assertDictEqual(exp_result1, result1)
