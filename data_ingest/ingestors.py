@@ -438,9 +438,8 @@ class GoodtablesValidator(Validator):
             raise UnsupportedException('Input with > 1 table not supported.')
 
         unformatted_table = unformatted["tables"][0]
-        # headers = unformatted_table["headers"]
         (headers, rows) = Validator.rows_from_source(source)
-        output = ValidatorOutput(rows, headers=unformatted_table["headers"])
+        output = ValidatorOutput(rows, headers=unformatted_table.get("headers", []))
 
         for err in unformatted_table["errors"]:
             fields = []
