@@ -12,11 +12,11 @@ mkdir myproject
 cd myproject
 ```
 
-Install `django-data-ingest`:
+Install ReVAL:
 - Replace `<version>` with the latest tag i.e. `v0.2` or
 - Replace with `master` if you would like to work with the latest development version
 ```bash
-    pipenv install -e git+https://github.com/18F/django-data-ingest.git@<version>#egg=django-data-ingest
+    pipenv install -e git+https://github.com/18F/ReVAL.git@<version>#egg=data-ingest
 ```
 
 Begin your Django project as usual.  Replace `myproject` with the name of your project.  This will create your Django project in the current directory

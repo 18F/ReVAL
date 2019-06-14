@@ -13,10 +13,11 @@ psycopg2-binary = "*"
 pyyaml = "*"
 requests = "*"
 jsonschema = "*"
+cchardet = "*"
 
 [dev-packages]
 flake8 = "*"
 coverage = "*"
 bandit = "==1.5.1"
 codecov = "*"
-django-data-ingest = {editable = true,path = "."}
+ReVAL = {editable = true,path = "."}

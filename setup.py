@@ -9,14 +9,14 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
-    name='django-data-ingest',
+    name='ReVAL',
     version='0.3',
     packages=find_packages(),
     include_package_data=True,
     license='CC0-1.0',
     description='Django app to upload, validate, review, and accept data files',
     long_description=README,
-    url='https://github.com/18F/django-data-ingest',
+    url='https://github.com/18F/ReVAL',
     author='18F',
     author_email='data-federation@gsa.gov',
     classifiers=[
@@ -35,7 +35,7 @@ setup(
         'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication'
     ],
     install_requires=[
-        'django>=1.11.15,<2.0',
+        'django>=1.11.21,<2.0',
         'djangorestframework',
         'dj-database-url',
         'goodtables',

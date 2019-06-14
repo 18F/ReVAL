@@ -131,6 +131,6 @@ DATA_INGEST = {
     },
     # or get validator from URL:
     # 'VALIDATORS': {
-    #     'https://raw.githubusercontent.com/18F/django-data-ingest/master/examples/p02_budgets/table_schema.json':
+    #     'https://raw.githubusercontent.com/18F/ReVAL/master/examples/p02_budgets/table_schema.json':
     #     'data_ingest.ingestors.GoodtablesValidator', },
 }
