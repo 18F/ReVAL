@@ -55,7 +55,7 @@ Add `'rest_framework'`, and `'data_ingest'` to your `INSTALLED_APPS` setting.
 ```python
 INSTALLED_APPS = (
     ...
-	'rest_framework',
+    'rest_framework',
     'data_ingest',
 )
 ```
