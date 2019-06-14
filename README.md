@@ -1,11 +1,10 @@
-# django-data-ingest
+# ReVAL
 
-`data_ingest` is a reusable Django project managing data submitted as file uploads to a central gathering point. 
+ReVAL (Reusable Validation & Aggregation Library) is a Django App for validating and aggregating data via API and web interface.
 
-It performs data validation, basic change tracking and duplicate file handling.
+For the web interface, it can manage data submitted as file uploads to a central gathering point, and it can perform data validation, basic change tracking and duplicate file handling.  Each file generally contains multiple data rows, and each user may submit multiple files.
 
-Each file generally contains multiple data rows, and
-each user may submit multiple files.
+For the API, it can perform data validation, and view uploads that were done via the web interface.
 
 ---
 
@@ -42,13 +41,13 @@ each user may submit multiple files.
 
 ## Quick Installation
 
-If you would like to use `django-data-ingest` in your Django project, install using `pipenv` in your project...
+If you would like to use ReVAL in your Django project, install using `pipenv` in your project...
 
 - Replace `<version>` with the latest tag i.e. `v0.2` or
 - Replace with `master` if you would like to work with the latest development version
 
 ```bash
-pipenv install -e git+https://github.com/18F/django-data-ingest.git@<version>#egg=django-data-ingest
+pipenv install -e git+https://github.com/18F/ReVAL.git@<version>#egg=data-ingest
 ```
 
 Add `'rest_framework'`, and `'data_ingest'` to your `INSTALLED_APPS` setting.
@@ -56,7 +55,7 @@ Add `'rest_framework'`, and `'data_ingest'` to your `INSTALLED_APPS` setting.
 ```python
 INSTALLED_APPS = (
     ...
-    'rest_framework',
+	'rest_framework',
     'data_ingest',
 )
 ```
@@ -100,7 +99,7 @@ See [CONTRIBUTING](CONTRIBUTING.md) for additional information.
 To start developing on Django Data Ingest, clone the repository:
 
 ```bash
-git clone git@github.com:18f/django-data-ingest.git
+git clone git@github.com:18f/ReVAL.git
 ```
 
 Install development dependencies:
@@ -108,6 +107,8 @@ Install development dependencies:
 ```bash
 pipenv install --dev
 ```
+
+If you run into any issues installing packages in the `Pipfile`, you can try to install the particular package individually again.
 
 ### Test Suite
 
