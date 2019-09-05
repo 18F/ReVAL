@@ -15,8 +15,8 @@ Validate
 to a payload.  This will not insert the rows, but will provide 
 error information.
 
-This endpoint requires a token authentication.  Admin should be able to log into the admin page at
-`/admin/` and under "Authentication And Authorization" -> "Users", click on "+ Add" to add a user.
+This endpoint requires a token to authenticate.  Admin should be able to log into the admin page from a web browser
+at `/admin/` and under "Authentication And Authorization" -> "Users", click on "+ Add" to add a user.
 After a user has been added, they can obtain the token to authenticate.
 
 ### Obtain Token
