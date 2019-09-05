@@ -1,0 +1,20 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "password",
+      "is_superuser": false,
+      "username": "diana",
+      "email": "diana@gsa.gov"
+    }
+  },
+  {
+    "model": "authtoken.token",
+    "pk": "this1s@t0k3n",
+    "fields": {
+      "user": 1,
+      "created": "2019-08-31T06:44:46.152Z"
+    }
+  }
+]
