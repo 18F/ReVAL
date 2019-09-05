@@ -21,7 +21,6 @@ After a user has been added, they can obtain the token to authenticate.
 
 ### Obtain Token
 `POST` to `/data_ingest/api/api-token-auth` to get the token for authentication.
-The data for the post is the `username` and `password` JSON object.
 ```bash
 curl -X POST \
 -F username=<replace with what the admin gives you> \
