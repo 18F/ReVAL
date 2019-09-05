@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+
 class ApiValidateTests(APITestCase):
 
     fixtures = ['test_data.json']
@@ -24,4 +25,4 @@ class ApiValidateTests(APITestCase):
         token = "this1s@t0k3n"
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post(url, data, content_type='application/json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

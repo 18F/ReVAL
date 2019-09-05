@@ -1,5 +1,3 @@
-import dj_database_url
-
 SECRET_KEY = 'fake-key-here'
 
 # Application definition
@@ -17,10 +15,7 @@ INSTALLED_APPS = [
 
 ROOT_URLCONF = 'data_ingest.urls'
 
-# DATABASES = {
-#     'default': dj_database_url.config(conn_max_age=600),
-# }
-DATABASES={
+DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
         }
