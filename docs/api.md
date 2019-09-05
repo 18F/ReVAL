@@ -48,9 +48,12 @@ http://localhost:8000/data_ingest/api/validate/
 or, in Python,
 
 ```python
-url = 'http://localhost:8000/data_ingest/api/validate/'
 import requests
 import json
+
+
+url = 'http://localhost:8000/data_ingest/api/validate/'
+
 with open('test_cases.json') as infile:
     content = json.load(infile)
 resp = requests.post(url,
@@ -75,7 +78,10 @@ or, in Python,
 
 ```python
 import requests
+
+
 url = 'http://localhost:8000/data_ingest/api/validate/'
+
 with open('test_cases.csv') as infile:
     content = infile.read()
 resp = requests.post(url,
