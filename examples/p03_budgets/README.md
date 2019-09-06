@@ -43,6 +43,12 @@ create a user account.
         'chris', 'chris@gsa.gov', 'publicservice')"
 ```
 
+To create an administrator that can add users and control permissions, you can add the following superuser that can log into `/admin`.  You can replace the `username`, email address, and `password` with what you want accordingly:
+```bash
+    python manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_superuser(
+        'username', 'admin@admin.com', 'password')"
+```
+
 Run the server.
 
 ```bash

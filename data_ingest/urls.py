@@ -2,6 +2,7 @@
 
 from django.conf.urls import include, url
 from rest_framework import routers
+from rest_framework.authtoken import views as authtoken_views
 
 from . import api_views, views
 
@@ -38,6 +39,7 @@ urlpatterns = [
         views.insert,
         name="insert",
     ),
+    url(r"^api/api-token-auth", authtoken_views.obtain_auth_token),
     url(r"^api/validate", api_views.validate, name="validate"),
     url(r"^api/", include(router.urls)),
     url(
