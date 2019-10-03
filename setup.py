@@ -10,7 +10,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='ReVAL',
-    version='0.4',
+    version='v0.6.0',
     packages=find_packages(),
     include_package_data=True,
     license='CC0-1.0',
