@@ -1,0 +1,579 @@
+[
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 1,
+    "fields": {
+      "app_label": "admin",
+      "model": "logentry"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 2,
+    "fields": {
+      "app_label": "auth",
+      "model": "permission"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 3,
+    "fields": {
+      "app_label": "auth",
+      "model": "group"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 4,
+    "fields": {
+      "app_label": "auth",
+      "model": "user"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 5,
+    "fields": {
+      "app_label": "contenttypes",
+      "model": "contenttype"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 6,
+    "fields": {
+      "app_label": "sessions",
+      "model": "session"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 7,
+    "fields": {
+      "app_label": "data_ingest",
+      "model": "defaultupload"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 8,
+    "fields": {
+      "app_label": "authtoken",
+      "model": "token"
+    }
+  },
+  {
+    "model": "sessions.session",
+    "pk": "5sj3sm72x8z0b28uoo1daosto7bp4uq5",
+    "fields": {
+      "session_data": "M2M2OWFhMGFiODUzZTFkMTFlNDM4MmFlNTMxMjVlNDI3NjM4Y2IzZjp7Il9hdXRoX3VzZXJfaWQiOiIyIiwiX2F1dGhfdXNlcl9iYWNrZW5kIjoiZGphbmdvLmNvbnRyaWIuYXV0aC5iYWNrZW5kcy5Nb2RlbEJhY2tlbmQiLCJfYXV0aF91c2VyX2hhc2giOiI4ZGQ5ZThhNmI2MzViNWRmYzkzYzk2YTU1YTJjNjk1N2EyOGRjM2QxIn0=",
+      "expire_date": "2019-09-17T17:59:55.327Z"
+    }
+  },
+  {
+    "model": "sessions.session",
+    "pk": "o1uesur7z01485y8b4eoip7xegs8nvbe",
+    "fields": {
+      "session_data": "NTNlYzBhMDE0MGYzYjYwNjQ5Yjk3ZWU3ODM1OGUzYTBhYjdiN2ExNjp7Il9hdXRoX3VzZXJfaWQiOiIxIiwiX2F1dGhfdXNlcl9iYWNrZW5kIjoiZGphbmdvLmNvbnRyaWIuYXV0aC5iYWNrZW5kcy5Nb2RlbEJhY2tlbmQiLCJfYXV0aF91c2VyX2hhc2giOiJiY2VjZjgzNWU4ODYzODYwY2NjM2RmYmYwYjliNDFmNmY1NGQyM2NkIn0=",
+      "expire_date": "2019-09-09T17:39:29.682Z"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 1,
+    "fields": {
+      "name": "Can add log entry",
+      "content_type": 1,
+      "codename": "add_logentry"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 2,
+    "fields": {
+      "name": "Can change log entry",
+      "content_type": 1,
+      "codename": "change_logentry"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 3,
+    "fields": {
+      "name": "Can delete log entry",
+      "content_type": 1,
+      "codename": "delete_logentry"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 4,
+    "fields": {
+      "name": "Can add permission",
+      "content_type": 2,
+      "codename": "add_permission"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 5,
+    "fields": {
+      "name": "Can change permission",
+      "content_type": 2,
+      "codename": "change_permission"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 6,
+    "fields": {
+      "name": "Can delete permission",
+      "content_type": 2,
+      "codename": "delete_permission"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 7,
+    "fields": {
+      "name": "Can add group",
+      "content_type": 3,
+      "codename": "add_group"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 8,
+    "fields": {
+      "name": "Can change group",
+      "content_type": 3,
+      "codename": "change_group"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 9,
+    "fields": {
+      "name": "Can delete group",
+      "content_type": 3,
+      "codename": "delete_group"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 10,
+    "fields": {
+      "name": "Can add user",
+      "content_type": 4,
+      "codename": "add_user"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 11,
+    "fields": {
+      "name": "Can change user",
+      "content_type": 4,
+      "codename": "change_user"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 12,
+    "fields": {
+      "name": "Can delete user",
+      "content_type": 4,
+      "codename": "delete_user"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 13,
+    "fields": {
+      "name": "Can add content type",
+      "content_type": 5,
+      "codename": "add_contenttype"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 14,
+    "fields": {
+      "name": "Can change content type",
+      "content_type": 5,
+      "codename": "change_contenttype"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 15,
+    "fields": {
+      "name": "Can delete content type",
+      "content_type": 5,
+      "codename": "delete_contenttype"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 16,
+    "fields": {
+      "name": "Can add session",
+      "content_type": 6,
+      "codename": "add_session"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 17,
+    "fields": {
+      "name": "Can change session",
+      "content_type": 6,
+      "codename": "change_session"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 18,
+    "fields": {
+      "name": "Can delete session",
+      "content_type": 6,
+      "codename": "delete_session"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 19,
+    "fields": {
+      "name": "Can add default upload",
+      "content_type": 7,
+      "codename": "add_defaultupload"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 20,
+    "fields": {
+      "name": "Can change default upload",
+      "content_type": 7,
+      "codename": "change_defaultupload"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 21,
+    "fields": {
+      "name": "Can delete default upload",
+      "content_type": 7,
+      "codename": "delete_defaultupload"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 22,
+    "fields": {
+      "name": "Can add Token",
+      "content_type": 8,
+      "codename": "add_token"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 23,
+    "fields": {
+      "name": "Can change Token",
+      "content_type": 8,
+      "codename": "change_token"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 24,
+    "fields": {
+      "name": "Can delete Token",
+      "content_type": 8,
+      "codename": "delete_token"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$36000$dUuCLynVDxAa$sQnagG+I0NHclllt4q21HZb4PvBTSEI2k65DargrOmU=",
+      "last_login": "2019-08-31T06:44:46.159Z",
+      "is_superuser": false,
+      "username": "chris",
+      "first_name": "",
+      "last_name": "",
+      "email": "chris@gsa.gov",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2019-08-26T17:38:45.482Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$36000$YcMkIHq1E5fE$xRem6AOyJrFZq3bKJW8G+Mgcu13hvrCgf5s2CsKtNnE=",
+      "last_login": "2019-09-03T17:59:55.311Z",
+      "is_superuser": true,
+      "username": "amy",
+      "first_name": "",
+      "last_name": "",
+      "email": "amy@gsa.gov",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2019-08-30T21:38:09.524Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+      "password": "pbkdf2_sha256$36000$dxe3WWrjvdVy$ebGL6/mWqQfAoC3fu7PMjTg0CJReH5qUlXox/bh1w1U=",
+      "last_login": "2019-08-30T22:05:47.414Z",
+      "is_superuser": false,
+      "username": "test",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2019-08-30T22:04:59.148Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "authtoken.token",
+    "pk": "a4fcc2f96b3807f47607be4f515b01d230bc0a27",
+    "fields": {
+      "user": 2,
+      "created": "2019-08-31T05:08:12.385Z"
+    }
+  },
+  {
+    "model": "authtoken.token",
+    "pk": "a6a6f01aededcdc09993d94254c37abcf71239a8",
+    "fields": {
+      "user": 1,
+      "created": "2019-08-31T06:44:46.152Z"
+    }
+  },
+  {
+    "model": "data_ingest.defaultupload",
+    "pk": 1,
+    "fields": {
+      "submitter": 1,
+      "created_at": "2019-08-26T17:40:14.905Z",
+      "file_metadata": {},
+      "file": "staff_MmZdJse.csv",
+      "raw": "Ik5hbWUiLCJUaXRsZSIsImxldmVsIg0KIkd1aWRvIiwiQkRGTCIsMjANCg0KIkNhdGhlcmluZSIsLDksIkRCQSINCiwNCiJUb255IiwiRW5naW5lZXIiLDEwDQo=",
+      "validation_results": {
+        "valid": false,
+        "tables": [
+          {
+            "rows": [
+              {
+                "data": {
+                  "Name": "Guido",
+                  "Title": "BDFL",
+                  "level": "20"
+                },
+                "errors": [],
+                "row_number": 2
+              },
+              {
+                "data": {
+                  "Name": "",
+                  "Title": "",
+                  "level": ""
+                },
+                "errors": [
+                  {
+                    "code": "blank-row",
+                    "fields": [],
+                    "message": "Row 3 is completely blank",
+                    "severity": "Error"
+                  }
+                ],
+                "row_number": 3
+              },
+              {
+                "data": {
+                  "Name": "Catherine",
+                  "Title": "",
+                  "level": "9"
+                },
+                "errors": [
+                  {
+                    "code": "extra-value",
+                    "fields": [],
+                    "message": "Row 4 has an extra value in column 4",
+                    "severity": "Error"
+                  }
+                ],
+                "row_number": 4
+              },
+              {
+                "data": {
+                  "Name": "",
+                  "Title": "",
+                  "level": ""
+                },
+                "errors": [
+                  {
+                    "code": "blank-row",
+                    "fields": [],
+                    "message": "Row 5 is completely blank",
+                    "severity": "Error"
+                  }
+                ],
+                "row_number": 5
+              },
+              {
+                "data": {
+                  "Name": "Tony",
+                  "Title": "Engineer",
+                  "level": "10"
+                },
+                "errors": [],
+                "row_number": 6
+              }
+            ],
+            "headers": [
+              "Name",
+              "Title",
+              "level"
+            ],
+            "valid_row_count": 2,
+            "invalid_row_count": 3,
+            "whole_table_errors": []
+          }
+        ]
+      },
+      "status": "LOADING",
+      "updated_at": "2019-08-26T17:40:15.029Z",
+      "status_changed_by": null,
+      "status_changed_at": null,
+      "replaces": null
+    }
+  },
+  {
+    "model": "data_ingest.defaultupload",
+    "pk": 2,
+    "fields": {
+      "submitter": 2,
+      "created_at": "2019-09-03T18:53:51.516Z",
+      "file_metadata": {},
+      "file": "staff_2iA3Z7Z.csv",
+      "raw": "Ik5hbWUiLCJUaXRsZSIsImxldmVsIg0KIkd1aWRvIiwiQkRGTCIsMjANCg0KIkNhdGhlcmluZSIsLDksIkRCQSINCiwNCiJUb255IiwiRW5naW5lZXIiLDEwDQo=",
+      "validation_results": {
+        "valid": false,
+        "tables": [
+          {
+            "rows": [
+              {
+                "data": {
+                  "Name": "Guido",
+                  "Title": "BDFL",
+                  "level": "20"
+                },
+                "errors": [],
+                "row_number": 2
+              },
+              {
+                "data": {
+                  "Name": "",
+                  "Title": "",
+                  "level": ""
+                },
+                "errors": [
+                  {
+                    "code": "blank-row",
+                    "fields": [],
+                    "message": "Row 3 is completely blank",
+                    "severity": "Error"
+                  }
+                ],
+                "row_number": 3
+              },
+              {
+                "data": {
+                  "Name": "Catherine",
+                  "Title": "",
+                  "level": "9"
+                },
+                "errors": [
+                  {
+                    "code": "extra-value",
+                    "fields": [],
+                    "message": "Row 4 has an extra value in column 4",
+                    "severity": "Error"
+                  }
+                ],
+                "row_number": 4
+              },
+              {
+                "data": {
+                  "Name": "",
+                  "Title": "",
+                  "level": ""
+                },
+                "errors": [
+                  {
+                    "code": "blank-row",
+                    "fields": [],
+                    "message": "Row 5 is completely blank",
+                    "severity": "Error"
+                  }
+                ],
+                "row_number": 5
+              },
+              {
+                "data": {
+                  "Name": "Tony",
+                  "Title": "Engineer",
+                  "level": "10"
+                },
+                "errors": [],
+                "row_number": 6
+              }
+            ],
+            "headers": [
+              "Name",
+              "Title",
+              "level"
+            ],
+            "valid_row_count": 2,
+            "invalid_row_count": 3,
+            "whole_table_errors": []
+          }
+        ]
+      },
+      "status": "LOADING",
+      "updated_at": "2019-09-03T18:53:51.664Z",
+      "status_changed_by": null,
+      "status_changed_at": null,
+      "replaces": null
+    }
+  },
+  {
+    "model": "admin.logentry",
+    "pk": 1,
+    "fields": {
+      "action_time": "2019-08-30T22:04:59.185Z",
+      "user": 2,
+      "content_type": 4,
+      "object_id": "3",
+      "object_repr": "test",
+      "action_flag": 1,
+      "change_message": "[{\"added\": {}}]"
+    }
+  }
+]

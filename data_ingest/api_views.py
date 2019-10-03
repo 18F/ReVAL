@@ -4,14 +4,14 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import decorators, response, viewsets
 from rest_framework.parsers import JSONParser
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
 from . import ingest_settings, ingestors
+from .authentication import TokenAuthenticationWithLogging
 from .parsers import CsvParser
+from .permissions import IsAuthenticatedWithLogging
 from .serializers import UploadSerializer
 
 
 logger = logging.getLogger(__name__)
-
 
 class UploadViewSet(viewsets.ModelViewSet):
     """
@@ -24,8 +24,8 @@ class UploadViewSet(viewsets.ModelViewSet):
 @csrf_exempt
 @decorators.api_view(['POST'])
 @decorators.parser_classes((JSONParser, CsvParser))
-@decorators.authentication_classes([TokenAuthentication])
-@decorators.permission_classes([IsAuthenticated])
+@decorators.authentication_classes([TokenAuthenticationWithLogging])
+@decorators.permission_classes([IsAuthenticatedWithLogging])
 def validate(request):
     """
     Apply all validators in settings to incoming data
