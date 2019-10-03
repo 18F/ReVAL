@@ -3,7 +3,6 @@ import logging
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import decorators, response, viewsets
 from rest_framework.parsers import JSONParser
-from rest_framework.authentication import TokenAuthentication
 from . import ingest_settings, ingestors
 from .authentication import TokenAuthenticationWithLogging
 from .parsers import CsvParser
@@ -12,6 +11,7 @@ from .serializers import UploadSerializer
 
 
 logger = logging.getLogger(__name__)
+
 
 class UploadViewSet(viewsets.ModelViewSet):
     """

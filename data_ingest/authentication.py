@@ -3,6 +3,7 @@ from rest_framework.authentication import TokenAuthentication
 
 logger = logging.getLogger(__name__)
 
+
 class TokenAuthenticationWithLogging(TokenAuthentication):
     def authenticate(self, request):
         logger.info(f'TokenAuthenticationWithLogging: authenticate')

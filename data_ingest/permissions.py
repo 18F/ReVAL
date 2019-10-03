@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 
 logger = logging.getLogger(__name__)
 
+
 class IsAuthenticatedWithLogging(IsAuthenticated):
     def has_permission(self, request, view):
         logger.info("IsAuthenticatedWithLogging: has_permission")
