@@ -2,7 +2,7 @@ import logging
 from rest_framework.permissions import IsAuthenticated
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('ReVAL')
 
 
 class IsAuthenticatedWithLogging(IsAuthenticated):

@@ -5,7 +5,7 @@ from collections import OrderedDict
 from django.utils.module_loading import import_string
 from .ingest_settings import UPLOAD_SETTINGS
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('ReVAL')
 
 
 def get_schema_headers():

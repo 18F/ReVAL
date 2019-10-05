@@ -10,7 +10,7 @@ from .permissions import IsAuthenticatedWithLogging
 from .serializers import UploadSerializer
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('ReVAL')
 
 
 class UploadViewSet(viewsets.ModelViewSet):

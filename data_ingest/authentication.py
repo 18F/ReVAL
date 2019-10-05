@@ -1,7 +1,7 @@
 import logging
 from rest_framework.authentication import TokenAuthentication
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('ReVAL')
 
 
 class TokenAuthenticationWithLogging(TokenAuthentication):
