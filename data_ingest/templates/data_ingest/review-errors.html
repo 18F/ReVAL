@@ -32,7 +32,7 @@
           <h3>Whole-table errors</h3>
             <ul>
               {% for wte in whole_table_errors %}
-                <li>{{ wte }}</li>
+                <li>{{ wte.severity }} &mdash; {{ wte.message }}</li>
               {% endfor %}
             </ul>
         {% endif %}

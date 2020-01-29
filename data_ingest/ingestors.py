@@ -420,7 +420,7 @@ class GoodtablesValidator(Validator):
                         {'errors': [{'code': 'extra-value',
                                     'column-number': 4,
                                     'message': 'Row 4 has an extra value in '
-                                                'column 4'}],
+                                                'column 4 (DBA)'}],
                         'row_number': 4,
                         'data': ['Catherine', '', '9', 'DBA']},
                         {'errors': [{'code': 'blank-row',
@@ -446,10 +446,11 @@ class GoodtablesValidator(Validator):
             message = err['message']
             # This is to include the header name with the column number and to define fields
             if err.get('column-number'):
-                if len(headers) > (err['column-number']):
-                    header = headers[err['column-number'] - 1]
+                column_number = err['column-number']
+                if len(headers) >= column_number:
+                    header = headers[column_number - 1]
                     fields = [header]
-                    column_num = 'column ' + str(err['column-number'])
+                    column_num = 'column ' + str(column_number)
                     message = err['message'].replace(column_num, column_num + ' (' + header + ')')
 
             if err.get('row-number'):
