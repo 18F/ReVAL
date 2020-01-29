@@ -31,7 +31,7 @@ class Upload(models.Model):
     )
     _MAX_N_DESCRIPTIVE_FIELDS = 4
 
-    submitter = models.ForeignKey(User)
+    submitter = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     file_metadata = JSONField(null=True)
     file = models.FileField()
@@ -43,9 +43,9 @@ class Upload(models.Model):
         default='LOADING',
     )
     updated_at = models.DateTimeField(auto_now=True)
-    status_changed_by = models.ForeignKey(User, related_name="+", null=True)
+    status_changed_by = models.ForeignKey(User, related_name="+", null=True, on_delete=models.CASCADE)
     status_changed_at = models.DateTimeField(null=True)
-    replaces = models.ForeignKey('self', null=True, related_name='replaced_by')
+    replaces = models.ForeignKey('self', null=True, related_name='replaced_by', on_delete=models.CASCADE)
 
     unique_metadata_fields = []
 

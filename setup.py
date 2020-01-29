@@ -22,7 +22,7 @@ setup(
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
-        'Framework :: Django :: 1.11',
+        'Framework :: Django :: 2.2',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',  # example license
         'Operating System :: OS Independent',
@@ -35,7 +35,7 @@ setup(
         'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication'
     ],
     install_requires=[
-        'django>=1.11.23,<2.0',
+        'django>=2.0,<3.0',
         'djangorestframework',
         'dj-database-url',
         'goodtables',
