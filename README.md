@@ -117,6 +117,12 @@ To execute the test suite, install the development dependencies and run:
 python runtests.py
 ```
 
+## Background
+
+There is significant demand in government (from federal to state / local) for tools that make the process of aggregating and validating data from multiple parties and sources easier. Long term, successful federated data efforts are unlikely if the process by which data are collected, aggregated, and validated cannot be improved. Gathering these data in a timely fashion by using tools that are complementary to existing workflows (e.g. they do not add additional time and effort on the data provider) and that are easy to use will help modernize the way the federal government functions and interacts with other government agencies.
+
+This tool was developed as part of the [10x U.S. Data Federation](https://github.com/18F/data-federation-project/tree/master/updates) project.
+
 ---
 
 ## Public domain
