@@ -18,5 +18,5 @@ class BudgetItem(models.Model):
     category = models.TextField()
     dollars_budgeted = models.DecimalField(max_digits=14, decimal_places=2)
     dollars_spent = models.DecimalField(max_digits=14, decimal_places=2)
-    upload = models.ForeignKey(Upload)
+    upload = models.ForeignKey(Upload, on_delete=models.CASCADE)
     row_number = models.IntegerField()
