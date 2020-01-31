@@ -653,7 +653,7 @@ class RowwiseValidator(Validator):
                 expected_columns = set(rule['columns'])
                 missing_columns = expected_columns.difference(received_columns)
                 if missing_columns:
-                    output.add_row_error(rn, 'Error', rule['error_code'],
+                    output.add_row_error(rn, 'Error', rule.get('error_code'),
                                          f'Unable to evaluate, missing columns: {missing_columns}', [])
                     continue
                 try:
