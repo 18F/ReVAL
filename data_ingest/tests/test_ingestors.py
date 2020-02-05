@@ -53,7 +53,6 @@ class TestGoodtablesValidator(SimpleTestCase):
         self.assertEqual(messages[1], "There is an extra header in column 5 (extra2)")
 
 
-
 class TestRowwiseValidator(SimpleTestCase):
 
     def test_cast_values(self):
@@ -106,6 +105,7 @@ class TestSqlValidator(SimpleTestCase):
                                       "Content type pdf is not supported by SqlValidator"):
             stv.validate("fake_source", "pdf")
 
+
 class TestJsonlogicValidator(SimpleTestCase):
 
     csv_rule = dumps(
@@ -126,6 +126,7 @@ class TestJsonlogicValidator(SimpleTestCase):
         }
         results = jv.validate(data, "text/csv")
         self.assertTrue(results["valid"])
+
 
 class TestJsonschemaValidator(SimpleTestCase):
 
