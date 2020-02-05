@@ -669,7 +669,7 @@ class RowwiseValidator(Validator):
                                              ]
                                              )
                 except Exception as e:
-                    output.add_row_error(rn, 'Error', rule['error_code'],
+                    output.add_row_error(rn, 'Error', rule.get('error_code'),
                                          f'{type(e).__name__}: {e.args[0]}', [])
         return output.get_output()
 

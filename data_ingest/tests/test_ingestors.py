@@ -9,6 +9,7 @@ import data_ingest.ingest_settings
 from data_ingest.ingestors import (
     GoodtablesValidator,
     JsonschemaValidator,
+    JsonlogicValidator,
     SqlValidator,
     RowwiseValidator,
     UnsupportedContentTypeException,
@@ -105,6 +106,26 @@ class TestSqlValidator(SimpleTestCase):
                                       "Content type pdf is not supported by SqlValidator"):
             stv.validate("fake_source", "pdf")
 
+class TestJsonlogicValidator(SimpleTestCase):
+
+    csv_rule = dumps(
+        {
+            "fields": [
+                {"name": "category"},
+            ]
+        }
+    )
+
+    @patch("builtins.open", new_callable=mock_open, read_data=csv_rule)
+    def test_validate_blank_csv(self, mock_file):
+        jv = JsonlogicValidator("RowwiseValidator", "mocked_filename.csv")
+        data = {
+            "source": b"",
+            "format": "csv",
+            "headers": 1,
+        }
+        results = jv.validate(data, "text/csv")
+        self.assertTrue(results["valid"])
 
 class TestJsonschemaValidator(SimpleTestCase):
 
