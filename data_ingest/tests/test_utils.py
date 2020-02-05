@@ -18,7 +18,7 @@ class TestUtils(SimpleTestCase):
            {
             'STREAM_ARGS': {'headers': 1},
             'VALIDATORS': {'schema.json': 'data_ingest.ingestors.GoodtablesValidator', }, })
-    @patch("data_ingest.ingestors.Validator.get_validator_contents")
+    @patch("data_ingest.validators.validator.Validator.get_validator_contents")
     def test_get_schema_headers_in_schema(self, mock_content):
         mock_content.return_value = {
                                       "fields": [
