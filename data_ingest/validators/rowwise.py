@@ -8,23 +8,26 @@ from .validator import Validator, ValidatorOutput, UnsupportedContentTypeExcepti
 from ..ingest_settings import UPLOAD_SETTINGS
 from .. import utils
 
+
 class RowwiseValidator(Validator):
-    '''Subclass this for any validator applied to one row at a time.
+    """Subclass this for any validator applied to one row at a time.
 
     Rule file should be JSON or YAML with fields
 
     Then each subclass only needs an `evaluate(self, rule, row)`
     method returning Boolean
-    '''
+    """
 
     SUPPORTS_HEADER_OVERRIDE = True
 
-    if 'headers' not in UPLOAD_SETTINGS['STREAM_ARGS']:
+    if "headers" not in UPLOAD_SETTINGS["STREAM_ARGS"]:
         raise exceptions.ImproperlyConfigured(
-            "setting DATA_INGEST['STREAM_ARGS']['headers'] is required")
+            "setting DATA_INGEST['STREAM_ARGS']['headers'] is required"
+        )
 
-    if UPLOAD_SETTINGS.get('OLD_HEADER_ROW') and not isinstance(
-            UPLOAD_SETTINGS['STREAM_ARGS']['headers'], list):
+    if UPLOAD_SETTINGS.get("OLD_HEADER_ROW") and not isinstance(
+        UPLOAD_SETTINGS["STREAM_ARGS"]["headers"], list
+    ):
         raise exceptions.ImproperlyConfigured(
             """DATA_INGEST['OLD_HEADER_ROW'] should be used with a
             list of headers in DATA_INGEST['STREAM_ARGS']['header']"""
@@ -46,7 +49,7 @@ class RowwiseValidator(Validator):
         if type(newval) == str:
             newval = newval.strip()
             try:
-                dnewval = Decimal(newval.replace(',', ''))
+                dnewval = Decimal(newval.replace(",", ""))
                 try:
                     inewval = int(dnewval)
                     fnewval = float(dnewval)
@@ -99,7 +102,7 @@ class RowwiseValidator(Validator):
         # create message
         new_message = message
         # Pattern that will match everything that looks like this: {...}
-        pattern = re.compile(r'\{.*?\}')
+        pattern = re.compile(r"\{.*?\}")
         fields = pattern.findall(new_message)
         for field in fields:
             # Remove { }
@@ -113,7 +116,9 @@ class RowwiseValidator(Validator):
                 # and the rest of field to check for precision specification
                 # (operand1 operator operand2 rest)
                 # current supported operator is seen in the 2nd parenthesis
-                expression = re.match(r'^\s*(\S+)\s*([\+\-\*/])\s*([^:\s]+)(\S*)\s*$', key)
+                expression = re.match(
+                    r"^\s*(\S+)\s*([\+\-\*/])\s*([^:\s]+)(\S*)\s*$", key
+                )
 
                 try:
                     # only supporting int/float operations
@@ -132,16 +137,17 @@ class RowwiseValidator(Validator):
                         value2 = RowwiseValidator.cast_value(row_dict[operand2])
 
                     # If they are all supported type, then this expression can be evaluated
-                    if any(isinstance(value1, t) for t in supported_type) and \
-                       any(isinstance(value2, t) for t in supported_type):
+                    if any(isinstance(value1, t) for t in supported_type) and any(
+                        isinstance(value2, t) for t in supported_type
+                    ):
                         # Right now being super explicit about which operator we support
-                        if operator == '+':
+                        if operator == "+":
                             result = value1 + value2
-                        elif operator == '-':
+                        elif operator == "-":
                             result = value1 - value2
-                        elif operator == '*':
+                        elif operator == "*":
                             result = value1 * value2
-                        elif operator == '/':
+                        elif operator == "/":
                             result = value1 / value2
                         else:
                             # it really shouldn't have gotten here because we are only matching the allowed
@@ -154,9 +160,9 @@ class RowwiseValidator(Validator):
                         # If precision is supplied, the "rest" should include this information in the following form:
                         # ':number_of_digits_after_decimal_place'
                         if rest:
-                            if len(rest) > 1 and rest[0] == ':':
+                            if len(rest) > 1 and rest[0] == ":":
                                 precision = int(rest[1:])
-                                result = f'{result:.{precision}f}'
+                                result = f"{result:.{precision}f}"
                             else:
                                 # This means this is malformed
                                 raise ValueError
@@ -178,9 +184,9 @@ class RowwiseValidator(Validator):
         Implemented validate method
         """
 
-        if content_type == 'application/json':
+        if content_type == "application/json":
             data = utils.to_tabular(source)
-        elif content_type == 'text/csv':
+        elif content_type == "text/csv":
             data = utils.reorder_csv(source)
         else:
             raise UnsupportedContentTypeException(content_type, type(self).__name__)
@@ -191,33 +197,49 @@ class RowwiseValidator(Validator):
         for (rn, row) in numbered_rows.items():
 
             # This is to remove the header row
-            if rn == UPLOAD_SETTINGS['OLD_HEADER_ROW']:
+            if rn == UPLOAD_SETTINGS["OLD_HEADER_ROW"]:
                 continue
 
             # Check for columns required by validator
             received_columns = set(headers)
             for rule in self.validator:
-                expected_columns = set(rule['columns'])
+                expected_columns = set(rule["columns"])
                 missing_columns = expected_columns.difference(received_columns)
                 if missing_columns:
-                    output.add_row_error(rn, 'Error', rule.get('error_code'),
-                                         f'Unable to evaluate, missing columns: {missing_columns}', [])
+                    output.add_row_error(
+                        rn,
+                        "Error",
+                        rule.get("error_code"),
+                        f"Unable to evaluate, missing columns: {missing_columns}",
+                        [],
+                    )
                     continue
                 try:
-                    if rule['code'] and not self.invert_if_needed(self.evaluate(rule['code'], row)):
+                    if rule["code"] and not self.invert_if_needed(
+                        self.evaluate(rule["code"], row)
+                    ):
 
-                        output.add_row_error(rn,
-                                             rule.get('severity', 'Error'),
-                                             rule.get('error_code'),
-                                             RowwiseValidator.replace_message(rule.get('message', ''), row),
-                                             [
-                                                k for (idx, k) in enumerate(row.keys())
-                                                if k in rule['columns']
-                                             ]
-                                             )
+                        output.add_row_error(
+                            rn,
+                            rule.get("severity", "Error"),
+                            rule.get("error_code"),
+                            RowwiseValidator.replace_message(
+                                rule.get("message", ""), row
+                            ),
+                            [
+                                k
+                                for (idx, k) in enumerate(row.keys())
+                                if k in rule["columns"]
+                            ],
+                        )
                 except Exception as e:
-                    output.add_row_error(rn, 'Error', rule.get('error_code'),
-                                         f'{type(e).__name__}: {e.args[0]}', [])
+                    output.add_row_error(
+                        rn,
+                        "Error",
+                        rule.get("error_code"),
+                        f"{type(e).__name__}: {e.args[0]}",
+                        [],
+                    )
         return output.get_output()
 
     @abc.abstractmethod

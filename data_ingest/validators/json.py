@@ -1,6 +1,6 @@
-
 from .validator import Validator, UnsupportedContentTypeException
 from .rowwise import RowwiseValidator
+
 
 class JsonlogicValidator(RowwiseValidator):
     def evaluate(self, rule, row):
@@ -14,14 +14,16 @@ class JsonlogicValidatorFailureConditions(JsonlogicValidator):
 
     INVERT_LOGIC = True
 
-class JsonschemaValidator(Validator):
 
+class JsonschemaValidator(Validator):
     def validate(self, source, content_type):
         if content_type != "application/json":
             raise UnsupportedContentTypeException(content_type, type(self).__name__)
 
         # Find the correct version of the validator to use for this schema
-        json_validator = jsonschema.validators.validator_for(self.validator)(self.validator)
+        json_validator = jsonschema.validators.validator_for(self.validator)(
+            self.validator
+        )
 
         # Check the schema to make sure there's no error
         json_validator.check_schema(self.validator)
@@ -35,7 +37,13 @@ class JsonschemaValidator(Validator):
 
         for error in errors:
             if error.path:
-                output.add_row_error(error.path[0], "Error", error.validator, error.message, list(error.path)[1:])
+                output.add_row_error(
+                    error.path[0],
+                    "Error",
+                    error.validator,
+                    error.message,
+                    list(error.path)[1:],
+                )
             else:
                 output.add_row_error(0, "Error", error.validator, error.message, [])
 

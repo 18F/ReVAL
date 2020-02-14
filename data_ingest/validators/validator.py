@@ -20,9 +20,10 @@ def validators():
     :return: Iterator of Validator instances
 
     """
-    for (filename, validator_type) in UPLOAD_SETTINGS['VALIDATORS'].items():
+    for (filename, validator_type) in UPLOAD_SETTINGS["VALIDATORS"].items():
         validator = import_string(validator_type)(
-            name=validator_type, filename=filename)
+            name=validator_type, filename=filename
+        )
         yield validator
 
 
@@ -44,8 +45,11 @@ class UnsupportedException(Exception):
 
 class UnsupportedContentTypeException(UnsupportedException):
     def __init__(self, content_type, validator_name):
-        super(UnsupportedContentTypeException, self).__init__('Content type {} is not supported by {}'
-                                                              .format(content_type, validator_name))
+        super(UnsupportedContentTypeException, self).__init__(
+            "Content type {} is not supported by {}".format(
+                content_type, validator_name
+            )
+        )
         self.content_type = content_type
         self.validator_name = validator_name
 
@@ -155,13 +159,19 @@ class ValidatorOutput:
         # behaviors.  It also means that when using JsonschemaValidator, the row number starts at 0.
 
         # @TODO: Need to revisit this to see if this is the best way to do this
-        rows = self.rows_in_dict.items() if isinstance(self.rows_in_dict, dict) else enumerate(self.rows_in_dict)
+        rows = (
+            self.rows_in_dict.items()
+            if isinstance(self.rows_in_dict, dict)
+            else enumerate(self.rows_in_dict)
+        )
         for (row_number, row_data) in rows:
-            result.append({
-                "row_number": row_number,
-                "errors": self.row_errors.get(row_number, []),
-                "data": row_data
-            })
+            result.append(
+                {
+                    "row_number": row_number,
+                    "errors": self.row_errors.get(row_number, []),
+                    "data": row_data,
+                }
+            )
 
         return result
 
@@ -187,7 +197,9 @@ class ValidatorOutput:
         table["headers"] = self.headers
         table["whole_table_errors"] = self.whole_table_errors
         table["rows"] = self.create_rows()
-        table["valid_row_count"] = [(not row["errors"]) for row in table["rows"]].count(True)
+        table["valid_row_count"] = [(not row["errors"]) for row in table["rows"]].count(
+            True
+        )
         table["invalid_row_count"] = len(table["rows"]) - table["valid_row_count"]
 
         # This needs to evaluate again at some point if this is even possible to run validator for more than
@@ -195,7 +207,9 @@ class ValidatorOutput:
         # even need a list of tables?
         result = {}
         result["tables"] = [table]
-        result["valid"] = (table["invalid_row_count"] == 0) and not table["whole_table_errors"]
+        result["valid"] = (table["invalid_row_count"] == 0) and not table[
+            "whole_table_errors"
+        ]
 
         return result
 
@@ -219,24 +233,33 @@ class ValidatorOutput:
 
         table = {}
         table["headers"] = output1["tables"][0]["headers"]
-        table["whole_table_errors"] = output1['tables'][0]['whole_table_errors'] + \
-            output2['tables'][0]['whole_table_errors']
+        table["whole_table_errors"] = (
+            output1["tables"][0]["whole_table_errors"]
+            + output2["tables"][0]["whole_table_errors"]
+        )
         table["rows"] = []
 
         # Will assume output1 and output2 have the same number of rows, else you will get unexpected behaviors
-        for (row_number, row) in enumerate(output1['tables'][0]['rows']):
-            table["rows"].append({
-                "row_number": row['row_number'],
-                "errors": row['errors'] + output2['tables'][0]['rows'][row_number]['errors'],
-                "data": row['data']
-            })
+        for (row_number, row) in enumerate(output1["tables"][0]["rows"]):
+            table["rows"].append(
+                {
+                    "row_number": row["row_number"],
+                    "errors": row["errors"]
+                    + output2["tables"][0]["rows"][row_number]["errors"],
+                    "data": row["data"],
+                }
+            )
 
-        table["valid_row_count"] = [(not row["errors"]) for row in table["rows"]].count(True)
+        table["valid_row_count"] = [(not row["errors"]) for row in table["rows"]].count(
+            True
+        )
         table["invalid_row_count"] = len(table["rows"]) - table["valid_row_count"]
 
         result = {}
         result["tables"] = [table]
-        result["valid"] = (table["invalid_row_count"] == 0) and not table["whole_table_errors"]
+        result["valid"] = (table["invalid_row_count"] == 0) and not table[
+            "whole_table_errors"
+        ]
 
         return result
 
@@ -246,7 +269,7 @@ class Validator(abc.ABC):
     SUPPORTS_HEADER_OVERRIDE = False
     INVERT_LOGIC = False
 
-    url_pattern = re.compile(r'^\w{3,5}://')
+    url_pattern = re.compile(r"^\w{3,5}://")
 
     def invert_if_needed(self, value):
         """
@@ -272,17 +295,18 @@ class Validator(abc.ABC):
         self.filename = filename
         self.validator = self.get_validator_contents()
 
-        if isinstance(UPLOAD_SETTINGS['STREAM_ARGS']['headers'],
-                      list) and (not self.SUPPORTS_HEADER_OVERRIDE):
+        if isinstance(UPLOAD_SETTINGS["STREAM_ARGS"]["headers"], list) and (
+            not self.SUPPORTS_HEADER_OVERRIDE
+        ):
             raise exceptions.ImproperlyConfigured(
-                "Listing ['STREAM_ARGS']['headers'] not supported by this validator (" +
-                type(self).__name__ + ")"
+                "Listing ['STREAM_ARGS']['headers'] not supported by this validator ("
+                + type(self).__name__
+                + ")"
             )
 
     def load_file(self):
         with open(self.filename) as infile:
-            if self.filename.endswith('.yml') or self.filename.endswith(
-                    '.yaml'):
+            if self.filename.endswith(".yml") or self.filename.endswith(".yaml"):
                 return yaml.safe_load(infile)
             else:
                 return json.load(infile)
@@ -294,14 +318,15 @@ class Validator(abc.ABC):
             if self.url_pattern.search(self.filename):
                 resp = requests.get(self.filename)
                 if resp.ok:
-                    if self.filename.endswith('yml') or self.filename.endswith(
-                            '.yaml'):
+                    if self.filename.endswith("yml") or self.filename.endswith(".yaml"):
                         return yaml.safe_load(resp.text)
                     return resp.json()
                 else:
                     raise exceptions.ImproperlyConfigured(
-                        'validator {} {} returned {}'.format(
-                            self.name, self.filename, resp.status))
+                        "validator {} {} returned {}".format(
+                            self.name, self.filename, resp.status
+                        )
+                    )
             else:
                 return self.load_file()
         return self.filename
@@ -310,16 +335,16 @@ class Validator(abc.ABC):
     def rows_from_source(raw_source):
         source = raw_source.copy()
         try:
-            f_source = io.BytesIO(source['source'])
+            f_source = io.BytesIO(source["source"])
             byteslike = True
         except (TypeError, AttributeError, KeyError):
             byteslike = False
 
         if byteslike:
-            source['source'] = f_source
-            stream = tabulator.Stream(**source, encoding='utf-8')
+            source["source"] = f_source
+            stream = tabulator.Stream(**source, encoding="utf-8")
         else:
-            stream = tabulator.Stream(source, headers=1, encoding='utf-8')
+            stream = tabulator.Stream(source, headers=1, encoding="utf-8")
 
         stream.open()
 
@@ -336,10 +361,10 @@ class Validator(abc.ABC):
         result = OrderedDict()
         for (row_num, headers, vals) in stream.iter(extended=True):
             data = dict(zip(headers, vals))
-            o_data = OrderedDict((h, data.get(h, '')) for h in o_headers)
+            o_data = OrderedDict((h, data.get(h, "")) for h in o_headers)
             result[row_num] = o_data
 
-        return(o_headers, result)
+        return (o_headers, result)
 
     @abc.abstractmethod
     def validate(self, source, content_type):
