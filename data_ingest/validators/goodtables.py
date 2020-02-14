@@ -2,7 +2,12 @@ import io
 
 import goodtables
 
-from .validator import Validator, ValidatorOutput, UnsupportedContentTypeException
+from .validator import (
+    Validator,
+    ValidatorOutput,
+    UnsupportedException,
+    UnsupportedContentTypeException,
+)
 from .. import utils
 
 

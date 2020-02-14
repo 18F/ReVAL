@@ -1,10 +1,14 @@
 import abc
 import re
 from decimal import Decimal, InvalidOperation
+from django.core import exceptions
 
-import tabulator
-
-from .validator import Validator, ValidatorOutput, UnsupportedContentTypeException
+from .validator import (
+    Validator,
+    ValidatorOutput,
+    UnsupportedException,
+    UnsupportedContentTypeException,
+)
 from ..ingest_settings import UPLOAD_SETTINGS
 from .. import utils
 

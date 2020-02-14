@@ -1,12 +1,10 @@
+import io
 import csv
 import json
 import logging
 import os.path
-import sqlite3
 import urllib.parse
 
-import json_logic
-import jsonschema
 import requests
 import tabulator
 import yaml
@@ -14,13 +12,14 @@ from django.conf import settings
 from django.core import exceptions, files
 from django.utils.module_loading import import_string
 
+# forward imports
 from .validators.goodtables import GoodtablesValidator
 from .validators.rowwise import RowwiseValidator
 from .validators.json import JsonlogicValidator, JsonlogicValidatorFailureConditions, JsonschemaValidator
 from .validators.sql import SqlValidator, SqlValidatorFailureConditions
 from .validators.validator import ValidatorOutput, UnsupportedContentTypeException, apply_validators_to
+
 from .ingest_settings import UPLOAD_SETTINGS
-from . import utils
 
 logger = logging.getLogger(__name__)
 

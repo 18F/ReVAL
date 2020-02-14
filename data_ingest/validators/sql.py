@@ -1,3 +1,5 @@
+import sqlite3
+
 from .rowwise import RowwiseValidator
 
 
