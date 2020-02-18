@@ -11,7 +11,7 @@ logger = logging.getLogger('ReVAL')
 def get_schema_headers():
     ordered_header = []
 
-    good_table_validator = 'data_ingest.ingestors.validators.GoodtablesValidator'
+    good_table_validator = 'data_ingest.ingestors.GoodtablesValidator'
     schema = [loc for loc, val_type in UPLOAD_SETTINGS['VALIDATORS'].items()
               if val_type == good_table_validator and loc is not None]
     if schema:
