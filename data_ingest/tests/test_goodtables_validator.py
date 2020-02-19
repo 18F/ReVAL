@@ -4,7 +4,7 @@ from json import dumps
 
 # This ingest_settings file is imported because there was a weird order that this needs to be imported before
 # ingestor so that it will not run into a data_ingest.ingestors.Ingestor not found when importing Ingestor
-import data_ingest.ingest_settings
+import data_ingest.ingest_settings  # noqa: F401
 from data_ingest.ingestors import (
     GoodtablesValidator,
     UnsupportedContentTypeException,

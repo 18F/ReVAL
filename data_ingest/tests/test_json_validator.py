@@ -4,7 +4,7 @@ from json import dumps
 
 # This ingest_settings file is imported because there was a weird order that this needs to be imported before
 # ingestor so that it will not run into a data_ingest.ingestors.Ingestor not found when importing Ingestor
-import data_ingest.ingest_settings
+import data_ingest.ingest_settings  # noqa: F401
 from data_ingest.ingestors import (
     JsonschemaValidator,
     JsonlogicValidator,
@@ -14,7 +14,7 @@ from data_ingest.ingestors import (
 
 class TestJsonlogicValidator(SimpleTestCase):
 
-    csv_rule = dumps({"fields": [{"name": "category"},]})
+    csv_rule = dumps({"fields": [{"name": "category"}]})
 
     @patch("builtins.open", new_callable=mock_open, read_data=csv_rule)
     def test_validate_blank_csv(self, mock_file):
