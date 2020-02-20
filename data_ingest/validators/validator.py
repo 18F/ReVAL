@@ -268,6 +268,13 @@ class ValidatorOutput:
         return result
 
 
+# Inherit this `Validator` class to create a new validator. Note that
+# the `validate` method must return a dictionary corresponding to the
+# structure of `ValidatorOutput.get_output`.
+#
+# You may also toggle the SUPPORTS_HEADER_OVERRIDE (ignore any
+# configured headers) and INVERT_LOGIC (apply a `not` operation to the
+# results) boolean options.
 class Validator(abc.ABC):
 
     SUPPORTS_HEADER_OVERRIDE = False
