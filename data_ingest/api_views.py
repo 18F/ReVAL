@@ -16,9 +16,17 @@ logger = logging.getLogger('ReVAL')
 class UploadViewSet(viewsets.ModelViewSet):
     """
     """
-    queryset = ingest_settings.upload_model_class.objects.all().order_by(
-        'created_at')
+    queryset = ingest_settings.upload_model_class.objects.exclude(status='DELETED').order_by('-created_at')
     serializer_class = UploadSerializer
+    parser_classes = [JSONParser, CsvParser]
+
+    def perform_destroy(self, instance):
+        """
+        Overridden method. Do not actually delete the instance; instead
+        set the instance status to DELETED.
+        """
+        instance.status = 'DELETED'
+        instance.save()
 
 
 @csrf_exempt

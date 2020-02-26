@@ -29,7 +29,6 @@ class Upload(models.Model):
         ('INSERTED', 'Inserted'),
         ('DELETED', 'Deleted'),
     )
-    _MAX_N_DESCRIPTIVE_FIELDS = 4
 
     submitter = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -79,7 +78,7 @@ class Upload(models.Model):
             return ""
 
     def descriptive_fields(self):
-        return self.file_metadata or {'File Name': self.file.name}
+        return self.file_metadata or {'file_name': self.file.name}
 
 
 class DefaultUpload(Upload):
