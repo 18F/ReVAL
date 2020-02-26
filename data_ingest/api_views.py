@@ -15,6 +15,7 @@ logger = logging.getLogger("ReVAL")
 
 class UploadViewSet(viewsets.ModelViewSet):
     """
+    Implements a REST API around `upload_model_class`.
     """
 
     queryset = ingest_settings.upload_model_class.objects.exclude(
