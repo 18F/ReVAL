@@ -13,26 +13,26 @@ User = get_user_model()
 
 class ApiValidateTests(APITestCase):
 
-    fixtures = ['test_data.json']
+    fixtures = ["test_data.json"]
 
     def test_api_validate_json_empty_no_token(self):
         """
         Ensure it is unauthorized when we post to the API for validation without a token.
         """
-        url = reverse('validate')
+        url = reverse("validate")
         data = []
-        response = self.client.post(url, data, content_type='application/json')
+        response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_api_validate_json_empty_with_token(self):
         """
         Ensure we can post to the API for validation with a token.
         """
-        url = reverse('validate')
+        url = reverse("validate")
         data = []
         token = "this1s@t0k3n"
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
-        response = self.client.post(url, data, content_type='application/json')
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_api_delete_instance(self):
@@ -46,16 +46,16 @@ class ApiValidateTests(APITestCase):
         view = UploadViewSet()
         view.basename = router.get_default_basename(UploadViewSet)
         view.request = None
-        url = view.reverse_action('detail', args=[instance.pk])
+        url = view.reverse_action("detail", args=[instance.pk])
         data = []
         token = "this1s@t0k3n"
-        self.assertEqual(instance.status, 'LOADING')
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
-        response = self.client.delete(url, data, content_type='application/json')
+        self.assertEqual(instance.status, "LOADING")
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.delete(url, data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(DefaultUpload.objects.count(), 1)
         instance = DefaultUpload.objects.first()
-        self.assertEqual(instance.status, 'DELETED')
+        self.assertEqual(instance.status, "DELETED")
 
     def test_api_delete_404(self):
         """
@@ -64,9 +64,9 @@ class ApiValidateTests(APITestCase):
         view = UploadViewSet()
         view.basename = router.get_default_basename(UploadViewSet)
         view.request = None
-        url = view.reverse_action('detail', args=['99'])
+        url = view.reverse_action("detail", args=["99"])
         data = []
         token = "this1s@t0k3n"
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
-        response = self.client.delete(url, data, content_type='application/json')
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.delete(url, data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

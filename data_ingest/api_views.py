@@ -10,13 +10,16 @@ from .permissions import IsAuthenticatedWithLogging
 from .serializers import UploadSerializer
 
 
-logger = logging.getLogger('ReVAL')
+logger = logging.getLogger("ReVAL")
 
 
 class UploadViewSet(viewsets.ModelViewSet):
     """
     """
-    queryset = ingest_settings.upload_model_class.objects.exclude(status='DELETED').order_by('-created_at')
+
+    queryset = ingest_settings.upload_model_class.objects.exclude(
+        status="DELETED"
+    ).order_by("-created_at")
     serializer_class = UploadSerializer
     parser_classes = [JSONParser, CsvParser]
 
@@ -25,12 +28,12 @@ class UploadViewSet(viewsets.ModelViewSet):
         Overridden method. Do not actually delete the instance; instead
         set the instance status to DELETED.
         """
-        instance.status = 'DELETED'
+        instance.status = "DELETED"
         instance.save()
 
 
 @csrf_exempt
-@decorators.api_view(['POST'])
+@decorators.api_view(["POST"])
 @decorators.parser_classes((JSONParser, CsvParser))
 @decorators.authentication_classes([TokenAuthenticationWithLogging])
 @decorators.permission_classes([IsAuthenticatedWithLogging])
