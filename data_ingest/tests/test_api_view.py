@@ -70,3 +70,23 @@ class ApiValidateTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
         response = self.client.delete(url, data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_api_create_example(self):
+        pass
+
+    def test_api_create_empty(self):
+        pass
+
+    def test_api_create_error_handling(self):
+        """
+        Make sure we handle malformed input when creating an instance.
+        """
+        view = UploadViewSet()
+        view.basename = router.get_default_basename(UploadViewSet)
+        view.request = None
+        url = view.reverse_action("list", args=[])
+        data = []
+        token = "this1s@t0k3n"
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
