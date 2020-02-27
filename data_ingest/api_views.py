@@ -29,10 +29,9 @@ class UploadViewSet(viewsets.ModelViewSet):
         """
         Create a `upload_model_class`. Submitter id will be stored with
         this model. Validation errors, if any, will also be stored
-        with this model. If validation is successful, the object
-        status is set to STAGING, otherwise LOADING.
+        with this model. The object status is set to LOADING by default.
         """
-        data = request.data
+        data = request.data or {}
         data["submitter"] = request.user.id
 
         serializer = self.get_serializer(data=data)
@@ -51,7 +50,6 @@ class UploadViewSet(viewsets.ModelViewSet):
         try:
             result = ingestors.apply_validators_to(data, request.content_type)
             instance.validation_results = result
-            instance.status = 'STAGED' if result["valid"] else 'LOADING'
             instance.save()
         except AttributeError:
             message = {"error": "unexpected input"}

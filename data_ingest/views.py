@@ -110,6 +110,7 @@ def upload(request, replace_upload_id=None, **kwargs):
                 file_metadata=metadata,
                 raw=form.cleaned_data["file"].read(),
             )
+            # TODO what is file_metadata and raw?
             instance.save()
             if replace_upload_id is None:
                 replace_upload = instance.duplicate_of()
