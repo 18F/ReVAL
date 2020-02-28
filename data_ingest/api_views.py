@@ -8,6 +8,7 @@ from .parsers import CsvParser
 from .permissions import IsAuthenticatedWithLogging
 from .serializers import UploadSerializer
 
+import json
 import logging
 
 
@@ -32,6 +33,7 @@ class UploadViewSet(viewsets.ModelViewSet):
         with this model. The object status is set to LOADING by default.
         """
         data = request.data or {}
+        data["raw"] = request.data
         data["submitter"] = request.user.id
 
         serializer = self.get_serializer(data=data)
@@ -45,7 +47,8 @@ class UploadViewSet(viewsets.ModelViewSet):
             message = {"error": str(error)}
             return response.Response(message, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # we don't want to validate the submitter datum
+        # we don't want to validate the `raw` or `submitter` fields
+        data.pop("raw")
         data.pop("submitter")
         try:
             result = ingestors.apply_validators_to(data, request.content_type)
