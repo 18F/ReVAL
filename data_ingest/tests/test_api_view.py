@@ -31,6 +31,7 @@ class ApiValidateTests(APITestCase):
         Ensure we can post to the API for validation with a token.
         """
         url = reverse("validate")
+        data = {'source': b"[]"}
         data = []
         token = "this1s@t0k3n"
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
@@ -68,6 +69,7 @@ class ApiValidateTests(APITestCase):
         view.request = None
         url = view.reverse_action("detail", args=["99"])
         data = []
+        url = reverse('validate')
         token = "this1s@t0k3n"
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
         response = self.client.delete(url, data, content_type="application/json")
