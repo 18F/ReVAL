@@ -8,7 +8,6 @@ from .parsers import CsvParser
 from .permissions import IsAuthenticatedWithLogging
 from .serializers import UploadSerializer
 
-import json
 import logging
 
 
@@ -32,8 +31,14 @@ class UploadViewSet(viewsets.ModelViewSet):
         this model. Validation errors, if any, will also be stored
         with this model. The object status is set to LOADING by default.
         """
-        data = request.data or {}
+        data = request.data.copy() or {}
         data["raw"] = request.data
+        # metadata: include all but the uploaded file information
+        data["file_metadata"] = {
+            k: v
+            for k, v in request.data.items()
+            if k not in ["source", "format", "headers"]
+        }
         data["submitter"] = request.user.id
 
         serializer = self.get_serializer(data=data)
@@ -45,13 +50,14 @@ class UploadViewSet(viewsets.ModelViewSet):
             instance = serializer.save()
         except IntegrityError as error:
             message = {"error": str(error)}
-            return response.Response(message, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return response.Response(
+                message, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-        # we don't want to validate the `raw` or `submitter` fields
-        data.pop("raw")
-        data.pop("submitter")
         try:
-            result = ingestors.apply_validators_to(data, request.content_type)
+            # note that we use the original request.data here, since
+            # the serializer instance is augmented with other derived fields
+            result = ingestors.apply_validators_to(request.data, request.content_type)
             instance.validation_results = result
             instance.save()
         except AttributeError:

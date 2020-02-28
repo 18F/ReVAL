@@ -115,9 +115,7 @@ class ApiValidateTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        parse_error = "JSON parse error - Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
         self.assertEqual(
-            json.loads(response.content),
-            {
-                "detail": "JSON parse error - Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
-            },
+            json.loads(response.content), {"detail": parse_error},
         )
