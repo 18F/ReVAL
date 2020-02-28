@@ -1,4 +1,5 @@
 import csv
+import json
 import io
 import logging
 from collections import OrderedDict
@@ -53,8 +54,15 @@ def to_tabular(incoming):
     are data rows containing data values in the order of headers defined
     in the first row.
     """
+    if incoming.get('source') is None:
+        return incoming
+
+    data = incoming.copy()
+
+    jsonbuffer = json.loads(data['source'].decode('UTF-8'))
+
     headers = set()
-    for row in incoming:
+    for row in jsonbuffer:
         for header in row.keys():
             headers.add(header)
 
@@ -63,7 +71,7 @@ def to_tabular(incoming):
     o_headers = get_ordered_headers(headers)
 
     output = [o_headers]
-    for row in incoming:
+    for row in jsonbuffer:
         row_data = []
         for header in o_headers:
             logger.debug(f"Fetching: {header}")
