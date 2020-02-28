@@ -102,6 +102,31 @@ class ApiValidateTests(APITestCase):
         self.assertEqual(result["tables"][0]["valid_row_count"], 2)
         self.assertEqual(result["tables"][0]["whole_table_errors"], [])
 
+    def test_api_create_json_example(self):
+        view = UploadViewSet()
+        view.basename = router.get_default_basename(UploadViewSet)
+        view.request = None
+        url = view.reverse_action("list", args=[])
+        data = json.dumps(
+            {
+                "source": [
+                    {"name": "Guido", "title": "BDFL", "level": 20},
+                    {"name": "Catherine", "level": 9},
+                    {"name": "Tony", "title": "Engineer", "level": 20},
+                ]
+            }
+        )
+        token = "this1s@t0k3n"
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = json.loads(response.content)
+        self.assertFalse(result["valid"])
+        self.assertEqual(len(result["tables"]), 1)
+        self.assertEqual(result["tables"][0]["invalid_row_count"], 1)
+        self.assertEqual(result["tables"][0]["valid_row_count"], 2)
+        self.assertEqual(result["tables"][0]["whole_table_errors"], [])
+
     def test_api_create_error_handling(self):
         """
         Make sure we handle malformed input when creating an instance.
