@@ -14,7 +14,7 @@ jobs:
         environment:
           POSTGRES_USER: root
           POSTGRES_DB: test_data_ingest
-          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_PASSWORD: test_data_password
 
     steps:
       - checkout
