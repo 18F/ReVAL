@@ -25,18 +25,16 @@ class UploadViewSet(viewsets.ModelViewSet):
     serializer_class = UploadSerializer
     parser_classes = [JSONParser, CsvParser]
 
-    # TODO test
     @decorators.action(detail=True, methods=["POST"])
     def stage(self, request, pk=None):
-        upload = get_object_or_404(UploadViewSet.queryset, pk=pk)
+        upload = self.get_object()
         upload.status = "STAGED"
         upload.save()
         if upload.replaces:
             upload.replaces.status = "DELETED"
             upload.replaces.save()
-        return response.Response({})
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
 
-    # TODO test
     @decorators.action(detail=True, methods=["POST"])
     def insert(self, request, pk=None):
         upload = get_object_or_404(UploadViewSet.queryset, pk=pk)
