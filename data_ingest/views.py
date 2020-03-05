@@ -2,10 +2,36 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views.generic import DetailView, ListView
+from django.http import Http404
+from rest_framework.exceptions import APIException
+from rest_framework import status
 
+from .api_views import UploadViewSet
 from . import ingest_settings
 
 UploadModel = ingest_settings.upload_model_class
+
+
+def call_api(request, what, pk=None):
+    """
+    Proxy a call to the internal API.
+
+    :param request: The current HttpRequest object.
+    :param what: The viewset action to invoke on the API ("list",
+      "create", "retrieve", "update", "partial_update", or "destroy")
+    :param pk: the given id, not applicable if action is "list" or "create"
+    :raises: Http404 if object is not found, APIException if non 2xx or 404.
+    """
+    method = request.method.lower()
+    func = UploadViewSet.as_view({method: what})
+    api_response = func(request, pk=pk)
+    if status.is_success(api_response.status_code):
+        return
+    if api_response.status_code == 404:
+        raise Http404(api_response.reason_phrase)
+    # we most likely have an internal API error here.
+    error = f"API returned {api_response.status_code}: {api_response.reason_phrase}"
+    raise APIException(error)
 
 
 class UploadList(LoginRequiredMixin, ListView):
@@ -49,17 +75,9 @@ def replace_upload(request, old_upload_id, new_upload_id):
     return validate(new_upload)
 
 
-def _delete_upload(upload_id):
-
-    upload = UploadModel.objects.get(pk=upload_id)
-    upload.status = 'DELETED'
-    upload.save()
-
-
 @login_required
 def delete_upload(request, upload_id):
-
-    _delete_upload(upload_id)
+    call_api(request, "destroy", pk=upload_id)
     return redirect('index')
 
 
@@ -99,7 +117,7 @@ def upload(request, replace_upload_id=None, **kwargs):
                     return redirect('duplicate-upload', replace_upload.id,
                                     instance.id)
             else:
-                _delete_upload(int(replace_upload_id))
+                call_api(request, "destroy", pk=int(replace_upload_id))
 
             return validate(instance)
 
