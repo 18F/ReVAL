@@ -25,6 +25,32 @@ class UploadViewSet(viewsets.ModelViewSet):
     serializer_class = UploadSerializer
     parser_classes = [JSONParser, CsvParser]
 
+    # TODO test
+    @decorators.action(detail=True, methods=["POST"])
+    def stage(self, request, pk=None):
+        upload = get_object_or_404(UploadViewSet.queryset, pk=pk)
+        upload.status = "STAGED"
+        upload.save()
+        if upload.replaces:
+            upload.replaces.status = "DELETED"
+            upload.replaces.save()
+        return response.Response({})
+
+    # TODO test
+    @decorators.action(detail=True, methods=["POST"])
+    def insert(self, request, pk=None):
+        upload = get_object_or_404(UploadViewSet.queryset, pk=pk)
+        if upload.status != "STAGED":
+            message = {
+                "error": f"expected status 'STAGED', got status '{upload.status}'"
+            }
+            return response.Response(message, status=status.HTTP_400_BAD_REQUEST)
+        ingestor = ingest_settings.ingestor_class(upload)
+        ingestor.insert()
+        upload.status = "INSERTED"
+        upload.save()
+        return response.Response({})
+
     def create(self, request, *args, **kwargs):
         """
         Create a `upload_model_class`. Submitter id will be stored with
