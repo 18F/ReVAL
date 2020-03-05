@@ -37,7 +37,7 @@ class UploadViewSet(viewsets.ModelViewSet):
 
     @decorators.action(detail=True, methods=["POST"])
     def insert(self, request, pk=None):
-        upload = get_object_or_404(UploadViewSet.queryset, pk=pk)
+        upload = self.get_object()
         if upload.status != "STAGED":
             message = {
                 "error": f"expected status 'STAGED', got status '{upload.status}'"
@@ -47,7 +47,7 @@ class UploadViewSet(viewsets.ModelViewSet):
         ingestor.insert()
         upload.status = "INSERTED"
         upload.save()
-        return response.Response({})
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
 
     def create(self, request, *args, **kwargs):
         """

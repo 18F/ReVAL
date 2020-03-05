@@ -179,3 +179,49 @@ class ApiValidateTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         second_instance = DefaultUpload.objects.get(pk=second_instance.pk)
         self.assertEqual(second_instance.status, "DELETED")
+
+    def test_api_insert_404(self):
+        """
+        Make sure we cannot insert a non-existent instance.
+        """
+        url = self.get_url("insert", args=["99"])
+        data = []
+        token = "this1s@t0k3n"
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_api_insert_not_staged(self):
+        """
+        Attempt to insert a non-staged instance.
+        """
+        instance = self.create_instance()
+        url = self.get_url("insert", args=[instance.pk])
+        data = []
+        token = "this1s@t0k3n"
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        error = json.loads(response.content)
+        self.assertEqual(
+            error["error"], "expected status 'STAGED', got status 'LOADING'"
+        )
+
+    def test_api_insert_success(self):
+        """
+        Attempt to insert a staged instance.
+        """
+        instance = self.create_instance()
+        # stub out fake validation results
+        instance.validation_results = {"tables": [{"rows": []}]}
+        instance.file_metadata = {}
+        instance.status = "STAGED"
+        instance.save()
+        url = self.get_url("insert", args=[instance.pk])
+        data = []
+        token = "this1s@t0k3n"
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        instance = DefaultUpload.objects.get(pk=instance.pk)
+        self.assertEqual(instance.status, "INSERTED")
