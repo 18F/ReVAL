@@ -1,18 +1,17 @@
-API
-===
+# API
 
 Some operations are available via a RESTful API.
 
-List uploads
-------------
+## Upload endpoints
 
 `GET` to `/data_ingest/api/` for a list of all uploads.
+`DELETE` to `/data_ingest/api/:id` to delete an upload with the id `:id`.
+    - Will return 204 (no content) on success, 404 (not found) otherwise.
 
-Validate
---------
+## Validate endpoint
 
 `POST` to `/data_ingest/api/validate/` to apply your app's validator
-to a payload.  This will not insert the rows, but will provide 
+to a payload.  This will not insert the rows, but will provide
 error information.
 
 This endpoint requires a token to authenticate.  Admin should be able to log into the admin page from a web browser
@@ -20,7 +19,9 @@ at `/admin/` and under "Authentication And Authorization" -> "Users", click on "
 After a user has been added, they can obtain the token to authenticate.
 
 ### Obtain Token
+
 `POST` to `/data_ingest/api/api-token-auth` to get the token for authentication.
+
 ```bash
 curl -X POST \
 -F username=<replace with what the admin gives you> \
