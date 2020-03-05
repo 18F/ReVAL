@@ -36,7 +36,7 @@ TEMPLATES = [
 DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'test_ingestor',
+            'NAME': 'test_data_ingest',
         }
     }
 

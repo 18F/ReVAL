@@ -12,8 +12,8 @@ jobs:
 
       - image: circleci/postgres:10
         environment:
-          POSTGRES_USER: postgres
-          POSTGRES_DB: data_ingest
+          POSTGRES_USER: root
+          POSTGRES_DB: test_data_ingest
           POSTGRES_HOST_AUTH_METHOD: trust
 
     steps:
