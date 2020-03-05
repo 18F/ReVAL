@@ -37,8 +37,10 @@ DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'test_data_ingest',
-            'USER': 'root',
+            'USER': 'postgres',
             'PASSWORD': 'test_data_password',
+            'HOST': 'localhost',
+            'PORT': '5432',
         }
     }
 
