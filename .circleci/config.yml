@@ -7,7 +7,7 @@ jobs:
         environment:
           TZ: America/New_York
           PIPENV_VENV_IN_PROJECT: "TRUE"
-          DATABASE_URL: postgres://postgres@localhost/data_ingest
+          DATABASE_URL: postgresql://root@localhost/test_data_ingest?sslmode=disable
           CI_TESTING: "TRUE"
 
       - image: circleci/postgres:10
