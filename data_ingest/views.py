@@ -170,5 +170,5 @@ def insert(request, upload_id):
     try:
         Api.call(request, "insert", pk=upload_id)
         return redirect("index")
-    except APIException as e:
+    except APIException:
         return redirect("upload-detail", upload_id)
