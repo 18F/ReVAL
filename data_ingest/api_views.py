@@ -27,6 +27,11 @@ class UploadViewSet(viewsets.ModelViewSet):
 
     @decorators.action(detail=True, methods=["POST"])
     def stage(self, request, pk=None):
+        """
+        Custom API action to stage (complete the upload of) an
+        `upload_model_class` instance. The most previous upload (if
+        any) will be marked as deleted.
+        """
         upload = self.get_object()
         upload.status = "STAGED"
         upload.save()
@@ -37,6 +42,10 @@ class UploadViewSet(viewsets.ModelViewSet):
 
     @decorators.action(detail=True, methods=["POST"])
     def insert(self, request, pk=None):
+        """
+        Custom API action to insert an `upload_model_class` instance. The
+        instance must already be staged.
+        """
         upload = self.get_object()
         if upload.status != "STAGED":
             message = {
