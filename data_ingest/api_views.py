@@ -58,6 +58,27 @@ class UploadViewSet(viewsets.ModelViewSet):
         upload.save()
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
+    # TODO equivalent of replace
+    # TODO must set upload.replaces
+    # TODO must validate
+    def update(self, request, pk=None):
+        """
+        Replace a pre-existing `upload_model_class`. Validation errors, if
+        any, will be stored with this model and validation results
+        will be returned.
+        """
+        upload = self.get_object()
+        # TODO create
+        pass
+
+    # TODO must validate
+    def partial_update(self, request, pk=None):
+        """
+        Update the `upload_model_class` and re-validate.
+        """
+        upload = self.get_object()
+        pass
+
     def create(self, request, *args, **kwargs):
         """
         Create a `upload_model_class`. Submitter id will be stored with
