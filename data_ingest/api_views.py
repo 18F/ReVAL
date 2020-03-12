@@ -69,8 +69,9 @@ class UploadViewSet(viewsets.ModelViewSet):
 
     def partial_update(self, request, pk=None):
         """
-        Replace the `upload_model_class` and re-validate. The previous
-        instance will not be saved.
+        Replace the `upload_model_class`. The previous instance will not
+        be saved. Validation errors, if any, will be stored with this
+        model and validation results will be returned.
         """
         upload = self.get_object()
         return self._process_upload_model_class(request, existing_instance=upload, replace=True)
@@ -91,8 +92,13 @@ class UploadViewSet(viewsets.ModelViewSet):
         instance.status = "DELETED"
         instance.save()
 
-    # TODO test with id=foo
     def _process_upload_model_class(self, request, existing_instance=None, replace=False):
+        """
+        Process an `upload_model_class` instance by validating the request
+        data. If `existing_instance` is given, it may be replaced
+        in-place (if `replace` is True) or saved as a previous
+        instance of the `upload_model_class` (if `replace` is False).
+        """
         data = request.data.copy() or {}
         data["raw"] = request.data
         # metadata: include all but the uploaded file information
@@ -125,6 +131,7 @@ class UploadViewSet(viewsets.ModelViewSet):
             # the serializer instance is augmented with other derived fields
             result = ingestors.apply_validators_to(request.data, request.content_type)
             instance.validation_results = result
+            instance.status = "LOADING"
             instance.save()
         except AttributeError:
             message = {"error": "unexpected input"}
