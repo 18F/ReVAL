@@ -19,7 +19,7 @@ class ApiValidateTests(APITestCase):
 
     def create_instance(self, count=1):
         """
-        Create an `DefaultUpload` instance for testing.
+        Helper function: Create an `DefaultUpload` instance.
         """
         submitter = User.objects.first()
         DefaultUpload(submitter_id=submitter.pk).save()
@@ -27,6 +27,9 @@ class ApiValidateTests(APITestCase):
         return DefaultUpload.objects.first()
 
     def get_url(self, what, args=None):
+        """
+        Helper function: get an url from the upload API.
+        """
         view = UploadViewSet()
         view.basename = router.get_default_basename(UploadViewSet)
         view.request = None
@@ -80,6 +83,9 @@ class ApiValidateTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_api_create_empty(self):
+        """
+        Make sure we can create an empty (trivial) validated object.
+        """
         url = self.get_url("list")
         data = b"header1,header2,header3"
         token = "this1s@t0k3n"
@@ -89,6 +95,9 @@ class ApiValidateTests(APITestCase):
         self.assertTrue(json.loads(response.content)["valid"])
 
     def test_api_create_csv_example(self):
+        """
+        Make sure we can upload CSV data and get validation errors.
+        """
         url = self.get_url("list")
         data = b'"Name","Title","level"\n"Guido","BDFL",20\n\n"Catherine",,9,"DBA"\n,\n"Tony","Engineer",10\n'
         token = "this1s@t0k3n"
@@ -103,6 +112,9 @@ class ApiValidateTests(APITestCase):
         self.assertEqual(result["tables"][0]["whole_table_errors"], [])
 
     def test_api_create_json_example(self):
+        """
+        Make sure we can upload JSON and get validation errors.
+        """
         url = self.get_url("list")
         data = json.dumps(
             {
@@ -225,3 +237,31 @@ class ApiValidateTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         instance = DefaultUpload.objects.get(pk=instance.pk)
         self.assertEqual(instance.status, "INSERTED")
+
+    def test_api_in_place_replace_404(self):
+        """
+        Make sure we cannot patch a non-existent instance.
+        """
+        url = self.get_url("detail", args=["99"])
+        data = []
+        token = "this1s@t0k3n"
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.patch(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_api_in_place_replace(self):
+        pass
+
+    def test_api_replace_404(self):
+        """
+        Make sure we cannot replace a non-existent instance.
+        """
+        url = self.get_url("detail", args=["99"])
+        data = []
+        token = "this1s@t0k3n"
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_api_replace(self):
+        pass
