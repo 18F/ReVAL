@@ -249,8 +249,52 @@ class ApiValidateTests(APITestCase):
         response = self.client.patch(url, data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_api_in_place_replace(self):
-        pass
+    def test_api_in_place_replace_bad_data(self):
+        """
+        Make sure we can do a in-place replacement with bad data.
+        """
+        instance = self.create_instance()
+        url = self.get_url("detail", args=[instance.pk])
+        data = "{foo}"
+        token = "this1s@t0k3n"
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.patch(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        parse_error = "JSON parse error - Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+        self.assertEqual(
+            json.loads(response.content), {"detail": parse_error},
+        )
+        self.assertEqual(DefaultUpload.objects.count(), 1)
+
+    def test_api_in_place_replace_good_data(self):
+        """
+        Make sure we can do a in-place replacement with valid data.
+        """
+        instance = self.create_instance()
+        self.assertEqual(instance.validation_results, None)
+        url = self.get_url("detail", args=[instance.pk])
+        data = json.dumps(
+            {
+                "source": [
+                    {"name": "Guido", "title": "BDFL", "level": 20},
+                    {"name": "Catherine", "level": 9},
+                    {"name": "Tony", "title": "Engineer", "level": 20},
+                ]
+            }
+        )
+        token = "this1s@t0k3n"
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.patch(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = json.loads(response.content)
+        self.assertFalse(result["valid"])
+        self.assertEqual(len(result["tables"]), 1)
+        self.assertEqual(result["tables"][0]["invalid_row_count"], 1)
+        self.assertEqual(result["tables"][0]["valid_row_count"], 2)
+        self.assertEqual(result["tables"][0]["whole_table_errors"], [])
+        self.assertEqual(DefaultUpload.objects.count(), 1)
+        instance = DefaultUpload.objects.get(pk=instance.pk)
+        self.assertEqual(instance.validation_results, None)
 
     def test_api_replace_404(self):
         """
@@ -264,4 +308,25 @@ class ApiValidateTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_api_replace(self):
-        pass
+        """
+        Make sure we can do a replacement and that the previous instance
+        is stored in `replaces`.
+        """
+        instance = self.create_instance()
+        self.assertEqual(instance.validation_results, None)
+        url = self.get_url("detail", args=[instance.pk])
+        data = b'"Name","Title","level"\n"Guido","BDFL",20\n\n"Catherine",,9,"DBA"\n,\n"Tony","Engineer",10\n'
+        token = "this1s@t0k3n"
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
+        response = self.client.put(url, data, content_type="text/csv")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = json.loads(response.content)
+        self.assertFalse(result["valid"])
+        self.assertEqual(len(result["tables"]), 1)
+        self.assertEqual(result["tables"][0]["invalid_row_count"], 3)
+        self.assertEqual(result["tables"][0]["valid_row_count"], 2)
+        self.assertEqual(result["tables"][0]["whole_table_errors"], [])
+        self.assertEqual(DefaultUpload.objects.count(), 2)
+        instance = DefaultUpload.objects.get(pk=instance.pk)
+        self.assertEqual(instance.validation_results, None)
+        self.assertNotEqual(instance.replaces, None)
