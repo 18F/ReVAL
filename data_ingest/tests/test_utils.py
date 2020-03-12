@@ -1,5 +1,6 @@
 from django.test import SimpleTestCase
 from unittest.mock import patch
+import json
 
 from data_ingest.utils import (
   get_schema_headers,
@@ -65,7 +66,7 @@ class TestJSONtoTable(SimpleTestCase):
         data = [{'col1': 1, "col2": 2, "col4": 4}, {'col1': 1, "col3": 3}]
         columns = ["col1", "col2", "col3"]
 
-        result = to_tabular(data)
+        result = to_tabular({"source": json.dumps(data).encode('UTF-8')})
         for col in columns:
             self.assertIn(col, result[0])
 

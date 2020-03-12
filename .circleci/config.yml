@@ -7,13 +7,14 @@ jobs:
         environment:
           TZ: America/New_York
           PIPENV_VENV_IN_PROJECT: "TRUE"
-          DATABASE_URL: postgres://postgres@localhost/data_ingest
+          DATABASE_URL: postgresql://postgres@localhost/test_data_ingest?sslmode=disable
           CI_TESTING: "TRUE"
 
       - image: circleci/postgres:10
         environment:
           POSTGRES_USER: postgres
-          POSTGRES_DB: data_ingest
+          POSTGRES_DB: test_data_ingest
+          POSTGRES_PASSWORD: test_data_password
 
     steps:
       - checkout

@@ -35,7 +35,12 @@ TEMPLATES = [
 
 DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'test_data_ingest',
+            'USER': 'postgres',
+            'PASSWORD': 'test_data_password',
+            'HOST': 'localhost',
+            'PORT': '5432',
         }
     }
 
