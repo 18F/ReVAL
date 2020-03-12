@@ -294,7 +294,15 @@ class ApiValidateTests(APITestCase):
         self.assertEqual(result["tables"][0]["whole_table_errors"], [])
         self.assertEqual(DefaultUpload.objects.count(), 1)
         instance = DefaultUpload.objects.get(pk=instance.pk)
-        self.assertEqual(instance.validation_results, None)
+        # make sure the saved validation results are the same as what
+        # is returned via the API
+        result = instance.validation_results
+        self.assertFalse(result["valid"])
+        self.assertEqual(len(result["tables"]), 1)
+        self.assertEqual(result["tables"][0]["invalid_row_count"], 1)
+        self.assertEqual(result["tables"][0]["valid_row_count"], 2)
+        self.assertEqual(result["tables"][0]["whole_table_errors"], [])
+        self.assertEqual(DefaultUpload.objects.count(), 1)
 
     def test_api_replace_404(self):
         """

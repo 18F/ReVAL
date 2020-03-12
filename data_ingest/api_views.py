@@ -74,7 +74,9 @@ class UploadViewSet(viewsets.ModelViewSet):
         model and validation results will be returned.
         """
         upload = self.get_object()
-        return self._process_upload_model_class(request, existing_instance=upload, replace=True)
+        return self._process_upload_model_class(
+            request, existing_instance=upload, replace=True
+        )
 
     def create(self, request, *args, **kwargs):
         """
@@ -92,7 +94,9 @@ class UploadViewSet(viewsets.ModelViewSet):
         instance.status = "DELETED"
         instance.save()
 
-    def _process_upload_model_class(self, request, existing_instance=None, replace=False):
+    def _process_upload_model_class(
+        self, request, existing_instance=None, replace=False
+    ):
         """
         Process an `upload_model_class` instance by validating the request
         data. If `existing_instance` is given, it may be replaced
@@ -108,9 +112,14 @@ class UploadViewSet(viewsets.ModelViewSet):
             if k not in ["source", "format", "headers"]
         }
         data["submitter"] = request.user.id
-        data["id"] = existing_instance.id if existing_instance and replace else None
+        if existing_instance and replace:
+            data["id"] = existing_instance.id
 
-        serializer = self.get_serializer(data=data)
+        serializer = (
+            self.get_serializer(existing_instance, data=data)
+            if existing_instance and replace
+            else self.get_serializer(data=data)
+        )
         serializer.is_valid(raise_exception=True)
 
         # save the serializer result separately
