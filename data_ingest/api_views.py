@@ -25,6 +25,39 @@ class UploadViewSet(viewsets.ModelViewSet):
     serializer_class = UploadSerializer
     parser_classes = [JSONParser, CsvParser]
 
+    @decorators.action(detail=True, methods=["POST"])
+    def stage(self, request, pk=None):
+        """
+        Custom API action to stage (complete the upload of) an
+        `upload_model_class` instance. The most previous upload (if
+        any) will be marked as deleted.
+        """
+        upload = self.get_object()
+        upload.status = "STAGED"
+        upload.save()
+        if upload.replaces:
+            upload.replaces.status = "DELETED"
+            upload.replaces.save()
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
+
+    @decorators.action(detail=True, methods=["POST"])
+    def insert(self, request, pk=None):
+        """
+        Custom API action to insert an `upload_model_class` instance. The
+        instance must already be staged.
+        """
+        upload = self.get_object()
+        if upload.status != "STAGED":
+            message = {
+                "error": f"expected status 'STAGED', got status '{upload.status}'"
+            }
+            return response.Response(message, status=status.HTTP_400_BAD_REQUEST)
+        ingestor = ingest_settings.ingestor_class(upload)
+        ingestor.insert()
+        upload.status = "INSERTED"
+        upload.save()
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
+
     def create(self, request, *args, **kwargs):
         """
         Create a `upload_model_class`. Submitter id will be stored with

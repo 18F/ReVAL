@@ -12,42 +12,46 @@ from . import ingest_settings
 UploadModel = ingest_settings.upload_model_class
 
 
-def call_api(request, what, pk=None):
-    """
-    Proxy a call to the internal API.
+class Api:
+    @staticmethod
+    def call(request, what, pk=None):
+        """
+        Proxy a call to the internal API.
 
-    :param request: The current HttpRequest object.
-    :param what: The viewset action to invoke on the API ("list",
-      "create", "retrieve", "update", "partial_update", or "destroy")
-    :param pk: the given id, not applicable if action is "list" or "create"
-    :raises: Http404 if object is not found, APIException if non 2xx or 404.
-    """
-    method = request.method.lower()
-    func = UploadViewSet.as_view({method: what})
-    api_response = func(request, pk=pk)
-    if status.is_success(api_response.status_code):
-        return
-    if api_response.status_code == 404:
-        raise Http404(api_response.reason_phrase)
-    # we most likely have an internal API error here.
-    error = f"API returned {api_response.status_code}: {api_response.reason_phrase}"
-    raise APIException(error)
+        :param request: The current HttpRequest object.
+        :param what: The viewset action to invoke on the API ("list",
+          "create", "retrieve", "update", "partial_update", or "destroy")
+        :param pk: the given id, not applicable if action is "list" or "create"
+        :raises: Http404 if object is not found, APIException if non 2xx or 404.
+        """
+        method = request.method.lower()
+        func = UploadViewSet.as_view({method: what})
+        api_response = func(request, pk=pk)
+        if status.is_success(api_response.status_code):
+            return
+        if api_response.status_code == 404:
+            raise Http404(api_response.reason_phrase)
+        # we most likely have an internal API error here.
+        error = f"API returned {api_response.status_code}: {api_response.reason_phrase}"
+        raise APIException(error)
 
 
 class UploadList(LoginRequiredMixin, ListView):
     model = UploadModel
-    template_name = ingest_settings.UPLOAD_SETTINGS['LIST_TEMPLATE']
+    template_name = ingest_settings.UPLOAD_SETTINGS["LIST_TEMPLATE"]
 
     def get_queryset(self):
-        return UploadModel.objects.filter(
-            submitter=self.request.user).exclude(
-                status='DELETED').order_by("-created_at")
+        return (
+            UploadModel.objects.filter(submitter=self.request.user)
+            .exclude(status="DELETED")
+            .order_by("-created_at")
+        )
 
 
 class UploadDetail(LoginRequiredMixin, DetailView):
 
     model = UploadModel
-    template_name = ingest_settings.UPLOAD_SETTINGS['DETAIL_TEMPLATE']
+    template_name = ingest_settings.UPLOAD_SETTINGS["DETAIL_TEMPLATE"]
 
 
 @login_required
@@ -56,7 +60,7 @@ def duplicate_upload(request, old_upload_id, new_upload_id):
     old_upload = UploadModel.objects.get(pk=old_upload_id)
     new_upload = UploadModel.objects.get(pk=new_upload_id)
 
-    data = {'old_upload': old_upload, 'new_upload': new_upload}
+    data = {"old_upload": old_upload, "new_upload": new_upload}
 
     return render(request, "data_ingest/duplicate_upload.html", data)
 
@@ -77,8 +81,8 @@ def replace_upload(request, old_upload_id, new_upload_id):
 
 @login_required
 def delete_upload(request, upload_id):
-    call_api(request, "destroy", pk=upload_id)
-    return redirect('index')
+    Api.call(request, "destroy", pk=upload_id)
+    return redirect("index")
 
 
 def validate(instance):
@@ -87,9 +91,9 @@ def validate(instance):
     instance.validation_results = ingestor.validate()
     instance.save()
     if instance.validation_results["valid"]:
-        return redirect('confirm-upload', instance.id)
+        return redirect("confirm-upload", instance.id)
     else:
-        return redirect('review-errors', instance.id)
+        return redirect("review-errors", instance.id)
 
 
 @login_required
@@ -114,26 +118,24 @@ def upload(request, replace_upload_id=None, **kwargs):
             if replace_upload_id is None:
                 replace_upload = instance.duplicate_of()
                 if replace_upload:
-                    return redirect('duplicate-upload', replace_upload.id,
-                                    instance.id)
+                    return redirect("duplicate-upload", replace_upload.id, instance.id)
             else:
-                call_api(request, "destroy", pk=int(replace_upload_id))
+                Api.call(request, "destroy", pk=int(replace_upload_id))
 
             return validate(instance)
 
     else:
         initial = request.GET.dict()
-        initial['replace_upload_id'] = replace_upload_id
+        initial["replace_upload_id"] = replace_upload_id
         form = ingest_settings.upload_form_class(initial=initial)
 
-    return render(request, ingest_settings.UPLOAD_SETTINGS['TEMPLATE'],
-                  {"form": form})
+    return render(request, ingest_settings.UPLOAD_SETTINGS["TEMPLATE"], {"form": form})
 
 
 def review_errors(request, upload_id):
     upload = UploadModel.objects.get(pk=upload_id)
-    if upload.validation_results['valid']:
-        return redirect('confirm-upload', upload_id)
+    if upload.validation_results["valid"]:
+        return redirect("confirm-upload", upload_id)
     data = upload.validation_results["tables"][0]
     data["file_metadata"] = upload.file_metadata_as_params()
     data["upload_id"] = upload_id
@@ -144,37 +146,29 @@ def confirm_upload(request, upload_id):
     upload = UploadModel.objects.get(pk=upload_id)
     data = upload.validation_results["tables"][0]
     data["file_metadata"] = upload.file_metadata_as_params()
-    data['upload_id'] = upload.id
+    data["upload_id"] = upload.id
     return render(request, "data_ingest/confirm-upload.html", data)
 
 
 def complete_upload(request, upload_id):
-    upload = UploadModel.objects.get(pk=upload_id)
-    upload.status = 'STAGED'
-    upload.save()
-    if upload.replaces:
-        upload.replaces.status = 'DELETED'
-        upload.replaces.save()
-    return redirect('index')
+    Api.call(request, "stage", pk=upload_id)
+    return redirect("index")
 
 
 def detail(request, upload_id):
     upload = UploadModel.objects.get(pk=upload_id)
-    if upload.status == 'LOADING':
-        if upload.validation_results['valid']:
-            return redirect('confirm-upload', upload_id)
+    if upload.status == "LOADING":
+        if upload.validation_results["valid"]:
+            return redirect("confirm-upload", upload_id)
         else:
-            return redirect('review-errors', upload_id)
+            return redirect("review-errors", upload_id)
     else:
-        return redirect('upload-detail', upload_id)
+        return redirect("upload-detail", upload_id)
 
 
 def insert(request, upload_id):
-    upload = UploadModel.objects.get(pk=upload_id)
-    if upload.status != 'STAGED':
-        return redirect('upload-detail', upload_id)
-    ingestor = ingest_settings.ingestor_class(upload)
-    ingestor.insert()
-    upload.status = 'INSERTED'
-    upload.save()
-    return redirect('index')
+    try:
+        Api.call(request, "insert", pk=upload_id)
+        return redirect("index")
+    except APIException:
+        return redirect("upload-detail", upload_id)
