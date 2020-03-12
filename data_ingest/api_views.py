@@ -126,9 +126,6 @@ class UploadViewSet(viewsets.ModelViewSet):
         instance = None
         try:
             instance = serializer.save()
-            if existing_instance and not replace:
-                instance.replaces = existing_instance
-                instance.save()
         except IntegrityError as error:
             message = {"error": str(error)}
             return response.Response(
@@ -141,6 +138,8 @@ class UploadViewSet(viewsets.ModelViewSet):
             result = ingestors.apply_validators_to(request.data, request.content_type)
             instance.validation_results = result
             instance.status = "LOADING"
+            if existing_instance and not replace:
+                instance.replaces = existing_instance
             instance.save()
         except AttributeError:
             message = {"error": "unexpected input"}

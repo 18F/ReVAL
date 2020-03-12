@@ -68,7 +68,7 @@ class ApiValidateTests(APITestCase):
         response = self.client.delete(url, data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(DefaultUpload.objects.count(), 1)
-        instance = DefaultUpload.objects.first()
+        instance.refresh_from_db()
         self.assertEqual(instance.status, "DELETED")
 
     def test_api_delete_404(self):
@@ -189,7 +189,7 @@ class ApiValidateTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        second_instance = DefaultUpload.objects.get(pk=second_instance.pk)
+        second_instance.refresh_from_db()
         self.assertEqual(second_instance.status, "DELETED")
 
     def test_api_insert_404(self):
@@ -235,7 +235,7 @@ class ApiValidateTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        instance = DefaultUpload.objects.get(pk=instance.pk)
+        instance.refresh_from_db()
         self.assertEqual(instance.status, "INSERTED")
 
     def test_api_in_place_replace_404(self):
@@ -293,7 +293,7 @@ class ApiValidateTests(APITestCase):
         self.assertEqual(result["tables"][0]["valid_row_count"], 2)
         self.assertEqual(result["tables"][0]["whole_table_errors"], [])
         self.assertEqual(DefaultUpload.objects.count(), 1)
-        instance = DefaultUpload.objects.get(pk=instance.pk)
+        instance.refresh_from_db()
         # make sure the saved validation results are the same as what
         # is returned via the API
         result = instance.validation_results
@@ -335,6 +335,15 @@ class ApiValidateTests(APITestCase):
         self.assertEqual(result["tables"][0]["valid_row_count"], 2)
         self.assertEqual(result["tables"][0]["whole_table_errors"], [])
         self.assertEqual(DefaultUpload.objects.count(), 2)
-        instance = DefaultUpload.objects.get(pk=instance.pk)
-        self.assertEqual(instance.validation_results, None)
-        self.assertNotEqual(instance.replaces, None)
+        second_instance = DefaultUpload.objects.exclude(pk=instance.pk).first()
+        self.assertNotEqual(second_instance.validation_results, None)
+        instance.refresh_from_db()  # just in case
+        self.assertEqual(second_instance.replaces, instance)
+        # make sure the saved validation results are the same as what
+        # is returned via the API
+        result = second_instance.validation_results
+        self.assertFalse(result["valid"])
+        self.assertEqual(len(result["tables"]), 1)
+        self.assertEqual(result["tables"][0]["invalid_row_count"], 3)
+        self.assertEqual(result["tables"][0]["valid_row_count"], 2)
+        self.assertEqual(result["tables"][0]["whole_table_errors"], [])
