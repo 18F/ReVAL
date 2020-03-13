@@ -58,11 +58,50 @@ class UploadViewSet(viewsets.ModelViewSet):
         upload.save()
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
+    def update(self, request, pk=None):
+        """
+        Update a pre-existing `upload_model_class`. The previous instance
+        will be saved. Validation errors, if any, will be stored with
+        this model and validation results will be returned.
+        """
+        upload = self.get_object()
+        return self._process_upload_model_class(request, existing_instance=upload)
+
+    def partial_update(self, request, pk=None):
+        """
+        Replace the `upload_model_class`. The previous instance will not
+        be saved. Validation errors, if any, will be stored with this
+        model and validation results will be returned.
+        """
+        upload = self.get_object()
+        return self._process_upload_model_class(
+            request, existing_instance=upload, replace=True
+        )
+
     def create(self, request, *args, **kwargs):
         """
         Create a `upload_model_class`. Submitter id will be stored with
         this model. Validation errors, if any, will also be stored
         with this model. The object status is set to LOADING by default.
+        """
+        return self._process_upload_model_class(request)
+
+    def perform_destroy(self, instance):
+        """
+        Overridden method. Do not actually delete the instance; instead
+        set the instance status to DELETED.
+        """
+        instance.status = "DELETED"
+        instance.save()
+
+    def _process_upload_model_class(
+        self, request, existing_instance=None, replace=False
+    ):
+        """
+        Process an `upload_model_class` instance by validating the request
+        data. If `existing_instance` is given, it may be replaced
+        in-place (if `replace` is True) or saved as a previous
+        instance of the `upload_model_class` (if `replace` is False).
         """
         data = request.data.copy() or {}
         data["raw"] = request.data
@@ -73,8 +112,14 @@ class UploadViewSet(viewsets.ModelViewSet):
             if k not in ["source", "format", "headers"]
         }
         data["submitter"] = request.user.id
+        if existing_instance and replace:
+            data["id"] = existing_instance.id
 
-        serializer = self.get_serializer(data=data)
+        serializer = (
+            self.get_serializer(existing_instance, data=data)
+            if existing_instance and replace
+            else self.get_serializer(data=data)
+        )
         serializer.is_valid(raise_exception=True)
 
         # save the serializer result separately
@@ -92,20 +137,15 @@ class UploadViewSet(viewsets.ModelViewSet):
             # the serializer instance is augmented with other derived fields
             result = ingestors.apply_validators_to(request.data, request.content_type)
             instance.validation_results = result
+            instance.status = "LOADING"
+            if existing_instance and not replace:
+                instance.replaces = existing_instance
             instance.save()
         except AttributeError:
             message = {"error": "unexpected input"}
             return response.Response(message, status=status.HTTP_400_BAD_REQUEST)
 
         return response.Response(result)
-
-    def perform_destroy(self, instance):
-        """
-        Overridden method. Do not actually delete the instance; instead
-        set the instance status to DELETED.
-        """
-        instance.status = "DELETED"
-        instance.save()
 
 
 @csrf_exempt
