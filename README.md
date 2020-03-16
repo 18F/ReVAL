@@ -1,10 +1,10 @@
-# ReVAL
+# ReVal
 
-ReVAL (Reusable Validation & Aggregation Library) is a Django App for validating and aggregating data via API and web interface.
+ReVal (Reusable Validation Library) is a Django App for validating data via an API and web interface.
 
-For the web interface, it can manage data submitted as file uploads to a central gathering point, and it can perform data validation, basic change tracking and duplicate file handling.  Each file generally contains multiple data rows, and each user may submit multiple files.
+In the web interface, ReVal can manage data submitted as file uploads to a central gathering point, including data validation, basic change tracking and duplicate file handling.  Each file generally contains multiple data rows, and each user may submit multiple files.
 
-For the API, it can perform data validation, and view uploads that were done via the web interface.
+Using the API, ReVal can validate data and generally do anything that is possible via the web interface.
 
 ---
 
@@ -28,7 +28,7 @@ For the API, it can perform data validation, and view uploads that were done via
 ## Requirements
 
 * Python (3.5, 3.6)
-* Django (1.11)
+* Django (2.2+)
 * Goodtables
 * pyyaml
 * djangorestframework
@@ -41,7 +41,7 @@ For the API, it can perform data validation, and view uploads that were done via
 
 ## Quick Installation
 
-If you would like to use ReVAL in your Django project, install using `pipenv` in your project...
+If you would like to use ReVal in your Django project, install using `pipenv` in your project...
 
 - Replace `<version>` with the latest tag i.e. `v0.7.0` or
 - Replace with `master` if you would like to work with the latest development version
