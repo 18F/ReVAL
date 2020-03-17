@@ -26,9 +26,9 @@ urlpatterns = [
     url(r"^delete-upload/(?P<upload_id>\d+)",
         views.delete_upload,
         name="delete-upload"),
-    url(r"^complete-upload/(?P<upload_id>\d+)",
-        views.complete_upload,
-        name="complete-upload"),
+    url(r"^stage-upload/(?P<upload_id>\d+)",
+        views.stage_upload,
+        name="stage-upload"),
     url(
         r"^upload-detail/(?P<pk>\d+)",
         views.UploadDetail.as_view(),

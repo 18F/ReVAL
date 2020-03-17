@@ -150,7 +150,7 @@ def confirm_upload(request, upload_id):
     return render(request, "data_ingest/confirm-upload.html", data)
 
 
-def complete_upload(request, upload_id):
+def stage_upload(request, upload_id):
     Api.call(request, "stage", pk=upload_id)
     return redirect("index")
 
