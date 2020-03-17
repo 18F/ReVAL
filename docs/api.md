@@ -87,7 +87,53 @@ You will get a JSON response back with the token:
 
 Use this token in the header for the rest of the examples below.
 
-## Validating JSON data
+## Example data
+
+We provide some sample runs which use the `curl` command line tool. These runs use the following data examples:
+
+<details><summary>CSV example: test_cases.csv</summary>
+
+```csv
+"Name","Title","level"
+"Guido","BDFL",20
+
+"Catherine",,9,"DBA"
+,
+"Tony","Engineer",10
+```
+
+</details>
+
+<details><summary>JSON example: test_cases.json</summary>
+
+```json
+[
+    {
+      "Name": "Guido",
+      "Title": "BDFL",
+      "level": "20"
+    },
+    {
+      "Name": "Tony",
+      "Title": "Engineer",
+      "level": "10"
+    }
+]
+```
+
+</details>
+
+
+## List uploads
+## Get upload
+## Create upload
+## Replace upload
+## Replace upload in-place
+## Delete upload
+## Stage upload
+## Insert upload
+
+## Validating
 
 <details><summary>Curl</summary>
 
@@ -97,27 +143,6 @@ curl -X POST \
   -H "Authorization: Token <Replace with your Token here>" \
   -d @test_cases.json \
   http://localhost:8000/data_ingest/api/validate/
-```
-
-</details>
-
-<details><summary>Python</summary>
-
-```python
-import requests
-import json
-
-
-url = 'http://localhost:8000/data_ingest/api/validate/'
-
-with open('test_cases.json') as infile:
-    content = json.load(infile)
-resp = requests.post(url,
-                     json=content,
-                     headers={
-                        "Authorization": "Token <token>"
-                     })
-resp.json()
 ```
 
 </details>
@@ -136,20 +161,24 @@ curl -X POST \
 
 </details>
 
-<details><summary>Python</summary>
+## Python
+
+We provide a sample python example, which uses the [`requests` library](https://requests.readthedocs.io/en/master/ "requests library").
+
+<details><summary>API</summary>
 
 ```python
 import requests
 
 
-url = 'http://localhost:8000/data_ingest/api/validate/'
+url = "http://localhost:8000/data_ingest/api/"
 
-with open('test_cases.csv') as infile:
+with open("test_cases.json") as infile:  # or "test_cases.csv"
     content = infile.read()
 resp = requests.post(url,
                      data=content,
                      headers={
-                        "Content-Type": "text/csv",
+                        "Content-Type": "application/json",  # or "text/csv"
                         "Authorization": "Token <token>"
                      })
 resp.json()
@@ -157,14 +186,27 @@ resp.json()
 
 </details>
 
-## List uploads
-## Get upload
-## Create upload
-## Replace upload
-## Replace upload in-place
-## Delete upload
-## Stage upload
-## Insert upload
+<details><summary>Validate</summary>
+
+```python
+import requests
+import json
+
+
+url = "http://localhost:8000/data_ingest/api/validate/"
+
+with open("test_cases.json") as infile:  # or "test_cases.csv"
+    content = json.load(infile)
+resp = requests.post(url,
+                     json=content,
+                     headers={
+                        "Content-Type": "application/json",  # or "text/csv"
+                        "Authorization": "Token <token>"
+                     })
+resp.json()
+```
+
+</details>
 
 # Validation
 
