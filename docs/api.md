@@ -157,19 +157,28 @@ resp.json()
 
 </details>
 
-## Validation responses
+## List uploads
+## Get upload
+## Create upload
+## Replace upload
+## Replace upload in-place
+## Delete upload
+## Stage upload
+## Insert upload
+
+# Validation
+
+## Validation response structure
 
 After data is posted to the `validate` endpoint, one will expect a JSON response.
 
-#### Code: 200 - OK
-
-##### Description
+### Description
 
 The response will be a JSON object with the following items:
   - **tables** - a list of **table** JSON objects
   - **valid** - boolean to indicates whether the data is valid or not
 
-##### Definitions
+### Definitions
   - **table** - a JSON object with the following items:
     - **headers** - a list of field names for the data (for tabular data and flat JSON data)
     - **whole_table_errors** - a list of **error** JSON objects that are related to the entire table
@@ -190,7 +199,7 @@ The response will be a JSON object with the following items:
     - **message** - error message that describe what the error is
     - **fields** - a list of all the field names that are associated with this error
 
-##### Example Value
+<details><summary>Example validation response</summary>
 
 ```json
 {
@@ -267,18 +276,20 @@ The response will be a JSON object with the following items:
 }
 ```
 
-# Validator error codes
+</details>
+
+## Validator error codes
 
 Each validator provides a different set of error codes. Some of these error codes are provided by the validator based on the available checks it performs. Some validators will require the application owner to define their own set of error codes. In this case, the application owner will have to provide their own error code specification.
 
-## GoodTables validator
+### GoodTables validator
 
 The GoodTables validator comes with its own set of error codes.  See the [validation documentation](https://github.com/frictionlessdata/goodtables-py#validation). There is also a [data quality specification](https://github.com/frictionlessdata/data-quality-spec/blob/master/spec.json) that defines all the available error codes from GoodTables.
 
-## Rowwise validator
+### Rowwise validator
 
 This validator includes both a JSON Logic Validator and SQL Validator.  This type of validator requires the application owner to define an error code for each rule definition.  Check with the application owner to obtain a list of error codes.  For more details on how to create your own rules, see [documentation on customizing a rowwise validator](customize.md#with-a-rowwise-validator).
 
-## JSON Schema validator
+### JSON Schema validator
 
 The JSON Schema validator comes with its own set of error codes.  The error code is the "validator" being used by the recommended [Python JSONSchema Validation](https://github.com/Julian/jsonschema). [Validation keywords](https://json-schema.org/draft-07/json-schema-validation.html#rfc.section.6) will be used as error codes.
