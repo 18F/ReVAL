@@ -2,7 +2,17 @@
 
 ReVal provides a RESTful API to manage `DATA_INGEST['MODEL']` instances. The default API routing prefix is `/api/`, as defined in [urls.py](../data_ingest/urls.py "urls.py for data_ingest"). API requests may have a content type of either `text/csv` or `application/json`, but all API responses will be in JSON.
 
-TODO: document model statuses here
+The default upload model has the following statuses:
+
+- `LOADING`: initial insert of upload data in the database.
+
+- `PENDING`: not used at present.
+
+- `STAGED`: stage upload data for final review.
+
+- `INSERTED`: finalize upload data and associated validation results.
+
+- `DELETED`: indicates a deleted upload: a "soft" delete.
 
 # Endpoints
 
@@ -43,7 +53,7 @@ The API also provides some custom endpoints for managing uploads:
 
 The API will also return a 400 (bad request) for any requests that the API can not parse.
 
-The API will also return a 500 (internal server error), along with an error message, if the database cannot save the upload for any reason.
+The API will also return a 500 (internal server error), along with an error message, if the database cannot save the upload data for any reason.
 
 ## Validate endpoint
 
@@ -135,7 +145,7 @@ We provide some sample runs which use the `curl` command line tool. These runs u
 
 ## Validating
 
-<details><summary>Curl</summary>
+<details><summary>Example (JSON)</summary>
 
 ```bash
 curl -X POST \
@@ -147,9 +157,7 @@ curl -X POST \
 
 </details>
 
-## Validating CSV data
-
-<details><summary>Curl</summary>
+<details><summary>Example (CSV)</summary>
 
 ```bash
 curl -X POST \
@@ -166,6 +174,8 @@ curl -X POST \
 We provide a sample python example, which uses the [`requests` library](https://requests.readthedocs.io/en/master/ "requests library").
 
 <details><summary>API</summary>
+
+TODO run examples
 
 ```python
 import requests
