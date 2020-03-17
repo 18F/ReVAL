@@ -1,22 +1,71 @@
 # API
 
-Some operations are available via a RESTful API.
+ReVal provides a RESTful API to manage `DATA_INGEST['MODEL']` instances. The default API routing prefix is `/api/`, as defined in [urls.py](../data_ingest/urls.py "urls.py for data_ingest"). API requests may have a content type of either `text/csv` or `application/json`, but all API responses will be in JSON.
 
-## Upload endpoints
+TODO: document model statuses here
 
-`GET` to `/data_ingest/api/` for a list of all uploads.
-`DELETE` to `/data_ingest/api/:id` to delete an upload with the id `:id`.
-    - Will return 204 (no content) on success, 404 (not found) otherwise.
+# Endpoints
+
+Supported endpoints are:
+
+- `GET` `/api/`: obtain a list of all uploads.
+  - Returns 200.
+
+- `GET` `/api/:id`: obtain upload data.
+  - Returns 200 with upload data.
+  - If `:id:` does not exist, returns 404 (not found).
+
+- `POST` `/api`:
+  - Returns 200 with validation information.
+
+- `PUT` `/api/:id`: replace an upload and validate upload
+  - Returns 200 with validation information; the previous upload is saved as `replaces`. Note that a new id is generated. TODO
+  - If `:id:` does not exist, returns 404 (not found).
+
+- `PATCH` `/api/:id`: replace an upload in-place and validate upload
+  - Returns 200 with validation information; the previous upload is not saved.
+  - If `:id:` does not exist, returns 404 (not found).
+
+- `DELETE` `/api/:id`: delete an upload with the id `:id`.
+  - Returns 204 (no content) on success.
+  - If `:id:` does not exist, returns 404 (not found).
+
+The API also provides some custom endpoints for managing uploads:
+
+- `POST` `/api/:id/stage`:
+  - Stages the upload information (sets status to `STAGED`)
+  - Returns 204 (no content) on success.
+
+- `POST` `/api/:id/insert`:
+  - Inserts the upload information (sets status to `INSERTED`)
+  - If upload is not `STAGED`, returns a 400 (bad request).
+  - Returns 204 (no content) on success.
+
+The API will also return a 400 (bad request) for any requests that the API can not parse.
+
+The API will also return a 500 (internal server error), along with an error message, if the database cannot save the upload for any reason.
 
 ## Validate endpoint
 
-`POST` to `/data_ingest/api/validate/` to apply your app's validator
-to a payload.  This will not insert the rows, but will provide
-error information.
+The API also provides a stand-alone validation endpoint:
 
-This endpoint requires a token to authenticate.  Admin should be able to log into the admin page from a web browser
-at `/admin/` and under "Authentication And Authorization" -> "Users", click on "+ Add" to add a user.
-After a user has been added, they can obtain the token to authenticate.
+- `POST` `/api/validate`: Apply configured validator(s) to request data.
+  - Does not insert data in the database.
+  - Returns 200 with validation information.
+
+# Authentication
+
+API endpoints require a [django-rest framework token to authenticate](https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication "token to authenticate from the django-rest framework").
+
+Each user will require a token to authenticate against the API.
+
+One way to do this is to log in as a super user and use the Django `/admin` interface:
+
+1. Add an user (if not already done) at `/admin/auth/user/add/`.
+2. Create a new token at `/admin/authtoken/token/add/`.
+
+# Examples
+
 
 ### Obtain Token
 
