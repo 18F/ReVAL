@@ -64,38 +64,44 @@ One way to do this is to log in as a super user and use the Django `/admin` inte
 1. Add an user (if not already done) at `/admin/auth/user/add/`.
 2. Create a new token at `/admin/authtoken/token/add/`.
 
+This token may be retrieved by the user ([see the `Obtaining a Token` example below](#obtaining-a-token "obtaining a token below")).
+
 # Examples
 
-
-### Obtain Token
+## Obtaining a Token
 
 `POST` to `/data_ingest/api/api-token-auth` to get the token for authentication.
 
 ```bash
 curl -X POST \
--F username=<replace with what the admin gives you> \
--F password=<replace with what the admin gives you> \
-http://localhost:8000/data_ingest/api/api-token-auth/
+  -F username=<your username> \
+  -F password=<your password> \
+  http://localhost:8000/data_ingest/api/api-token-auth/
 ```
 
 You will get a JSON response back with the token:
+
 ```json
-{"token": "<Token to use for authentication on validate API>"}
+{"token": "<Token to use for authentication>"}
 ```
 
-Use this token in the header as shown below.
+Use this token in the header for the rest of the examples below.
 
-### Validate JSON data
+## Validating JSON data
+
+<details><summary>Curl</summary>
 
 ```bash
 curl -X POST \
--H "Content-Type: application/json" \
--H "Authorization: Token <Replace with your Token here>" \
--d @test_cases.json \
-http://localhost:8000/data_ingest/api/validate/
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token <Replace with your Token here>" \
+  -d @test_cases.json \
+  http://localhost:8000/data_ingest/api/validate/
 ```
 
-or, in Python,
+</details>
+
+<details><summary>Python</summary>
 
 ```python
 import requests
@@ -109,22 +115,28 @@ with open('test_cases.json') as infile:
 resp = requests.post(url,
                      json=content,
                      headers={
-                        "Authorization": "Token <Replace with Token here in the form of environment variables, not raw text in the code>"
+                        "Authorization": "Token <token>"
                      })
 resp.json()
 ```
 
-### Validate CSV data
+</details>
+
+## Validating CSV data
+
+<details><summary>Curl</summary>
 
 ```bash
 curl -X POST \
--H "Content-Type: text/csv" \
--H "Authorization: Token <Replace with your Token here>" \
---data-binary @test_cases.csv \
-http://localhost:8000/data_ingest/api/validate/
+  -H "Content-Type: text/csv" \
+  -H "Authorization: Token <token>" \
+  --data-binary @test_cases.csv \
+  http://localhost:8000/data_ingest/api/validate/
 ```
 
-or, in Python,
+</details>
+
+<details><summary>Python</summary>
 
 ```python
 import requests
@@ -138,12 +150,14 @@ resp = requests.post(url,
                      data=content,
                      headers={
                         "Content-Type": "text/csv",
-                        "Authorization": "Token <Replace with Token here in the form of environment variables, not raw text in the code>"
+                        "Authorization": "Token <token>"
                      })
 resp.json()
 ```
 
-### Responses
+</details>
+
+## Validation responses
 
 After data is posted to the `validate` endpoint, one will expect a JSON response.
 
@@ -253,35 +267,18 @@ The response will be a JSON object with the following items:
 }
 ```
 
-##### Error Codes
+# Validator error codes
 
-Each validator will provide a different set of error codes.  Some of the codes will be provided by the validator based on the available checks it performs.  Some validators will require app's owner to define their own set of error codes.  In this case, the app's owner will provide the error code specification.
+Each validator provides a different set of error codes. Some of these error codes are provided by the validator based on the available checks it performs. Some validators will require the application owner to define their own set of error codes. In this case, the application owner will have to provide their own error code specification.
 
-###### GoodTables Validator
+## GoodTables validator
 
-GoodTables validator comes with its own set of error codes.  See the [validation](https://github.com/frictionlessdata/goodtables-py#validation) it performs where each check is an error code. Here's the [data quality specification](https://github.com/frictionlessdata/data-quality-spec/blob/master/spec.json) that defines all the available error codes from GoodTables.
+The GoodTables validator comes with its own set of error codes.  See the [validation documentation](https://github.com/frictionlessdata/goodtables-py#validation). There is also a [data quality specification](https://github.com/frictionlessdata/data-quality-spec/blob/master/spec.json) that defines all the available error codes from GoodTables.
 
-###### Rowwise Validator
+## Rowwise validator
 
-This includes both JSON Logic Validator and SQL Validator.  This type of validators requires the app's owner to define an error code for each rule definition.  Check with app's owner to obtain a list of error codes.  For more details on how to create your own rules, see [documentation on customizing a rowwise validator](customize.md#with-a-rowwise-validator).
+This validator includes both a JSON Logic Validator and SQL Validator.  This type of validator requires the application owner to define an error code for each rule definition.  Check with the application owner to obtain a list of error codes.  For more details on how to create your own rules, see [documentation on customizing a rowwise validator](customize.md#with-a-rowwise-validator).
 
-###### JSON Schema Validator
+## JSON Schema validator
 
-JSON Schema validator comes with its own set of error codes.  The error code is the "validator" being used by the recommended [Python JSONSchema Validation](https://github.com/Julian/jsonschema).  The [validation keywords](https://json-schema.org/draft-07/json-schema-validation.html#rfc.section.6) will be used as the error code.
-
-#### Code: 400 - Bad Request
-
-##### Description
-
-The response will be a JSON object to indicate the error.
-
-
-##### Example Value
-
-i.e. This is to indicate incorrect JSON format when media type is JSON.
-
-```json
-{
-    "detail": "JSON parse error - Expecting value: line 1 column 1 (char 0)"
-}
-```
+The JSON Schema validator comes with its own set of error codes.  The error code is the "validator" being used by the recommended [Python JSONSchema Validation](https://github.com/Julian/jsonschema). [Validation keywords](https://json-schema.org/draft-07/json-schema-validation.html#rfc.section.6) will be used as error codes.
