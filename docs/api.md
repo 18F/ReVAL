@@ -78,30 +78,34 @@ This token may be retrieved by the user ([see the `Obtaining a Token` example be
 
 # Examples
 
+These examples assume the default example project (included in this repository) is running on port 8000, and as such the default url is `http://localhost:8000/data_ingest`. Please adjust the url accordingly for your project.
+
 ## Obtaining a Token
 
-`POST` to `/data_ingest/api/api-token-auth` to get the token for authentication.
+You may `POST` to `/api/api-token-auth` to get your user token for authentication.
+
+<details><summary>Example</summary>
 
 ```bash
-curl -X POST \
-  -F username=<your username> \
-  -F password=<your password> \
+curl -s -X POST \
+  -F username=your_username_here \
+  -F password=your_password_here \
   http://localhost:8000/data_ingest/api/api-token-auth/
 ```
 
-You will get a JSON response back with the token:
-
 ```json
-{"token": "<Token to use for authentication>"}
+{"token":"faketoken"}
 ```
 
-Use this token in the header for the rest of the examples below.
+We will use this fake token in the header for the rest of the examples below. If following along, be sure to replace this fake token with your own token!
+
+</details>
 
 ## Example data
 
-We provide some sample runs which use the `curl` command line tool. These runs use the following data examples:
+We provide some sample runs which use the `curl` command line tool. Some of these runs use the following (deliberately incorrect) data examples:
 
-<details><summary>CSV example: test_cases.csv</summary>
+<details><summary>Example (CSV): test_cases.csv</summary>
 
 ```csv
 "Name","Title","level"
@@ -114,34 +118,223 @@ We provide some sample runs which use the `curl` command line tool. These runs u
 
 </details>
 
-<details><summary>JSON example: test_cases.json</summary>
+<details><summary>Example (JSON): test_cases.json</summary>
 
 ```json
-[
+{
+  "source": [
     {
       "Name": "Guido",
       "Title": "BDFL",
       "level": "20"
+    },
+    {},
+    {
+      "Name": "Catherine",
+      "extra": "information",
+      "level": 9,
+      "Title": "DBA"
     },
     {
       "Name": "Tony",
       "Title": "Engineer",
       "level": "10"
     }
-]
+  ]
+}
 ```
 
 </details>
 
-
 ## List uploads
+
+<details><summary>Example</summary>
+
+```bash
+curl -s -X GET \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/
+```
+
+```json
+TODO
+```
+
+</details>
+
 ## Get upload
+
+<details><summary>Example</summary>
+
+```bash
+curl -s -X GET \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/1
+```
+
+```json
+TODO
+```
+
+</details>
+
 ## Create upload
+
+<details><summary>Example (JSON)</summary>
+
+```bash
+curl -s -X POST \
+  -d @test_cases.json \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/
+```
+
+```json
+TODO
+```
+
+</details>
+
+<details><summary>Example (CSV)</summary>
+
+```bash
+curl -s -X POST \
+  -d @test_cases.json \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/
+```
+
+```json
+TODO
+```
+
+</details>
+
 ## Replace upload
+
+<details><summary>Example (JSON)</summary>
+
+```bash
+curl -s -X PUT \
+  -d @test_cases.json \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/1/
+```
+
+```json
+TODO
+```
+
+</details>
+
+<details><summary>Example (CSV)</summary>
+
+```bash
+curl -s -X PUT \
+  --data-binary @test_cases.csv \
+  -H "Content-Type: text/csv" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/1/
+```
+
+```json
+TODO
+```
+
+</details>
+
 ## Replace upload in-place
+
+<details><summary>Example (JSON)</summary>
+
+```bash
+curl -s -X PATCH \
+  -d @test_cases.json \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/1/
+```
+
+```json
+TODO
+```
+
+</details>
+
+<details><summary>Example (CSV)</summary>
+
+```bash
+curl -s -X PATCH \
+  --data-binary @test_cases.csv \
+  -H "Content-Type: text/csv" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/1/
+```
+
+```json
+TODO
+```
+
+</details>
+
 ## Delete upload
+
+<details><summary>Example</summary>
+
+```bash
+curl -s -X DELETE \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/4
+```
+
+```json
+```
+
+Note: on success, a 204 (no content) response code is returned.
+
+</details>
+
 ## Stage upload
+
+<details><summary>Example</summary>
+
+```bash
+curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/5/stage/
+```
+
+```json
+```
+
+Note: on success, a 204 (no content) response code is returned.
+
+</details>
+
 ## Insert upload
+
+<details><summary>Example</summary>
+
+```bash
+curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/6/insert/
+```
+
+```json
+```
+
+Note: on success, a 204 (no content) response code is returned.
+
+</details>
 
 ## Validating
 
@@ -150,9 +343,96 @@ We provide some sample runs which use the `curl` command line tool. These runs u
 ```bash
 curl -X POST \
   -H "Content-Type: application/json" \
-  -H "Authorization: Token <Replace with your Token here>" \
+  -H "Authorization: Token faketoken" \
   -d @test_cases.json \
   http://localhost:8000/data_ingest/api/validate/
+```
+
+```json
+{
+  "tables": [
+    {
+      "headers": [
+        "extra",
+        "level",
+        "Title",
+        "Name"
+      ],
+      "whole_table_errors": [],
+      "rows": [
+        {
+          "row_number": 2,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "missing-value",
+              "message": "Row 2 has a missing value in column 1 (extra)",
+              "fields": [
+                "extra"
+              ]
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": "20",
+            "Title": "BDFL",
+            "Name": "Guido"
+          }
+        },
+        {
+          "row_number": 3,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 3 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": null,
+            "Title": null,
+            "Name": null
+          }
+        },
+        {
+          "row_number": 4,
+          "errors": [],
+          "data": {
+            "extra": "information",
+            "level": 9,
+            "Title": "DBA",
+            "Name": "Catherine"
+          }
+        },
+        {
+          "row_number": 5,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "missing-value",
+              "message": "Row 5 has a missing value in column 1 (extra)",
+              "fields": [
+                "extra"
+              ]
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": "10",
+            "Title": "Engineer",
+            "Name": "Tony"
+          }
+        }
+      ],
+      "valid_row_count": 1,
+      "invalid_row_count": 3
+    }
+  ],
+  "valid": false
+}
+
 ```
 
 </details>
@@ -162,9 +442,95 @@ curl -X POST \
 ```bash
 curl -X POST \
   -H "Content-Type: text/csv" \
-  -H "Authorization: Token <token>" \
+  -H "Authorization: Token faketoken" \
   --data-binary @test_cases.csv \
   http://localhost:8000/data_ingest/api/validate/
+```
+
+```json
+{
+  "tables": [
+    {
+      "headers": [
+        "Name",
+        "Title",
+        "level"
+      ],
+      "whole_table_errors": [],
+      "rows": [
+        {
+          "row_number": 2,
+          "errors": [],
+          "data": {
+            "Name": "Guido",
+            "Title": "BDFL",
+            "level": "20"
+          }
+        },
+        {
+          "row_number": 3,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 3 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "",
+            "Title": "",
+            "level": ""
+          }
+        },
+        {
+          "row_number": 4,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "extra-value",
+              "message": "Row 4 has an extra value in column 4",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "Catherine",
+            "Title": "",
+            "level": "9"
+          }
+        },
+        {
+          "row_number": 5,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 5 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "",
+            "Title": "",
+            "level": ""
+          }
+        },
+        {
+          "row_number": 6,
+          "errors": [],
+          "data": {
+            "Name": "Tony",
+            "Title": "Engineer",
+            "level": "10"
+          }
+        }
+      ],
+      "valid_row_count": 2,
+      "invalid_row_count": 3
+    }
+  ],
+  "valid": false
+}
 ```
 
 </details>
