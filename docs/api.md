@@ -1215,30 +1215,9 @@ curl -X POST \
 
 ## Python
 
-We provide a sample python example, which uses the [`requests` library](https://requests.readthedocs.io/en/master/ "requests library").
+We provide [a sample python example](example.py "a sample python example"), which uses the [`requests` library](https://requests.readthedocs.io/en/master/ "requests library"). This example demonstrates the standard life-cycle of an upload instance.
 
-<details><summary>API</summary>
-
-TODO run examples
-
-```python
-import requests
-
-
-url = "http://localhost:8000/data_ingest/api/"
-
-with open("test_cases.json") as infile:  # or "test_cases.csv"
-    content = infile.read()
-resp = requests.post(url,
-                     data=content,
-                     headers={
-                        "Content-Type": "application/json",  # or "text/csv"
-                        "Authorization": "Token <token>"
-                     })
-resp.json()
-```
-
-</details>
+A validation example is also provided below.
 
 <details><summary>Validate</summary>
 
