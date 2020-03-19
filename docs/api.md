@@ -158,7 +158,101 @@ curl -s -X GET \
 ```
 
 ```json
-TODO
+[
+  {
+    "id": 1,
+    "created_at": "2020-03-19T21:30:00.836189Z",
+    "updated_at": "2020-03-19T21:30:00.944063Z",
+    "status": "LOADING",
+    "status_changed_by": null,
+    "status_changed_at": null,
+    "submitter": 1,
+    "file_metadata": {},
+    "validation_results": {
+      "valid": false,
+      "tables": [
+        {
+          "rows": [
+            {
+              "data": {
+                "Name": "Guido",
+                "Title": "BDFL",
+                "extra": null,
+                "level": "20"
+              },
+              "errors": [
+                {
+                  "code": "missing-value",
+                  "fields": [
+                    "extra"
+                  ],
+                  "message": "Row 2 has a missing value in column 1 (extra)",
+                  "severity": "Error"
+                }
+              ],
+              "row_number": 2
+            },
+            {
+              "data": {
+                "Name": null,
+                "Title": null,
+                "extra": null,
+                "level": null
+              },
+              "errors": [
+                {
+                  "code": "blank-row",
+                  "fields": [],
+                  "message": "Row 3 is completely blank",
+                  "severity": "Error"
+                }
+              ],
+              "row_number": 3
+            },
+            {
+              "data": {
+                "Name": "Catherine",
+                "Title": "DBA",
+                "extra": "information",
+                "level": 9
+              },
+              "errors": [],
+              "row_number": 4
+            },
+            {
+              "data": {
+                "Name": "Tony",
+                "Title": "Engineer",
+                "extra": null,
+                "level": "10"
+              },
+              "errors": [
+                {
+                  "code": "missing-value",
+                  "fields": [
+                    "extra"
+                  ],
+                  "message": "Row 5 has a missing value in column 1 (extra)",
+                  "severity": "Error"
+                }
+              ],
+              "row_number": 5
+            }
+          ],
+          "headers": [
+            "extra",
+            "level",
+            "Title",
+            "Name"
+          ],
+          "valid_row_count": 1,
+          "invalid_row_count": 3,
+          "whole_table_errors": []
+        }
+      ]
+    }
+  }
+]
 ```
 
 </details>
@@ -175,7 +269,99 @@ curl -s -X GET \
 ```
 
 ```json
-TODO
+{
+  "id": 1,
+  "created_at": "2020-03-19T21:30:00.836189Z",
+  "updated_at": "2020-03-19T21:30:00.944063Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": {},
+  "validation_results": {
+    "valid": false,
+    "tables": [
+      {
+        "rows": [
+          {
+            "data": {
+              "Name": "Guido",
+              "Title": "BDFL",
+              "extra": null,
+              "level": "20"
+            },
+            "errors": [
+              {
+                "code": "missing-value",
+                "fields": [
+                  "extra"
+                ],
+                "message": "Row 2 has a missing value in column 1 (extra)",
+                "severity": "Error"
+              }
+            ],
+            "row_number": 2
+          },
+          {
+            "data": {
+              "Name": null,
+              "Title": null,
+              "extra": null,
+              "level": null
+            },
+            "errors": [
+              {
+                "code": "blank-row",
+                "fields": [],
+                "message": "Row 3 is completely blank",
+                "severity": "Error"
+              }
+            ],
+            "row_number": 3
+          },
+          {
+            "data": {
+              "Name": "Catherine",
+              "Title": "DBA",
+              "extra": "information",
+              "level": 9
+            },
+            "errors": [],
+            "row_number": 4
+          },
+          {
+            "data": {
+              "Name": "Tony",
+              "Title": "Engineer",
+              "extra": null,
+              "level": "10"
+            },
+            "errors": [
+              {
+                "code": "missing-value",
+                "fields": [
+                  "extra"
+                ],
+                "message": "Row 5 has a missing value in column 1 (extra)",
+                "severity": "Error"
+              }
+            ],
+            "row_number": 5
+          }
+        ],
+        "headers": [
+          "extra",
+          "level",
+          "Title",
+          "Name"
+        ],
+        "valid_row_count": 1,
+        "invalid_row_count": 3,
+        "whole_table_errors": []
+      }
+    ]
+  }
+}
 ```
 
 </details>
@@ -193,7 +379,89 @@ curl -s -X POST \
 ```
 
 ```json
-TODO
+{
+  "tables": [
+    {
+      "headers": [
+        "extra",
+        "level",
+        "Title",
+        "Name"
+      ],
+      "whole_table_errors": [],
+      "rows": [
+        {
+          "row_number": 2,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "missing-value",
+              "message": "Row 2 has a missing value in column 1 (extra)",
+              "fields": [
+                "extra"
+              ]
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": "20",
+            "Title": "BDFL",
+            "Name": "Guido"
+          }
+        },
+        {
+          "row_number": 3,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 3 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": null,
+            "Title": null,
+            "Name": null
+          }
+        },
+        {
+          "row_number": 4,
+          "errors": [],
+          "data": {
+            "extra": "information",
+            "level": 9,
+            "Title": "DBA",
+            "Name": "Catherine"
+          }
+        },
+        {
+          "row_number": 5,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "missing-value",
+              "message": "Row 5 has a missing value in column 1 (extra)",
+              "fields": [
+                "extra"
+              ]
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": "10",
+            "Title": "Engineer",
+            "Name": "Tony"
+          }
+        }
+      ],
+      "valid_row_count": 1,
+      "invalid_row_count": 3
+    }
+  ],
+  "valid": false
+}
 ```
 
 </details>
@@ -209,7 +477,89 @@ curl -s -X POST \
 ```
 
 ```json
-TODO
+{
+  "tables": [
+    {
+      "headers": [
+        "Name",
+        "Title",
+        "level"
+      ],
+      "whole_table_errors": [],
+      "rows": [
+        {
+          "row_number": 2,
+          "errors": [],
+          "data": {
+            "Name": "Guido",
+            "Title": "BDFL",
+            "level": "20"
+          }
+        },
+        {
+          "row_number": 3,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 3 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "",
+            "Title": "",
+            "level": ""
+          }
+        },
+        {
+          "row_number": 4,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "extra-value",
+              "message": "Row 4 has an extra value in column 4",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "Catherine",
+            "Title": "",
+            "level": "9"
+          }
+        },
+        {
+          "row_number": 5,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 5 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "",
+            "Title": "",
+            "level": ""
+          }
+        },
+        {
+          "row_number": 6,
+          "errors": [],
+          "data": {
+            "Name": "Tony",
+            "Title": "Engineer",
+            "level": "10"
+          }
+        }
+      ],
+      "valid_row_count": 2,
+      "invalid_row_count": 3
+    }
+  ],
+  "valid": false
+}
 ```
 
 </details>
@@ -227,7 +577,89 @@ curl -s -X PUT \
 ```
 
 ```json
-TODO
+{
+  "tables": [
+    {
+      "headers": [
+        "extra",
+        "level",
+        "Title",
+        "Name"
+      ],
+      "whole_table_errors": [],
+      "rows": [
+        {
+          "row_number": 2,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "missing-value",
+              "message": "Row 2 has a missing value in column 1 (extra)",
+              "fields": [
+                "extra"
+              ]
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": "20",
+            "Title": "BDFL",
+            "Name": "Guido"
+          }
+        },
+        {
+          "row_number": 3,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 3 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": null,
+            "Title": null,
+            "Name": null
+          }
+        },
+        {
+          "row_number": 4,
+          "errors": [],
+          "data": {
+            "extra": "information",
+            "level": 9,
+            "Title": "DBA",
+            "Name": "Catherine"
+          }
+        },
+        {
+          "row_number": 5,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "missing-value",
+              "message": "Row 5 has a missing value in column 1 (extra)",
+              "fields": [
+                "extra"
+              ]
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": "10",
+            "Title": "Engineer",
+            "Name": "Tony"
+          }
+        }
+      ],
+      "valid_row_count": 1,
+      "invalid_row_count": 3
+    }
+  ],
+  "valid": false
+}
 ```
 
 </details>
@@ -239,11 +671,93 @@ curl -s -X PUT \
   --data-binary @test_cases.csv \
   -H "Content-Type: text/csv" \
   -H "Authorization: Token faketoken" \
-  http://localhost:8000/data_ingest/api/1/
+  http://localhost:8000/data_ingest/api/2/
 ```
 
 ```json
-TODO
+{
+  "tables": [
+    {
+      "headers": [
+        "Name",
+        "Title",
+        "level"
+      ],
+      "whole_table_errors": [],
+      "rows": [
+        {
+          "row_number": 2,
+          "errors": [],
+          "data": {
+            "Name": "Guido",
+            "Title": "BDFL",
+            "level": "20"
+          }
+        },
+        {
+          "row_number": 3,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 3 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "",
+            "Title": "",
+            "level": ""
+          }
+        },
+        {
+          "row_number": 4,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "extra-value",
+              "message": "Row 4 has an extra value in column 4",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "Catherine",
+            "Title": "",
+            "level": "9"
+          }
+        },
+        {
+          "row_number": 5,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 5 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "",
+            "Title": "",
+            "level": ""
+          }
+        },
+        {
+          "row_number": 6,
+          "errors": [],
+          "data": {
+            "Name": "Tony",
+            "Title": "Engineer",
+            "level": "10"
+          }
+        }
+      ],
+      "valid_row_count": 2,
+      "invalid_row_count": 3
+    }
+  ],
+  "valid": false
+}
 ```
 
 </details>
@@ -261,7 +775,89 @@ curl -s -X PATCH \
 ```
 
 ```json
-TODO
+{
+  "tables": [
+    {
+      "headers": [
+        "extra",
+        "level",
+        "Title",
+        "Name"
+      ],
+      "whole_table_errors": [],
+      "rows": [
+        {
+          "row_number": 2,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "missing-value",
+              "message": "Row 2 has a missing value in column 1 (extra)",
+              "fields": [
+                "extra"
+              ]
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": "20",
+            "Title": "BDFL",
+            "Name": "Guido"
+          }
+        },
+        {
+          "row_number": 3,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 3 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": null,
+            "Title": null,
+            "Name": null
+          }
+        },
+        {
+          "row_number": 4,
+          "errors": [],
+          "data": {
+            "extra": "information",
+            "level": 9,
+            "Title": "DBA",
+            "Name": "Catherine"
+          }
+        },
+        {
+          "row_number": 5,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "missing-value",
+              "message": "Row 5 has a missing value in column 1 (extra)",
+              "fields": [
+                "extra"
+              ]
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": "10",
+            "Title": "Engineer",
+            "Name": "Tony"
+          }
+        }
+      ],
+      "valid_row_count": 1,
+      "invalid_row_count": 3
+    }
+  ],
+  "valid": false
+}
 ```
 
 </details>
@@ -273,11 +869,93 @@ curl -s -X PATCH \
   --data-binary @test_cases.csv \
   -H "Content-Type: text/csv" \
   -H "Authorization: Token faketoken" \
-  http://localhost:8000/data_ingest/api/1/
+  http://localhost:8000/data_ingest/api/2/
 ```
 
 ```json
-TODO
+{
+  "tables": [
+    {
+      "headers": [
+        "Name",
+        "Title",
+        "level"
+      ],
+      "whole_table_errors": [],
+      "rows": [
+        {
+          "row_number": 2,
+          "errors": [],
+          "data": {
+            "Name": "Guido",
+            "Title": "BDFL",
+            "level": "20"
+          }
+        },
+        {
+          "row_number": 3,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 3 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "",
+            "Title": "",
+            "level": ""
+          }
+        },
+        {
+          "row_number": 4,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "extra-value",
+              "message": "Row 4 has an extra value in column 4",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "Catherine",
+            "Title": "",
+            "level": "9"
+          }
+        },
+        {
+          "row_number": 5,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 5 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "",
+            "Title": "",
+            "level": ""
+          }
+        },
+        {
+          "row_number": 6,
+          "errors": [],
+          "data": {
+            "Name": "Tony",
+            "Title": "Engineer",
+            "level": "10"
+          }
+        }
+      ],
+      "valid_row_count": 2,
+      "invalid_row_count": 3
+    }
+  ],
+  "valid": false
+}
 ```
 
 </details>
@@ -290,7 +968,7 @@ TODO
 curl -s -X DELETE \
   -H "Content-Type: application/json" \
   -H "Authorization: Token faketoken" \
-  http://localhost:8000/data_ingest/api/4
+  http://localhost:8000/data_ingest/api/3
 ```
 
 ```json
@@ -308,7 +986,7 @@ Note: on success, a 204 (no content) response code is returned.
 curl -s -X POST \
   -H "Content-Type: application/json" \
   -H "Authorization: Token faketoken" \
-  http://localhost:8000/data_ingest/api/5/stage/
+  http://localhost:8000/data_ingest/api/4/stage/
 ```
 
 ```json
@@ -326,7 +1004,7 @@ Note: on success, a 204 (no content) response code is returned.
 curl -s -X POST \
   -H "Content-Type: application/json" \
   -H "Authorization: Token faketoken" \
-  http://localhost:8000/data_ingest/api/6/insert/
+  http://localhost:8000/data_ingest/api/5/insert/
 ```
 
 ```json
