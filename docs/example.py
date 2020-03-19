@@ -11,7 +11,8 @@ base_url = "http://localhost:8000/data_ingest/api"
 
 # first, obtain our token from the API.
 resp = requests.post(
-    f"{base_url}/api-token-auth/", data=dict(username="username", password="password"),
+    f"{base_url}/api-token-auth/",
+    data=dict(username="your_username_here", password="your_password_here"),  #nosec
 )
 
 # do we have a valid token? if not, exit.
