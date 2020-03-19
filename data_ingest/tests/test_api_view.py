@@ -92,7 +92,7 @@ class ApiValidateTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
         response = self.client.post(url, data, content_type="text/csv")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(json.loads(response.content)["valid"])
+        self.assertTrue(json.loads(response.content)["validation_results"]["valid"])
 
     def test_api_create_csv_example(self):
         """
@@ -104,7 +104,7 @@ class ApiValidateTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
         response = self.client.post(url, data, content_type="text/csv")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        result = json.loads(response.content)
+        result = json.loads(response.content)["validation_results"]
         self.assertFalse(result["valid"])
         self.assertEqual(len(result["tables"]), 1)
         self.assertEqual(result["tables"][0]["invalid_row_count"], 3)
@@ -129,7 +129,7 @@ class ApiValidateTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        result = json.loads(response.content)
+        result = json.loads(response.content)["validation_results"]
         self.assertFalse(result["valid"])
         self.assertEqual(len(result["tables"]), 1)
         self.assertEqual(result["tables"][0]["invalid_row_count"], 1)
@@ -286,7 +286,7 @@ class ApiValidateTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
         response = self.client.patch(url, data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        result = json.loads(response.content)
+        result = json.loads(response.content)["validation_results"]
         self.assertFalse(result["valid"])
         self.assertEqual(len(result["tables"]), 1)
         self.assertEqual(result["tables"][0]["invalid_row_count"], 1)
@@ -328,7 +328,7 @@ class ApiValidateTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
         response = self.client.put(url, data, content_type="text/csv")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        result = json.loads(response.content)
+        result = json.loads(response.content)["validation_results"]
         self.assertFalse(result["valid"])
         self.assertEqual(len(result["tables"]), 1)
         self.assertEqual(result["tables"][0]["invalid_row_count"], 3)

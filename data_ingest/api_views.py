@@ -145,7 +145,8 @@ class UploadViewSet(viewsets.ModelViewSet):
             message = {"error": "unexpected input"}
             return response.Response(message, status=status.HTTP_400_BAD_REQUEST)
 
-        return response.Response(result)
+        json_data = UploadSerializer(instance).data
+        return response.Response(json_data)
 
 
 @csrf_exempt
