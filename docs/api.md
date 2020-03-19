@@ -29,7 +29,7 @@ Supported endpoints are:
   - Returns 200 with validation information.
 
 - `PUT` `/api/:id`: replace an upload and validate upload
-  - Returns 200 with validation information; the previous upload is saved as `replaces`. Note that a new id is generated. TODO
+  - Returns 200 with validation information; the previous upload is saved as `replaces`. Note that a new id is generated.
   - If `:id:` does not exist, returns 404 (not found).
 
 - `PATCH` `/api/:id`: replace an upload in-place and validate upload
@@ -380,87 +380,97 @@ curl -s -X POST \
 
 ```json
 {
-  "tables": [
-    {
-      "headers": [
-        "extra",
-        "level",
-        "Title",
-        "Name"
-      ],
-      "whole_table_errors": [],
-      "rows": [
-        {
-          "row_number": 2,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "missing-value",
-              "message": "Row 2 has a missing value in column 1 (extra)",
-              "fields": [
-                "extra"
-              ]
+  "id": 1,
+  "created_at": "2020-03-19T22:47:40.509878Z",
+  "updated_at": "2020-03-19T22:47:40.621499Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": null,
+  "validation_results": {
+    "tables": [
+      {
+        "headers": [
+          "extra",
+          "level",
+          "Title",
+          "Name"
+        ],
+        "whole_table_errors": [],
+        "rows": [
+          {
+            "row_number": 2,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "missing-value",
+                "message": "Row 2 has a missing value in column 1 (extra)",
+                "fields": [
+                  "extra"
+                ]
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": "20",
+              "Title": "BDFL",
+              "Name": "Guido"
             }
-          ],
-          "data": {
-            "extra": null,
-            "level": "20",
-            "Title": "BDFL",
-            "Name": "Guido"
-          }
-        },
-        {
-          "row_number": 3,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "blank-row",
-              "message": "Row 3 is completely blank",
-              "fields": []
+          },
+          {
+            "row_number": 3,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 3 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": null,
+              "Title": null,
+              "Name": null
             }
-          ],
-          "data": {
-            "extra": null,
-            "level": null,
-            "Title": null,
-            "Name": null
-          }
-        },
-        {
-          "row_number": 4,
-          "errors": [],
-          "data": {
-            "extra": "information",
-            "level": 9,
-            "Title": "DBA",
-            "Name": "Catherine"
-          }
-        },
-        {
-          "row_number": 5,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "missing-value",
-              "message": "Row 5 has a missing value in column 1 (extra)",
-              "fields": [
-                "extra"
-              ]
+          },
+          {
+            "row_number": 4,
+            "errors": [],
+            "data": {
+              "extra": "information",
+              "level": 9,
+              "Title": "DBA",
+              "Name": "Catherine"
             }
-          ],
-          "data": {
-            "extra": null,
-            "level": "10",
-            "Title": "Engineer",
-            "Name": "Tony"
+          },
+          {
+            "row_number": 5,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "missing-value",
+                "message": "Row 5 has a missing value in column 1 (extra)",
+                "fields": [
+                  "extra"
+                ]
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": "10",
+              "Title": "Engineer",
+              "Name": "Tony"
+            }
           }
-        }
-      ],
-      "valid_row_count": 1,
-      "invalid_row_count": 3
-    }
-  ],
-  "valid": false
+        ],
+        "valid_row_count": 1,
+        "invalid_row_count": 3
+      }
+    ],
+    "valid": false
+  }
 }
 ```
 
@@ -478,87 +488,97 @@ curl -s -X POST \
 
 ```json
 {
-  "tables": [
-    {
-      "headers": [
-        "Name",
-        "Title",
-        "level"
-      ],
-      "whole_table_errors": [],
-      "rows": [
-        {
-          "row_number": 2,
-          "errors": [],
-          "data": {
-            "Name": "Guido",
-            "Title": "BDFL",
-            "level": "20"
-          }
-        },
-        {
-          "row_number": 3,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "blank-row",
-              "message": "Row 3 is completely blank",
-              "fields": []
+  "id": 2,
+  "created_at": "2020-03-19T22:48:15.770146Z",
+  "updated_at": "2020-03-19T22:48:15.881419Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": {},
+  "validation_results": {
+    "tables": [
+      {
+        "headers": [
+          "Name",
+          "Title",
+          "level"
+        ],
+        "whole_table_errors": [],
+        "rows": [
+          {
+            "row_number": 2,
+            "errors": [],
+            "data": {
+              "Name": "Guido",
+              "Title": "BDFL",
+              "level": "20"
             }
-          ],
-          "data": {
-            "Name": "",
-            "Title": "",
-            "level": ""
-          }
-        },
-        {
-          "row_number": 4,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "extra-value",
-              "message": "Row 4 has an extra value in column 4",
-              "fields": []
+          },
+          {
+            "row_number": 3,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 3 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "",
+              "Title": "",
+              "level": ""
             }
-          ],
-          "data": {
-            "Name": "Catherine",
-            "Title": "",
-            "level": "9"
-          }
-        },
-        {
-          "row_number": 5,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "blank-row",
-              "message": "Row 5 is completely blank",
-              "fields": []
+          },
+          {
+            "row_number": 4,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "extra-value",
+                "message": "Row 4 has an extra value in column 4",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "Catherine",
+              "Title": "",
+              "level": "9"
             }
-          ],
-          "data": {
-            "Name": "",
-            "Title": "",
-            "level": ""
+          },
+          {
+            "row_number": 5,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 5 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "",
+              "Title": "",
+              "level": ""
+            }
+          },
+          {
+            "row_number": 6,
+            "errors": [],
+            "data": {
+              "Name": "Tony",
+              "Title": "Engineer",
+              "level": "10"
+            }
           }
-        },
-        {
-          "row_number": 6,
-          "errors": [],
-          "data": {
-            "Name": "Tony",
-            "Title": "Engineer",
-            "level": "10"
-          }
-        }
-      ],
-      "valid_row_count": 2,
-      "invalid_row_count": 3
-    }
-  ],
-  "valid": false
+        ],
+        "valid_row_count": 2,
+        "invalid_row_count": 3
+      }
+    ],
+    "valid": false
+  }
 }
 ```
 
@@ -578,87 +598,97 @@ curl -s -X PUT \
 
 ```json
 {
-  "tables": [
-    {
-      "headers": [
-        "extra",
-        "level",
-        "Title",
-        "Name"
-      ],
-      "whole_table_errors": [],
-      "rows": [
-        {
-          "row_number": 2,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "missing-value",
-              "message": "Row 2 has a missing value in column 1 (extra)",
-              "fields": [
-                "extra"
-              ]
+  "id": 3,
+  "created_at": "2020-03-19T22:48:37.980498Z",
+  "updated_at": "2020-03-19T22:48:38.090478Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": {},
+  "validation_results": {
+    "tables": [
+      {
+        "headers": [
+          "extra",
+          "level",
+          "Title",
+          "Name"
+        ],
+        "whole_table_errors": [],
+        "rows": [
+          {
+            "row_number": 2,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "missing-value",
+                "message": "Row 2 has a missing value in column 1 (extra)",
+                "fields": [
+                  "extra"
+                ]
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": "20",
+              "Title": "BDFL",
+              "Name": "Guido"
             }
-          ],
-          "data": {
-            "extra": null,
-            "level": "20",
-            "Title": "BDFL",
-            "Name": "Guido"
-          }
-        },
-        {
-          "row_number": 3,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "blank-row",
-              "message": "Row 3 is completely blank",
-              "fields": []
+          },
+          {
+            "row_number": 3,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 3 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": null,
+              "Title": null,
+              "Name": null
             }
-          ],
-          "data": {
-            "extra": null,
-            "level": null,
-            "Title": null,
-            "Name": null
-          }
-        },
-        {
-          "row_number": 4,
-          "errors": [],
-          "data": {
-            "extra": "information",
-            "level": 9,
-            "Title": "DBA",
-            "Name": "Catherine"
-          }
-        },
-        {
-          "row_number": 5,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "missing-value",
-              "message": "Row 5 has a missing value in column 1 (extra)",
-              "fields": [
-                "extra"
-              ]
+          },
+          {
+            "row_number": 4,
+            "errors": [],
+            "data": {
+              "extra": "information",
+              "level": 9,
+              "Title": "DBA",
+              "Name": "Catherine"
             }
-          ],
-          "data": {
-            "extra": null,
-            "level": "10",
-            "Title": "Engineer",
-            "Name": "Tony"
+          },
+          {
+            "row_number": 5,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "missing-value",
+                "message": "Row 5 has a missing value in column 1 (extra)",
+                "fields": [
+                  "extra"
+                ]
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": "10",
+              "Title": "Engineer",
+              "Name": "Tony"
+            }
           }
-        }
-      ],
-      "valid_row_count": 1,
-      "invalid_row_count": 3
-    }
-  ],
-  "valid": false
+        ],
+        "valid_row_count": 1,
+        "invalid_row_count": 3
+      }
+    ],
+    "valid": false
+  }
 }
 ```
 
@@ -676,87 +706,97 @@ curl -s -X PUT \
 
 ```json
 {
-  "tables": [
-    {
-      "headers": [
-        "Name",
-        "Title",
-        "level"
-      ],
-      "whole_table_errors": [],
-      "rows": [
-        {
-          "row_number": 2,
-          "errors": [],
-          "data": {
-            "Name": "Guido",
-            "Title": "BDFL",
-            "level": "20"
-          }
-        },
-        {
-          "row_number": 3,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "blank-row",
-              "message": "Row 3 is completely blank",
-              "fields": []
+  "id": 4,
+  "created_at": "2020-03-19T22:48:54.436337Z",
+  "updated_at": "2020-03-19T22:48:54.547479Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": {},
+  "validation_results": {
+    "tables": [
+      {
+        "headers": [
+          "Name",
+          "Title",
+          "level"
+        ],
+        "whole_table_errors": [],
+        "rows": [
+          {
+            "row_number": 2,
+            "errors": [],
+            "data": {
+              "Name": "Guido",
+              "Title": "BDFL",
+              "level": "20"
             }
-          ],
-          "data": {
-            "Name": "",
-            "Title": "",
-            "level": ""
-          }
-        },
-        {
-          "row_number": 4,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "extra-value",
-              "message": "Row 4 has an extra value in column 4",
-              "fields": []
+          },
+          {
+            "row_number": 3,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 3 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "",
+              "Title": "",
+              "level": ""
             }
-          ],
-          "data": {
-            "Name": "Catherine",
-            "Title": "",
-            "level": "9"
-          }
-        },
-        {
-          "row_number": 5,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "blank-row",
-              "message": "Row 5 is completely blank",
-              "fields": []
+          },
+          {
+            "row_number": 4,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "extra-value",
+                "message": "Row 4 has an extra value in column 4",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "Catherine",
+              "Title": "",
+              "level": "9"
             }
-          ],
-          "data": {
-            "Name": "",
-            "Title": "",
-            "level": ""
+          },
+          {
+            "row_number": 5,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 5 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "",
+              "Title": "",
+              "level": ""
+            }
+          },
+          {
+            "row_number": 6,
+            "errors": [],
+            "data": {
+              "Name": "Tony",
+              "Title": "Engineer",
+              "level": "10"
+            }
           }
-        },
-        {
-          "row_number": 6,
-          "errors": [],
-          "data": {
-            "Name": "Tony",
-            "Title": "Engineer",
-            "level": "10"
-          }
-        }
-      ],
-      "valid_row_count": 2,
-      "invalid_row_count": 3
-    }
-  ],
-  "valid": false
+        ],
+        "valid_row_count": 2,
+        "invalid_row_count": 3
+      }
+    ],
+    "valid": false
+  }
 }
 ```
 
@@ -776,87 +816,97 @@ curl -s -X PATCH \
 
 ```json
 {
-  "tables": [
-    {
-      "headers": [
-        "extra",
-        "level",
-        "Title",
-        "Name"
-      ],
-      "whole_table_errors": [],
-      "rows": [
-        {
-          "row_number": 2,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "missing-value",
-              "message": "Row 2 has a missing value in column 1 (extra)",
-              "fields": [
-                "extra"
-              ]
+  "id": 1,
+  "created_at": "2020-03-19T22:47:40.509878Z",
+  "updated_at": "2020-03-19T22:49:12.748836Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": {},
+  "validation_results": {
+    "tables": [
+      {
+        "headers": [
+          "extra",
+          "level",
+          "Title",
+          "Name"
+        ],
+        "whole_table_errors": [],
+        "rows": [
+          {
+            "row_number": 2,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "missing-value",
+                "message": "Row 2 has a missing value in column 1 (extra)",
+                "fields": [
+                  "extra"
+                ]
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": "20",
+              "Title": "BDFL",
+              "Name": "Guido"
             }
-          ],
-          "data": {
-            "extra": null,
-            "level": "20",
-            "Title": "BDFL",
-            "Name": "Guido"
-          }
-        },
-        {
-          "row_number": 3,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "blank-row",
-              "message": "Row 3 is completely blank",
-              "fields": []
+          },
+          {
+            "row_number": 3,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 3 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": null,
+              "Title": null,
+              "Name": null
             }
-          ],
-          "data": {
-            "extra": null,
-            "level": null,
-            "Title": null,
-            "Name": null
-          }
-        },
-        {
-          "row_number": 4,
-          "errors": [],
-          "data": {
-            "extra": "information",
-            "level": 9,
-            "Title": "DBA",
-            "Name": "Catherine"
-          }
-        },
-        {
-          "row_number": 5,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "missing-value",
-              "message": "Row 5 has a missing value in column 1 (extra)",
-              "fields": [
-                "extra"
-              ]
+          },
+          {
+            "row_number": 4,
+            "errors": [],
+            "data": {
+              "extra": "information",
+              "level": 9,
+              "Title": "DBA",
+              "Name": "Catherine"
             }
-          ],
-          "data": {
-            "extra": null,
-            "level": "10",
-            "Title": "Engineer",
-            "Name": "Tony"
+          },
+          {
+            "row_number": 5,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "missing-value",
+                "message": "Row 5 has a missing value in column 1 (extra)",
+                "fields": [
+                  "extra"
+                ]
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": "10",
+              "Title": "Engineer",
+              "Name": "Tony"
+            }
           }
-        }
-      ],
-      "valid_row_count": 1,
-      "invalid_row_count": 3
-    }
-  ],
-  "valid": false
+        ],
+        "valid_row_count": 1,
+        "invalid_row_count": 3
+      }
+    ],
+    "valid": false
+  }
 }
 ```
 
@@ -874,87 +924,97 @@ curl -s -X PATCH \
 
 ```json
 {
-  "tables": [
-    {
-      "headers": [
-        "Name",
-        "Title",
-        "level"
-      ],
-      "whole_table_errors": [],
-      "rows": [
-        {
-          "row_number": 2,
-          "errors": [],
-          "data": {
-            "Name": "Guido",
-            "Title": "BDFL",
-            "level": "20"
-          }
-        },
-        {
-          "row_number": 3,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "blank-row",
-              "message": "Row 3 is completely blank",
-              "fields": []
+  "id": 2,
+  "created_at": "2020-03-19T22:48:15.770146Z",
+  "updated_at": "2020-03-19T22:49:25.857647Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": {},
+  "validation_results": {
+    "tables": [
+      {
+        "headers": [
+          "Name",
+          "Title",
+          "level"
+        ],
+        "whole_table_errors": [],
+        "rows": [
+          {
+            "row_number": 2,
+            "errors": [],
+            "data": {
+              "Name": "Guido",
+              "Title": "BDFL",
+              "level": "20"
             }
-          ],
-          "data": {
-            "Name": "",
-            "Title": "",
-            "level": ""
-          }
-        },
-        {
-          "row_number": 4,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "extra-value",
-              "message": "Row 4 has an extra value in column 4",
-              "fields": []
+          },
+          {
+            "row_number": 3,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 3 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "",
+              "Title": "",
+              "level": ""
             }
-          ],
-          "data": {
-            "Name": "Catherine",
-            "Title": "",
-            "level": "9"
-          }
-        },
-        {
-          "row_number": 5,
-          "errors": [
-            {
-              "severity": "Error",
-              "code": "blank-row",
-              "message": "Row 5 is completely blank",
-              "fields": []
+          },
+          {
+            "row_number": 4,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "extra-value",
+                "message": "Row 4 has an extra value in column 4",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "Catherine",
+              "Title": "",
+              "level": "9"
             }
-          ],
-          "data": {
-            "Name": "",
-            "Title": "",
-            "level": ""
+          },
+          {
+            "row_number": 5,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 5 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "",
+              "Title": "",
+              "level": ""
+            }
+          },
+          {
+            "row_number": 6,
+            "errors": [],
+            "data": {
+              "Name": "Tony",
+              "Title": "Engineer",
+              "level": "10"
+            }
           }
-        },
-        {
-          "row_number": 6,
-          "errors": [],
-          "data": {
-            "Name": "Tony",
-            "Title": "Engineer",
-            "level": "10"
-          }
-        }
-      ],
-      "valid_row_count": 2,
-      "invalid_row_count": 3
-    }
-  ],
-  "valid": false
+        ],
+        "valid_row_count": 2,
+        "invalid_row_count": 3
+      }
+    ],
+    "valid": false
+  }
 }
 ```
 
