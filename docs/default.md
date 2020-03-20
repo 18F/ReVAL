@@ -13,7 +13,7 @@ mkdir myproject
 cd myproject
 ```
 
-Install ReVAL:
+Install ReVal:
 
 - Replace `<version>` with the latest tag i.e. `v0.7.0` or
 
