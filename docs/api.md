@@ -1,112 +1,1319 @@
 # API
 
-Some operations are available via a RESTful API.
+ReVal provides a RESTful API to manage `DATA_INGEST['MODEL']` instances. The default API routing prefix is `/api/`, as defined in [urls.py](../data_ingest/urls.py "urls.py for data_ingest"). API requests may have a content type of either `text/csv` or `application/json`, but all API responses will be in JSON.
 
-## Upload endpoints
+The default upload model has the following statuses:
 
-`GET` to `/data_ingest/api/` for a list of all uploads.
-`DELETE` to `/data_ingest/api/:id` to delete an upload with the id `:id`.
-    - Will return 204 (no content) on success, 404 (not found) otherwise.
+- `LOADING`: initial insert of upload data in the database.
+
+- `PENDING`: not used at present.
+
+- `STAGED`: stage upload data for final review.
+
+- `INSERTED`: finalize upload data and associated validation results.
+
+- `DELETED`: indicates a deleted upload: a "soft" delete.
+
+# Endpoints
+
+Supported endpoints are:
+
+- `GET` `/api/`: obtain a list of all uploads.
+  - Returns 200.
+
+- `GET` `/api/:id`: obtain upload data.
+  - Returns 200 with upload data.
+  - If `:id:` does not exist, returns 404 (not found).
+
+- `POST` `/api`:
+  - Returns 200 with validation information.
+
+- `PUT` `/api/:id`: replace an upload and validate upload
+  - Returns 200 with validation information; the previous upload is saved as `replaces`. Note that a new id is generated.
+  - If `:id:` does not exist, returns 404 (not found).
+
+- `PATCH` `/api/:id`: replace an upload in-place and validate upload
+  - Returns 200 with validation information; the previous upload is not saved.
+  - If `:id:` does not exist, returns 404 (not found).
+
+- `DELETE` `/api/:id`: delete an upload with the id `:id`.
+  - Returns 204 (no content) on success.
+  - If `:id:` does not exist, returns 404 (not found).
+
+The API also provides some custom endpoints for managing uploads:
+
+- `POST` `/api/:id/stage`:
+  - Stages the upload information (sets status to `STAGED`)
+  - Returns 204 (no content) on success.
+
+- `POST` `/api/:id/insert`:
+  - Inserts the upload information (sets status to `INSERTED`)
+  - If upload is not `STAGED`, returns a 400 (bad request).
+  - Returns 204 (no content) on success.
+
+The API will also return a 400 (bad request) for any requests that the API can not parse.
+
+The API will also return a 500 (internal server error), along with an error message, if the database cannot save the upload data for any reason.
 
 ## Validate endpoint
 
-`POST` to `/data_ingest/api/validate/` to apply your app's validator
-to a payload.  This will not insert the rows, but will provide
-error information.
+The API also provides a stand-alone validation endpoint:
 
-This endpoint requires a token to authenticate.  Admin should be able to log into the admin page from a web browser
-at `/admin/` and under "Authentication And Authorization" -> "Users", click on "+ Add" to add a user.
-After a user has been added, they can obtain the token to authenticate.
+- `POST` `/api/validate`: Apply configured validator(s) to request data.
+  - Does not insert data in the database.
+  - Returns 200 with validation information.
 
-### Obtain Token
+# Authentication
 
-`POST` to `/data_ingest/api/api-token-auth` to get the token for authentication.
+API endpoints require a [django-rest framework token to authenticate](https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication "token to authenticate from the django-rest framework").
+
+Each user will require a token to authenticate against the API.
+
+One way to do this is to log in as a super user and use the Django `/admin` interface:
+
+1. Add an user (if not already done) at `/admin/auth/user/add/`.
+2. Create a new token at `/admin/authtoken/token/add/`.
+
+This token may be retrieved by the user ([see the `Obtaining a Token` example below](#obtaining-a-token "obtaining a token below")).
+
+# Examples
+
+These examples assume the default example project (included in this repository) is running on port 8000, and as such the default url is `http://localhost:8000/data_ingest`. Please adjust the url accordingly for your project.
+
+## Obtaining a Token
+
+You may `POST` to `/api/api-token-auth` to get your user token for authentication.
+
+<details><summary>Example</summary>
 
 ```bash
-curl -X POST \
--F username=<replace with what the admin gives you> \
--F password=<replace with what the admin gives you> \
-http://localhost:8000/data_ingest/api/api-token-auth/
+curl -s -X POST \
+  -F username=your_username_here \
+  -F password=your_password_here \
+  http://localhost:8000/data_ingest/api/api-token-auth/
 ```
 
-You will get a JSON response back with the token:
 ```json
-{"token": "<Token to use for authentication on validate API>"}
+{"token":"faketoken"}
 ```
 
-Use this token in the header as shown below.
+We will use this fake token in the header for the rest of the examples below. If following along, be sure to replace this fake token with your own token!
 
-### Validate JSON data
+</details>
+
+## Example data
+
+We provide some sample runs which use the `curl` command line tool. Some of these runs use the following (deliberately incorrect) data examples:
+
+<details><summary>Example (CSV): test_cases.csv</summary>
+
+```csv
+"Name","Title","level"
+"Guido","BDFL",20
+
+"Catherine",,9,"DBA"
+,
+"Tony","Engineer",10
+```
+
+</details>
+
+<details><summary>Example (JSON): test_cases.json</summary>
+
+```json
+{
+  "source": [
+    {
+      "Name": "Guido",
+      "Title": "BDFL",
+      "level": "20"
+    },
+    {},
+    {
+      "Name": "Catherine",
+      "extra": "information",
+      "level": 9,
+      "Title": "DBA"
+    },
+    {
+      "Name": "Tony",
+      "Title": "Engineer",
+      "level": "10"
+    }
+  ]
+}
+```
+
+</details>
+
+## List uploads
+
+<details><summary>Example</summary>
+
+```bash
+curl -s -X GET \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/
+```
+
+```json
+[
+  {
+    "id": 1,
+    "created_at": "2020-03-19T21:30:00.836189Z",
+    "updated_at": "2020-03-19T21:30:00.944063Z",
+    "status": "LOADING",
+    "status_changed_by": null,
+    "status_changed_at": null,
+    "submitter": 1,
+    "file_metadata": {},
+    "validation_results": {
+      "valid": false,
+      "tables": [
+        {
+          "rows": [
+            {
+              "data": {
+                "Name": "Guido",
+                "Title": "BDFL",
+                "extra": null,
+                "level": "20"
+              },
+              "errors": [
+                {
+                  "code": "missing-value",
+                  "fields": [
+                    "extra"
+                  ],
+                  "message": "Row 2 has a missing value in column 1 (extra)",
+                  "severity": "Error"
+                }
+              ],
+              "row_number": 2
+            },
+            {
+              "data": {
+                "Name": null,
+                "Title": null,
+                "extra": null,
+                "level": null
+              },
+              "errors": [
+                {
+                  "code": "blank-row",
+                  "fields": [],
+                  "message": "Row 3 is completely blank",
+                  "severity": "Error"
+                }
+              ],
+              "row_number": 3
+            },
+            {
+              "data": {
+                "Name": "Catherine",
+                "Title": "DBA",
+                "extra": "information",
+                "level": 9
+              },
+              "errors": [],
+              "row_number": 4
+            },
+            {
+              "data": {
+                "Name": "Tony",
+                "Title": "Engineer",
+                "extra": null,
+                "level": "10"
+              },
+              "errors": [
+                {
+                  "code": "missing-value",
+                  "fields": [
+                    "extra"
+                  ],
+                  "message": "Row 5 has a missing value in column 1 (extra)",
+                  "severity": "Error"
+                }
+              ],
+              "row_number": 5
+            }
+          ],
+          "headers": [
+            "extra",
+            "level",
+            "Title",
+            "Name"
+          ],
+          "valid_row_count": 1,
+          "invalid_row_count": 3,
+          "whole_table_errors": []
+        }
+      ]
+    }
+  }
+]
+```
+
+</details>
+
+## Get upload
+
+<details><summary>Example</summary>
+
+```bash
+curl -s -X GET \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/1
+```
+
+```json
+{
+  "id": 1,
+  "created_at": "2020-03-19T21:30:00.836189Z",
+  "updated_at": "2020-03-19T21:30:00.944063Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": {},
+  "validation_results": {
+    "valid": false,
+    "tables": [
+      {
+        "rows": [
+          {
+            "data": {
+              "Name": "Guido",
+              "Title": "BDFL",
+              "extra": null,
+              "level": "20"
+            },
+            "errors": [
+              {
+                "code": "missing-value",
+                "fields": [
+                  "extra"
+                ],
+                "message": "Row 2 has a missing value in column 1 (extra)",
+                "severity": "Error"
+              }
+            ],
+            "row_number": 2
+          },
+          {
+            "data": {
+              "Name": null,
+              "Title": null,
+              "extra": null,
+              "level": null
+            },
+            "errors": [
+              {
+                "code": "blank-row",
+                "fields": [],
+                "message": "Row 3 is completely blank",
+                "severity": "Error"
+              }
+            ],
+            "row_number": 3
+          },
+          {
+            "data": {
+              "Name": "Catherine",
+              "Title": "DBA",
+              "extra": "information",
+              "level": 9
+            },
+            "errors": [],
+            "row_number": 4
+          },
+          {
+            "data": {
+              "Name": "Tony",
+              "Title": "Engineer",
+              "extra": null,
+              "level": "10"
+            },
+            "errors": [
+              {
+                "code": "missing-value",
+                "fields": [
+                  "extra"
+                ],
+                "message": "Row 5 has a missing value in column 1 (extra)",
+                "severity": "Error"
+              }
+            ],
+            "row_number": 5
+          }
+        ],
+        "headers": [
+          "extra",
+          "level",
+          "Title",
+          "Name"
+        ],
+        "valid_row_count": 1,
+        "invalid_row_count": 3,
+        "whole_table_errors": []
+      }
+    ]
+  }
+}
+```
+
+</details>
+
+## Create upload
+
+<details><summary>Example (JSON)</summary>
+
+```bash
+curl -s -X POST \
+  -d @test_cases.json \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/
+```
+
+```json
+{
+  "id": 1,
+  "created_at": "2020-03-19T22:47:40.509878Z",
+  "updated_at": "2020-03-19T22:47:40.621499Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": null,
+  "validation_results": {
+    "tables": [
+      {
+        "headers": [
+          "extra",
+          "level",
+          "Title",
+          "Name"
+        ],
+        "whole_table_errors": [],
+        "rows": [
+          {
+            "row_number": 2,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "missing-value",
+                "message": "Row 2 has a missing value in column 1 (extra)",
+                "fields": [
+                  "extra"
+                ]
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": "20",
+              "Title": "BDFL",
+              "Name": "Guido"
+            }
+          },
+          {
+            "row_number": 3,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 3 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": null,
+              "Title": null,
+              "Name": null
+            }
+          },
+          {
+            "row_number": 4,
+            "errors": [],
+            "data": {
+              "extra": "information",
+              "level": 9,
+              "Title": "DBA",
+              "Name": "Catherine"
+            }
+          },
+          {
+            "row_number": 5,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "missing-value",
+                "message": "Row 5 has a missing value in column 1 (extra)",
+                "fields": [
+                  "extra"
+                ]
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": "10",
+              "Title": "Engineer",
+              "Name": "Tony"
+            }
+          }
+        ],
+        "valid_row_count": 1,
+        "invalid_row_count": 3
+      }
+    ],
+    "valid": false
+  }
+}
+```
+
+</details>
+
+<details><summary>Example (CSV)</summary>
+
+```bash
+curl -s -X POST \
+  -d @test_cases.json \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/
+```
+
+```json
+{
+  "id": 2,
+  "created_at": "2020-03-19T22:48:15.770146Z",
+  "updated_at": "2020-03-19T22:48:15.881419Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": {},
+  "validation_results": {
+    "tables": [
+      {
+        "headers": [
+          "Name",
+          "Title",
+          "level"
+        ],
+        "whole_table_errors": [],
+        "rows": [
+          {
+            "row_number": 2,
+            "errors": [],
+            "data": {
+              "Name": "Guido",
+              "Title": "BDFL",
+              "level": "20"
+            }
+          },
+          {
+            "row_number": 3,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 3 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "",
+              "Title": "",
+              "level": ""
+            }
+          },
+          {
+            "row_number": 4,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "extra-value",
+                "message": "Row 4 has an extra value in column 4",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "Catherine",
+              "Title": "",
+              "level": "9"
+            }
+          },
+          {
+            "row_number": 5,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 5 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "",
+              "Title": "",
+              "level": ""
+            }
+          },
+          {
+            "row_number": 6,
+            "errors": [],
+            "data": {
+              "Name": "Tony",
+              "Title": "Engineer",
+              "level": "10"
+            }
+          }
+        ],
+        "valid_row_count": 2,
+        "invalid_row_count": 3
+      }
+    ],
+    "valid": false
+  }
+}
+```
+
+</details>
+
+## Replace upload
+
+<details><summary>Example (JSON)</summary>
+
+```bash
+curl -s -X PUT \
+  -d @test_cases.json \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/1/
+```
+
+```json
+{
+  "id": 3,
+  "created_at": "2020-03-19T22:48:37.980498Z",
+  "updated_at": "2020-03-19T22:48:38.090478Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": {},
+  "validation_results": {
+    "tables": [
+      {
+        "headers": [
+          "extra",
+          "level",
+          "Title",
+          "Name"
+        ],
+        "whole_table_errors": [],
+        "rows": [
+          {
+            "row_number": 2,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "missing-value",
+                "message": "Row 2 has a missing value in column 1 (extra)",
+                "fields": [
+                  "extra"
+                ]
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": "20",
+              "Title": "BDFL",
+              "Name": "Guido"
+            }
+          },
+          {
+            "row_number": 3,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 3 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": null,
+              "Title": null,
+              "Name": null
+            }
+          },
+          {
+            "row_number": 4,
+            "errors": [],
+            "data": {
+              "extra": "information",
+              "level": 9,
+              "Title": "DBA",
+              "Name": "Catherine"
+            }
+          },
+          {
+            "row_number": 5,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "missing-value",
+                "message": "Row 5 has a missing value in column 1 (extra)",
+                "fields": [
+                  "extra"
+                ]
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": "10",
+              "Title": "Engineer",
+              "Name": "Tony"
+            }
+          }
+        ],
+        "valid_row_count": 1,
+        "invalid_row_count": 3
+      }
+    ],
+    "valid": false
+  }
+}
+```
+
+</details>
+
+<details><summary>Example (CSV)</summary>
+
+```bash
+curl -s -X PUT \
+  --data-binary @test_cases.csv \
+  -H "Content-Type: text/csv" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/2/
+```
+
+```json
+{
+  "id": 4,
+  "created_at": "2020-03-19T22:48:54.436337Z",
+  "updated_at": "2020-03-19T22:48:54.547479Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": {},
+  "validation_results": {
+    "tables": [
+      {
+        "headers": [
+          "Name",
+          "Title",
+          "level"
+        ],
+        "whole_table_errors": [],
+        "rows": [
+          {
+            "row_number": 2,
+            "errors": [],
+            "data": {
+              "Name": "Guido",
+              "Title": "BDFL",
+              "level": "20"
+            }
+          },
+          {
+            "row_number": 3,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 3 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "",
+              "Title": "",
+              "level": ""
+            }
+          },
+          {
+            "row_number": 4,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "extra-value",
+                "message": "Row 4 has an extra value in column 4",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "Catherine",
+              "Title": "",
+              "level": "9"
+            }
+          },
+          {
+            "row_number": 5,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 5 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "",
+              "Title": "",
+              "level": ""
+            }
+          },
+          {
+            "row_number": 6,
+            "errors": [],
+            "data": {
+              "Name": "Tony",
+              "Title": "Engineer",
+              "level": "10"
+            }
+          }
+        ],
+        "valid_row_count": 2,
+        "invalid_row_count": 3
+      }
+    ],
+    "valid": false
+  }
+}
+```
+
+</details>
+
+## Replace upload in-place
+
+<details><summary>Example (JSON)</summary>
+
+```bash
+curl -s -X PATCH \
+  -d @test_cases.json \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/1/
+```
+
+```json
+{
+  "id": 1,
+  "created_at": "2020-03-19T22:47:40.509878Z",
+  "updated_at": "2020-03-19T22:49:12.748836Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": {},
+  "validation_results": {
+    "tables": [
+      {
+        "headers": [
+          "extra",
+          "level",
+          "Title",
+          "Name"
+        ],
+        "whole_table_errors": [],
+        "rows": [
+          {
+            "row_number": 2,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "missing-value",
+                "message": "Row 2 has a missing value in column 1 (extra)",
+                "fields": [
+                  "extra"
+                ]
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": "20",
+              "Title": "BDFL",
+              "Name": "Guido"
+            }
+          },
+          {
+            "row_number": 3,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 3 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": null,
+              "Title": null,
+              "Name": null
+            }
+          },
+          {
+            "row_number": 4,
+            "errors": [],
+            "data": {
+              "extra": "information",
+              "level": 9,
+              "Title": "DBA",
+              "Name": "Catherine"
+            }
+          },
+          {
+            "row_number": 5,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "missing-value",
+                "message": "Row 5 has a missing value in column 1 (extra)",
+                "fields": [
+                  "extra"
+                ]
+              }
+            ],
+            "data": {
+              "extra": null,
+              "level": "10",
+              "Title": "Engineer",
+              "Name": "Tony"
+            }
+          }
+        ],
+        "valid_row_count": 1,
+        "invalid_row_count": 3
+      }
+    ],
+    "valid": false
+  }
+}
+```
+
+</details>
+
+<details><summary>Example (CSV)</summary>
+
+```bash
+curl -s -X PATCH \
+  --data-binary @test_cases.csv \
+  -H "Content-Type: text/csv" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/2/
+```
+
+```json
+{
+  "id": 2,
+  "created_at": "2020-03-19T22:48:15.770146Z",
+  "updated_at": "2020-03-19T22:49:25.857647Z",
+  "status": "LOADING",
+  "status_changed_by": null,
+  "status_changed_at": null,
+  "submitter": 1,
+  "file_metadata": {},
+  "validation_results": {
+    "tables": [
+      {
+        "headers": [
+          "Name",
+          "Title",
+          "level"
+        ],
+        "whole_table_errors": [],
+        "rows": [
+          {
+            "row_number": 2,
+            "errors": [],
+            "data": {
+              "Name": "Guido",
+              "Title": "BDFL",
+              "level": "20"
+            }
+          },
+          {
+            "row_number": 3,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 3 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "",
+              "Title": "",
+              "level": ""
+            }
+          },
+          {
+            "row_number": 4,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "extra-value",
+                "message": "Row 4 has an extra value in column 4",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "Catherine",
+              "Title": "",
+              "level": "9"
+            }
+          },
+          {
+            "row_number": 5,
+            "errors": [
+              {
+                "severity": "Error",
+                "code": "blank-row",
+                "message": "Row 5 is completely blank",
+                "fields": []
+              }
+            ],
+            "data": {
+              "Name": "",
+              "Title": "",
+              "level": ""
+            }
+          },
+          {
+            "row_number": 6,
+            "errors": [],
+            "data": {
+              "Name": "Tony",
+              "Title": "Engineer",
+              "level": "10"
+            }
+          }
+        ],
+        "valid_row_count": 2,
+        "invalid_row_count": 3
+      }
+    ],
+    "valid": false
+  }
+}
+```
+
+</details>
+
+## Delete upload
+
+<details><summary>Example</summary>
+
+```bash
+curl -s -X DELETE \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/3
+```
+
+```json
+```
+
+Note: on success, a 204 (no content) response code is returned.
+
+</details>
+
+## Stage upload
+
+<details><summary>Example</summary>
+
+```bash
+curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/4/stage/
+```
+
+```json
+```
+
+Note: on success, a 204 (no content) response code is returned.
+
+</details>
+
+## Insert upload
+
+<details><summary>Example</summary>
+
+```bash
+curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  http://localhost:8000/data_ingest/api/5/insert/
+```
+
+```json
+```
+
+Note: on success, a 204 (no content) response code is returned.
+
+</details>
+
+## Validating
+
+<details><summary>Example (JSON)</summary>
 
 ```bash
 curl -X POST \
--H "Content-Type: application/json" \
--H "Authorization: Token <Replace with your Token here>" \
--d @test_cases.json \
-http://localhost:8000/data_ingest/api/validate/
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token faketoken" \
+  -d @test_cases.json \
+  http://localhost:8000/data_ingest/api/validate/
 ```
 
-or, in Python,
+```json
+{
+  "tables": [
+    {
+      "headers": [
+        "extra",
+        "level",
+        "Title",
+        "Name"
+      ],
+      "whole_table_errors": [],
+      "rows": [
+        {
+          "row_number": 2,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "missing-value",
+              "message": "Row 2 has a missing value in column 1 (extra)",
+              "fields": [
+                "extra"
+              ]
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": "20",
+            "Title": "BDFL",
+            "Name": "Guido"
+          }
+        },
+        {
+          "row_number": 3,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 3 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": null,
+            "Title": null,
+            "Name": null
+          }
+        },
+        {
+          "row_number": 4,
+          "errors": [],
+          "data": {
+            "extra": "information",
+            "level": 9,
+            "Title": "DBA",
+            "Name": "Catherine"
+          }
+        },
+        {
+          "row_number": 5,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "missing-value",
+              "message": "Row 5 has a missing value in column 1 (extra)",
+              "fields": [
+                "extra"
+              ]
+            }
+          ],
+          "data": {
+            "extra": null,
+            "level": "10",
+            "Title": "Engineer",
+            "Name": "Tony"
+          }
+        }
+      ],
+      "valid_row_count": 1,
+      "invalid_row_count": 3
+    }
+  ],
+  "valid": false
+}
+
+```
+
+</details>
+
+<details><summary>Example (CSV)</summary>
+
+```bash
+curl -X POST \
+  -H "Content-Type: text/csv" \
+  -H "Authorization: Token faketoken" \
+  --data-binary @test_cases.csv \
+  http://localhost:8000/data_ingest/api/validate/
+```
+
+```json
+{
+  "tables": [
+    {
+      "headers": [
+        "Name",
+        "Title",
+        "level"
+      ],
+      "whole_table_errors": [],
+      "rows": [
+        {
+          "row_number": 2,
+          "errors": [],
+          "data": {
+            "Name": "Guido",
+            "Title": "BDFL",
+            "level": "20"
+          }
+        },
+        {
+          "row_number": 3,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 3 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "",
+            "Title": "",
+            "level": ""
+          }
+        },
+        {
+          "row_number": 4,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "extra-value",
+              "message": "Row 4 has an extra value in column 4",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "Catherine",
+            "Title": "",
+            "level": "9"
+          }
+        },
+        {
+          "row_number": 5,
+          "errors": [
+            {
+              "severity": "Error",
+              "code": "blank-row",
+              "message": "Row 5 is completely blank",
+              "fields": []
+            }
+          ],
+          "data": {
+            "Name": "",
+            "Title": "",
+            "level": ""
+          }
+        },
+        {
+          "row_number": 6,
+          "errors": [],
+          "data": {
+            "Name": "Tony",
+            "Title": "Engineer",
+            "level": "10"
+          }
+        }
+      ],
+      "valid_row_count": 2,
+      "invalid_row_count": 3
+    }
+  ],
+  "valid": false
+}
+```
+
+</details>
+
+## Python
+
+We provide [a sample python example](example.py "a sample python example"), which uses the [`requests` library](https://requests.readthedocs.io/en/master/ "requests library"). This example demonstrates the standard life-cycle of an upload instance.
+
+A validation example is also provided below.
+
+<details><summary>Validate</summary>
 
 ```python
 import requests
 import json
 
 
-url = 'http://localhost:8000/data_ingest/api/validate/'
+url = "http://localhost:8000/data_ingest/api/validate/"
 
-with open('test_cases.json') as infile:
+with open("test_cases.json") as infile:  # or "test_cases.csv"
     content = json.load(infile)
 resp = requests.post(url,
                      json=content,
                      headers={
-                        "Authorization": "Token <Replace with Token here in the form of environment variables, not raw text in the code>"
+                        "Content-Type": "application/json",  # or "text/csv"
+                        "Authorization": "Token <token>"
                      })
 resp.json()
 ```
 
-### Validate CSV data
+</details>
 
-```bash
-curl -X POST \
--H "Content-Type: text/csv" \
--H "Authorization: Token <Replace with your Token here>" \
---data-binary @test_cases.csv \
-http://localhost:8000/data_ingest/api/validate/
-```
+# Validation
 
-or, in Python,
-
-```python
-import requests
-
-
-url = 'http://localhost:8000/data_ingest/api/validate/'
-
-with open('test_cases.csv') as infile:
-    content = infile.read()
-resp = requests.post(url,
-                     data=content,
-                     headers={
-                        "Content-Type": "text/csv",
-                        "Authorization": "Token <Replace with Token here in the form of environment variables, not raw text in the code>"
-                     })
-resp.json()
-```
-
-### Responses
+## Validation response structure
 
 After data is posted to the `validate` endpoint, one will expect a JSON response.
 
-#### Code: 200 - OK
-
-##### Description
+### Description
 
 The response will be a JSON object with the following items:
   - **tables** - a list of **table** JSON objects
   - **valid** - boolean to indicates whether the data is valid or not
 
-##### Definitions
+### Definitions
   - **table** - a JSON object with the following items:
     - **headers** - a list of field names for the data (for tabular data and flat JSON data)
     - **whole_table_errors** - a list of **error** JSON objects that are related to the entire table
@@ -127,7 +1334,7 @@ The response will be a JSON object with the following items:
     - **message** - error message that describe what the error is
     - **fields** - a list of all the field names that are associated with this error
 
-##### Example Value
+<details><summary>Example validation response</summary>
 
 ```json
 {
@@ -204,35 +1411,20 @@ The response will be a JSON object with the following items:
 }
 ```
 
-##### Error Codes
+</details>
 
-Each validator will provide a different set of error codes.  Some of the codes will be provided by the validator based on the available checks it performs.  Some validators will require app's owner to define their own set of error codes.  In this case, the app's owner will provide the error code specification.
+## Validator error codes
 
-###### GoodTables Validator
+Each validator provides a different set of error codes. Some of these error codes are provided by the validator based on the available checks it performs. Some validators will require the application owner to define their own set of error codes. In this case, the application owner will have to provide their own error code specification.
 
-GoodTables validator comes with its own set of error codes.  See the [validation](https://github.com/frictionlessdata/goodtables-py#validation) it performs where each check is an error code. Here's the [data quality specification](https://github.com/frictionlessdata/data-quality-spec/blob/master/spec.json) that defines all the available error codes from GoodTables.
+### GoodTables validator
 
-###### Rowwise Validator
+The GoodTables validator comes with its own set of error codes.  See the [validation documentation](https://github.com/frictionlessdata/goodtables-py#validation). There is also a [data quality specification](https://github.com/frictionlessdata/data-quality-spec/blob/master/spec.json) that defines all the available error codes from GoodTables.
 
-This includes both JSON Logic Validator and SQL Validator.  This type of validators requires the app's owner to define an error code for each rule definition.  Check with app's owner to obtain a list of error codes.  For more details on how to create your own rules, see [documentation on customizing a rowwise validator](customize.md#with-a-rowwise-validator).
+### Rowwise validator
 
-###### JSON Schema Validator
+This validator includes both a JSON Logic Validator and SQL Validator.  This type of validator requires the application owner to define an error code for each rule definition.  Check with the application owner to obtain a list of error codes.  For more details on how to create your own rules, see [documentation on customizing a rowwise validator](customize.md#with-a-rowwise-validator).
 
-JSON Schema validator comes with its own set of error codes.  The error code is the "validator" being used by the recommended [Python JSONSchema Validation](https://github.com/Julian/jsonschema).  The [validation keywords](https://json-schema.org/draft-07/json-schema-validation.html#rfc.section.6) will be used as the error code.
+### JSON Schema validator
 
-#### Code: 400 - Bad Request
-
-##### Description
-
-The response will be a JSON object to indicate the error.
-
-
-##### Example Value
-
-i.e. This is to indicate incorrect JSON format when media type is JSON.
-
-```json
-{
-    "detail": "JSON parse error - Expecting value: line 1 column 1 (char 0)"
-}
-```
+The JSON Schema validator comes with its own set of error codes.  The error code is the "validator" being used by the recommended [Python JSONSchema Validation](https://github.com/Julian/jsonschema). [Validation keywords](https://json-schema.org/draft-07/json-schema-validation.html#rfc.section.6) will be used as error codes.

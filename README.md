@@ -43,7 +43,7 @@ For the API, it can perform data validation, and view uploads that were done via
 
 If you would like to use ReVAL in your Django project, install using `pipenv` in your project...
 
-- Replace `<version>` with the latest tag i.e. `v0.2` or
+- Replace `<version>` with the latest tag i.e. `v0.7.0` or
 - Replace with `master` if you would like to work with the latest development version
 
 ```bash
